@@ -1,0 +1,27 @@
+<testCase name="db10.xml">
+<param name="japex.inputFile" value="data/db10.xml"/>
+</testCase>
+<testCase name="db10.xml">
+<param name="japex.inputFile" value="data/db10.xml"/>
+</testCase>
+<testCase name="db100.xml">
+<param name="japex.inputFile" value="data/db100.xml"/>
+</testCase>
+<testCase name="db1000.xml">
+<param name="japex.inputFile" value="data/db1000.xml"/>
+</testCase>
+<testCase name="db10000.xml">
+<param name="japex.inputFile" value="data/db10000.xml"/>
+</testCase>
+<testCase name="inv1.xml">
+<param name="japex.inputFile" value="data/inv1.xml"/>
+</testCase>
+<testCase name="inv10.xml">
+<param name="japex.inputFile" value="data/inv10.xml"/>
+</testCase>
+<testCase name="inv100.xml">
+<param name="japex.inputFile" value="data/inv100.xml"/>
+</testCase>
+<testCase name="inv1000.xml">
+<param name="japex.inputFile" value="data/inv1000.xml"/>
+</testCase>

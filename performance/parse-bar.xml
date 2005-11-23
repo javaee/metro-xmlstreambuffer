@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project [
+<!ENTITY testCases SYSTEM "testcases.xml">
+]>
+<testSuite name="parse" xmlns="http://www.sun.com/japex/testSuite">
+
+    <param name="japex.warmupTime" value="5"/>
+    <param name="japex.runTime" value="10"/>
+    <param name="japex.resultUnit" value="ms"/>
+
+    <driver name="XercesJAXPSAXDriver" normal="true">
+        <param name="japex.driverClass" value="com.sun.japex.jdsl.xml.parsing.sax.XercesJAXPSAXDriver"/>
+        <param name="jdsl.doNotReportSize" value="true"/>
+    </driver>
+    <driver name="JAXPSAXParserCreatorDriver">
+        <param name="japex.driverClass" value="com.sun.xml.stream.buffer.japex.SAXParserCreatorDriver"/>
+    </driver>
+    <driver name="XercesJAXPDOMParser">
+        <param name="japex.driverClass" value="com.sun.japex.jdsl.xml.parsing.dom.XercesJAXPDOMDriver"/>
+        <param name="jdsl.deferNodeExpansion" value="false"/>
+        <param name="jdsl.doNotReportSize" value="true"/>
+    </driver>
+
+&testCases;
+
+</testSuite>

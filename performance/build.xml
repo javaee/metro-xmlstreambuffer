@@ -1,0 +1,50 @@
+<project name="Build template" default="run">
+
+    <property name="build.sysclasspath" value="last"/>
+
+    <property name="project.dir" value="${basedir}/../"/>
+
+    <property name="streambuffer.dir" value="${project.dir}/streambuffer"/>
+    <property name="roundtriptest.dir" value="${project.dir}/roundtriptest"/>
+    <property name="xsbdrivers.dir" value="xsbdrivers"/>
+
+    <path id="class.path">
+	<fileset dir="${xsbdrivers.dir}" includes="lib/*.jar"/>
+	<fileset dir="${streambuffer.dir}" includes="lib/*.jar"/>
+    </path>
+
+    <path id="japex.class.path">
+	<fileset dir="${xsbdrivers.dir}" includes="lib/**/*.jar"/>
+	<fileset dir="${xsbdrivers.dir}" includes="dist/*.jar"/>
+	<fileset dir="${roundtriptest.dir}" includes="lib/*.jar"/>
+	<fileset dir="${streambuffer.dir}" includes="lib/*.jar"/>
+	<fileset dir="${streambuffer.dir}" includes="dist/*.jar"/>
+    </path>
+
+    <property name="japex.classPath" refid="japex.class.path"/>
+
+    <!--
+	This task is designed to be as follwing:
+
+          ant -Dconfig=<Japex configuration file> run
+
+    -->
+    <target name="run"> 
+        <java
+                dir="."
+                fork="true"
+                classname="com.sun.japex.Japex">
+            <jvmarg value="-server"/>
+            <jvmarg value="-XX:+UseJumpTables"/>
+<!--
+            <jvmarg value="-verbose:gc"/>
+            <jvmarg value="-Xms384m"/>
+            <jvmarg value="-Xmx384m"/>
+-->
+            <jvmarg value="-Djapex.classPath=${japex.classPath}"/>
+            <classpath refid="class.path"/>
+            <arg line="${config}"/>
+        </java>
+    </target>
+
+</project>
