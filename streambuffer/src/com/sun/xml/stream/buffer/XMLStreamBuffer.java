@@ -19,6 +19,10 @@
  */
 package com.sun.xml.stream.buffer;
 
+import java.util.Collections;
+import java.util.Map;
+import javax.xml.namespace.NamespaceContext;
+
 /*
  * TODO 
  * Use character array to store multiple sets of characters rather than
@@ -75,6 +79,8 @@ public class XMLStreamBuffer {
     public static final int COMMENT_AS_STRING           = COMMENT | FLAG_AS_STRING;
     
     public static final int END_OF_BUFFER               = -1;
+
+    protected static final Map<String, String> EMTPY_MAP = Collections.emptyMap();
     
     protected boolean _hasInternedStrings;
     
@@ -103,6 +109,10 @@ public class XMLStreamBuffer {
         _contentStrings = new FragmentedArray(new String[size], size);
         _contentCharacters = new FragmentedArray(new char[size][], size);
         _contentCharactersBuffer = new FragmentedArray(new char[4096], size);
+    }
+    
+    public Map<String, String> getInscopeNamespaces() {
+        return EMTPY_MAP;
     }
     
     public FragmentedArray<int[]> getStructure() {
@@ -183,5 +193,5 @@ public class XMLStreamBuffer {
          * TODO consider truncating the size of _structureStrings and
          * _contentCharactersBuffer to limit the memory used by the buffer
          */
-    }
+    }    
 }

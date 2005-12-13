@@ -19,13 +19,13 @@
  */
 package com.sun.xml.stream.buffer.stax;
 
-import com.sun.xml.stream.buffer.AbstractCreator;
+import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBufferException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-public class StreamWriterBufferProcessor extends AbstractCreator {
+public class StreamWriterBufferProcessor extends AbstractProcessor {
     
     public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
         setXMLStreamBuffer(buffer);
