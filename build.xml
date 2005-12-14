@@ -1,0 +1,58 @@
+<project name="StreamBufferPackage" default="dist" basedir=".">
+
+    
+    <property name="streambuffer.dir" value="streambuffer"/>
+    
+    <property name="package.dir"  value="package" />
+
+    <property file="${basedir}/${streambuffer.dir}/build.properties" />
+
+    <target name="prepare">
+            <tstamp>
+                <format property="TSTAMP" pattern="hhmmss"/>
+            </tstamp>
+            <mkdir dir="${package.dir}"/>
+    </target>
+    
+    <target name="clean">
+        <ant antfile="build-without-nb.xml" dir="${streambuffer.dir}" target="clean"/>
+    </target>
+    
+    <target name="dist">
+        <ant antfile="build-without-nb.xml" dir="${streambuffer.dir}" target="doc"/>
+    </target>
+    
+    <target name="source-package" depends="dist, prepare">
+        <zip destfile="${package.dir}/${ant.project.name}_src_${release.impl.version}_${DSTAMP}_${TSTAMP}.zip">
+            <fileset dir=".">
+                <include name="${streambuffer.dir}/**"/>
+            </fileset>                
+        </zip>    
+    </target>
+    
+    <target name="dist-package" depends="dist, prepare">
+	<mkdir dir="${package.dir}/${streambuffer.dir}.${release.impl.version}"/>
+	<copy todir="${package.dir}/${streambuffer.dir}.${release.impl.version}">
+            <fileset dir="${streambuffer.dir}/dist">
+                <include name="javadoc/**"/>
+            </fileset>
+            <fileset dir="${streambuffer.dir}">
+                <include name="lib/*.jar"/>
+                <include name="dist/streambuffer.jar"/>
+            </fileset>
+            <fileset dir="${basedir}">
+                <include name="license.txt"/>
+            </fileset>
+	</copy>
+        <zip destfile="${package.dir}/${ant.project.name}_dist_${release.impl.version}_${DSTAMP}_${TSTAMP}.zip">
+            <fileset dir="${package.dir}">
+                <include name="${streambuffer.dir}.${release.impl.version}/**/*"/>
+            </fileset>
+	</zip>
+	<delete dir="${package.dir}/${streambuffer.dir}.${release.impl.version}"/>
+    </target>
+
+    <target name="package" depends="source-package, dist-package">
+    </target>
+    
+</project>
