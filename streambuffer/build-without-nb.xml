@@ -103,7 +103,7 @@
     </target>        
         
     <target name="doc" depends="dist">
-        <javadoc source="1.4"
+        <javadoc
 		sourcepath="src"
 		packagenames="com.sun.xml.stream.buffer.*"
 		destdir="${dist.dir}/javadoc"
