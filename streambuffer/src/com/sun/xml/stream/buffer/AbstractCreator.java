@@ -59,6 +59,10 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         _contentCharactersBufferPtr = 0;
     }
     
+    protected final void setHasInternedStrings(boolean hasInternedStrings) {
+        _buffer.setHasInternedStrings(hasInternedStrings);
+    }
+    
     protected final void storeStructure(int b) {
         _structure[_structurePtr++] = b;
         if (_structurePtr == _structure.length) {
@@ -119,7 +123,7 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     protected final void storeContentCharacters(int type, char[] ch, int start, int length) {        
         if (_contentCharactersBufferPtr + length >= _contentCharactersBuffer.length) {
             if (length >= 512) {
-                storeStructure(type | XMLStreamBuffer.FLAG_AS_CHAR_ARRAY_COPY);
+                storeStructure(type | FLAG_AS_CHAR_ARRAY_COPY);
                 storeContentCharactersCopy(ch, start, length);
                 return;
             }

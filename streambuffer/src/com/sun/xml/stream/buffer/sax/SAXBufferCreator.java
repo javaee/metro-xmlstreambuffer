@@ -50,6 +50,11 @@ public class SAXBufferCreator extends AbstractCreator
         _namespaceAttributes = new String[16 * 2];        
     }
     
+    public SAXBufferCreator(XMLStreamBuffer buffer) {
+        this();
+        setBuffer(buffer);
+    }
+    
     public XMLStreamBuffer create(XMLReader reader, InputStream in) throws IOException, SAXException {
         if (_buffer == null) {
             createBuffer();
@@ -59,7 +64,7 @@ public class SAXBufferCreator extends AbstractCreator
         reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, this);
         
         try {
-            _buffer.setHasInternedStrings(reader.getFeature(Features.STRING_INTERNING_FEATURE));
+            setHasInternedStrings(reader.getFeature(Features.STRING_INTERNING_FEATURE));
         } catch (SAXException e) {
         }
         
@@ -74,11 +79,11 @@ public class SAXBufferCreator extends AbstractCreator
     }
     
     public void startDocument() throws SAXException {
-        storeStructure(XMLStreamBuffer.DOCUMENT);
+        storeStructure(T_DOCUMENT);
     }
     
     public void endDocument() throws SAXException {
-        storeStructure(XMLStreamBuffer.END);
+        storeStructure(T_END);
     }
         
     public void startPrefixMapping(String prefix, String uri) throws SAXException {
@@ -86,7 +91,7 @@ public class SAXBufferCreator extends AbstractCreator
     }
     
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-        storeQualifiedName(XMLStreamBuffer.ELEMENT_LN,
+        storeQualifiedName(T_ELEMENT_LN,
                 uri, localName, qName);
         
         // Has namespaces attributes
@@ -101,11 +106,11 @@ public class SAXBufferCreator extends AbstractCreator
     }
         
     public void endElement(String uri, String localName, String qName) throws SAXException {
-        storeStructure(XMLStreamBuffer.END);
+        storeStructure(T_END);
     }
     
     public void characters(char ch[], int start, int length) throws SAXException {
-        storeContentCharacters(XMLStreamBuffer.TEXT_AS_CHAR_ARRAY, ch, start, length);
+        storeContentCharacters(T_TEXT_AS_CHAR_ARRAY, ch, start, length);
     }
     
     public void ignorableWhitespace(char ch[], int start, int length) throws SAXException {
@@ -113,13 +118,13 @@ public class SAXBufferCreator extends AbstractCreator
     }
     
     public void processingInstruction(String target, String data) throws SAXException {
-        storeStructure(XMLStreamBuffer.PROCESSING_INSTRUCTION);
+        storeStructure(T_PROCESSING_INSTRUCTION);
         storeStructureString(target);
         storeStructureString(data);
     }
             
     public void comment(char[] ch, int start, int length) throws SAXException {
-        storeContentCharacters(XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY, ch, start, length);
+        storeContentCharacters(T_COMMENT_AS_CHAR_ARRAY, ch, start, length);
     }
     
     //
@@ -137,13 +142,13 @@ public class SAXBufferCreator extends AbstractCreator
 
     private void storeNamespaceAttributes() {
         for (int i = 0; i < _namespaceAttributesPtr; i += 2) {
-            int item = XMLStreamBuffer.NAMESPACE_ATTRIBUTE;
+            int item = T_NAMESPACE_ATTRIBUTE;
             if (_namespaceAttributes[i].length() > 0) {
-                item |= XMLStreamBuffer.FLAG_PREFIX;
+                item |= FLAG_PREFIX;
                 storeStructureString(_namespaceAttributes[i]);
             }
             if (_namespaceAttributes[i + 1].length() > 0) {
-                item |= XMLStreamBuffer.FLAG_URI;
+                item |= FLAG_URI;
                 storeStructureString(_namespaceAttributes[i + 1]);
             }
             storeStructure(item);
@@ -153,7 +158,7 @@ public class SAXBufferCreator extends AbstractCreator
     
     private void storeAttributes(Attributes attributes) {
         for (int i = 0; i < attributes.getLength(); i++) {
-            storeQualifiedName(XMLStreamBuffer.ATTRIBUTE_LN,
+            storeQualifiedName(T_ATTRIBUTE_LN,
                     attributes.getURI(i),
                     attributes.getLocalName(i),
                     attributes.getQName(i));
@@ -165,14 +170,14 @@ public class SAXBufferCreator extends AbstractCreator
     
     private void storeQualifiedName(int item, String uri, String localName, String qName) {
         if (uri.length() > 0) {
-            item |= XMLStreamBuffer.FLAG_URI;
+            item |= FLAG_URI;
             storeStructureString(uri);
         }
 
         storeStructureString(localName);
 
         if (qName.indexOf(':') >= 0) {
-            item |= XMLStreamBuffer.FLAG_QUALIFIED_NAME;
+            item |= FLAG_QUALIFIED_NAME;
             storeStructureString(qName);
         }
 

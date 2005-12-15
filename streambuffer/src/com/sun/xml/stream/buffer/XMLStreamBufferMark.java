@@ -22,7 +22,6 @@ package com.sun.xml.stream.buffer;
 import java.util.Map;
 
 public class XMLStreamBufferMark extends XMLStreamBuffer {
-    protected Map _inscopeNamespaces;
     
     public XMLStreamBufferMark(Map inscopeNamespaces, AbstractCreator creator) {
         _inscopeNamespaces = inscopeNamespaces;
@@ -41,9 +40,5 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
         
         _contentCharactersBuffer = creator._currentContentCharactersBufferFragment;
         _contentCharactersBufferPtr = creator._contentCharactersBufferPtr;
-    }
-    
-    public Map<String, String> getInscopeNamespaces() {
-        return _inscopeNamespaces;
-    }
+    }    
 }

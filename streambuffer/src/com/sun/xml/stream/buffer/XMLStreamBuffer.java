@@ -19,68 +19,30 @@
  */
 package com.sun.xml.stream.buffer;
 
+import com.sun.xml.stream.buffer.sax.Properties;
+import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
+import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
+import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
+import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
-import javax.xml.namespace.NamespaceContext;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.DTDHandler;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.ext.LexicalHandler;
 
-/*
- * TODO 
- * Use character array to store multiple sets of characters rather than
- * instantiate a new array of characters for each piece of content. Arrays
- * can be reused.
- */
 public class XMLStreamBuffer {
     public static int DEFAULT_ARRAY_SIZE = 512;
-    
-    public static final int FLAG_PREFIX                 = 1 << 0;
-    public static final int FLAG_URI                    = 1 << 1;
-    public static final int FLAG_QUALIFIED_NAME         = 1 << 2;
-    public static final int FLAG_NAMESPACE_ATTRIBUTE    = 1 << 3;
-    
-    public static final int FLAG_AS_CHAR_ARRAY_COPY     = 1 << 0;
-    public static final int FLAG_AS_STRING              = 1 << 1;
-    
-    public static final int FLAG_DOCUMENT_FRAGMENT      = 1 << 0;
-    
-    public static final int TYPE_MASK                   = 0xF0;
-    
-    public static final int END                         = 0x00;
-    public static final int DOCUMENT                    = 0x10;
-    public static final int ELEMENT                     = 0x20;
-    public static final int ATTRIBUTE                   = 0x30;
-    public static final int TEXT                        = 0x40;
-    public static final int COMMENT                     = 0x50;
-    public static final int PROCESSING_INSTRUCTION      = 0x60;
-    public static final int UNEXPANDED_ENTITY_REFERENCE = 0x70;
-
-    public static final int DOCUMENT_FRAGMENT           = DOCUMENT | FLAG_DOCUMENT_FRAGMENT;
-    
-    public static final int ELEMENT_U_LN_QN             = ELEMENT | FLAG_URI | FLAG_QUALIFIED_NAME;
-    public static final int ELEMENT_P_U_LN              = ELEMENT | FLAG_PREFIX | FLAG_URI;
-    public static final int ELEMENT_U_LN                = ELEMENT | FLAG_URI;
-    public static final int ELEMENT_LN                  = ELEMENT;
-    
-    public static final int NAMESPACE_ATTRIBUTE         = ATTRIBUTE | FLAG_NAMESPACE_ATTRIBUTE;
-    public static final int NAMESPACE_ATTRIBUTE_P       = NAMESPACE_ATTRIBUTE | FLAG_PREFIX;
-    public static final int NAMESPACE_ATTRIBUTE_P_U     = NAMESPACE_ATTRIBUTE | FLAG_PREFIX | FLAG_URI;
-    public static final int NAMESPACE_ATTRIBUTE_U       = NAMESPACE_ATTRIBUTE | FLAG_URI;
-    
-    public static final int ATTRIBUTE_U_LN_QN           = ATTRIBUTE | FLAG_URI | FLAG_QUALIFIED_NAME;
-    public static final int ATTRIBUTE_P_U_LN            = ATTRIBUTE | FLAG_PREFIX | FLAG_URI;
-    public static final int ATTRIBUTE_U_LN              = ATTRIBUTE | FLAG_URI;
-    public static final int ATTRIBUTE_LN                = ATTRIBUTE;
-    
-    public static final int TEXT_AS_CHAR_ARRAY          = TEXT;
-    public static final int TEXT_AS_CHAR_ARRAY_COPY     = TEXT | FLAG_AS_CHAR_ARRAY_COPY;
-    public static final int TEXT_AS_STRING              = TEXT | FLAG_AS_STRING;
-    
-    public static final int COMMENT_AS_CHAR_ARRAY       = COMMENT;
-    public static final int COMMENT_AS_CHAR_ARRAY_COPY  = COMMENT | FLAG_AS_CHAR_ARRAY_COPY;
-    public static final int COMMENT_AS_STRING           = COMMENT | FLAG_AS_STRING;
-    
-    public static final int END_OF_BUFFER               = -1;
-
+        
     protected static final Map<String, String> EMTPY_MAP = Collections.emptyMap();
+    
+    protected Map<String, String> _inscopeNamespaces = EMTPY_MAP;
     
     protected boolean _hasInternedStrings;
     
@@ -111,59 +73,73 @@ public class XMLStreamBuffer {
         _contentCharactersBuffer = new FragmentedArray(new char[4096], size);
     }
     
+    public boolean isMark() {
+        return this instanceof XMLStreamBufferMark;
+    }
+    
     public Map<String, String> getInscopeNamespaces() {
-        return EMTPY_MAP;
-    }
-    
-    public FragmentedArray<int[]> getStructure() {
-        return _structure;
-    }
-    
-    public int getStructurePtr() {
-        return _structurePtr;
-    }
-    
-    public FragmentedArray<String[]> getStructureStrings() {
-        return _structureStrings;
-    }
-    
-    public int getStructureStringsPtr() {
-        return _structureStringsPtr;
-    }
-    
-    public FragmentedArray<String[]> getContentStrings() {
-        return _contentStrings;
-    }
-    
-    public int getContentStringsPtr() {
-        return _contentStringsPtr;
-    }
-    
-    public FragmentedArray<char[][]> getContentCharacters() {
-        return _contentCharacters;
-    }
-    
-    public int getContentCharactersPtr() {
-        return _contentCharactersPtr;
-    }
-        
-    public FragmentedArray<char[]> getContentCharactersBuffer() {
-        return _contentCharactersBuffer;
-    }
-    
-    public int getContentCharactersBufferPtr() {
-        return _contentCharactersBufferPtr;
+        return _inscopeNamespaces;
     }
     
     public boolean getHasInternedStrings() {
         return _hasInternedStrings;
     }
     
-    public void setHasInternedStrings(boolean hasInternedStrings) {
+    public StreamReaderBufferProcessor processUsingStreamReaderBufferProcessor() {
+        return new StreamReaderBufferProcessor(this);
+    }
+    
+    public XMLStreamReader processUsingXMLStreamReader() {
+        return processUsingStreamReaderBufferProcessor();
+    }
+
+    public void createFromXMLStreamReader(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
+        StreamReaderBufferCreator c = new StreamReaderBufferCreator(this);
+        c.create(reader);
+    }
+    
+    
+    public SAXBufferProcessor processUsingSAXBufferProcessor() {
+        return new SAXBufferProcessor(this);
+    }
+    
+    public void processUsingSAXContentHandler(ContentHandler handler) {
+        SAXBufferProcessor p = processUsingSAXBufferProcessor();
+        p.setContentHandler(handler);
+        if (p instanceof LexicalHandler) {
+            p.setLexicalHandler((LexicalHandler)handler);
+        }
+        if (p instanceof DTDHandler) {
+            p.setDTDHandler((DTDHandler)handler);
+        }
+        if (p instanceof ErrorHandler) {
+            p.setErrorHandler((ErrorHandler)handler);
+        }
+    }
+    
+    public SAXBufferCreator createFromSAXBufferCreator() {
+        reset();
+        SAXBufferCreator c = new SAXBufferCreator();
+        c.setBuffer(this);
+        return c;
+    }
+    
+    public void createFromXMLReader(XMLReader reader, InputStream in) throws SAXException, IOException {
+        reset();
+        SAXBufferCreator c = new SAXBufferCreator(this);
+        
+        reader.setContentHandler(c);
+        reader.setDTDHandler(c);
+        reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, c);
+        
+        c.create(reader, in);
+    }
+    
+    protected void setHasInternedStrings(boolean hasInternedStrings) {
         _hasInternedStrings = hasInternedStrings;
     }
     
-    public void reset() {
+    protected void reset() {
         _structurePtr = 
                 _structureStringsPtr =
                 _contentStringsPtr =
@@ -193,5 +169,46 @@ public class XMLStreamBuffer {
          * TODO consider truncating the size of _structureStrings and
          * _contentCharactersBuffer to limit the memory used by the buffer
          */
-    }    
+    }
+    
+    protected FragmentedArray<int[]> getStructure() {
+        return _structure;
+    }
+    
+    protected int getStructurePtr() {
+        return _structurePtr;
+    }
+    
+    protected FragmentedArray<String[]> getStructureStrings() {
+        return _structureStrings;
+    }
+    
+    protected int getStructureStringsPtr() {
+        return _structureStringsPtr;
+    }
+    
+    protected FragmentedArray<String[]> getContentStrings() {
+        return _contentStrings;
+    }
+    
+    protected int getContentStringsPtr() {
+        return _contentStringsPtr;
+    }
+    
+    protected FragmentedArray<char[][]> getContentCharacters() {
+        return _contentCharacters;
+    }
+    
+    protected int getContentCharactersPtr() {
+        return _contentCharactersPtr;
+    }
+        
+    protected FragmentedArray<char[]> getContentCharactersBuffer() {
+        return _contentCharactersBuffer;
+    }
+    
+    protected int getContentCharactersBufferPtr() {
+        return _contentCharactersBufferPtr;
+    }
+    
 }

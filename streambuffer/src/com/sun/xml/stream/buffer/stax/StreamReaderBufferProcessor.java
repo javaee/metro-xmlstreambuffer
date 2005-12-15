@@ -20,6 +20,7 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractCreator;
+import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -30,6 +31,14 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
     protected int _eventType;
 
     protected char[] _characters;
+    
+    public StreamReaderBufferProcessor() {
+    }
+    
+    public StreamReaderBufferProcessor(XMLStreamBuffer buffer) {
+        this();
+        setXMLStreamBuffer(buffer);
+    }
     
     public Object getProperty(java.lang.String name) {
         return null;

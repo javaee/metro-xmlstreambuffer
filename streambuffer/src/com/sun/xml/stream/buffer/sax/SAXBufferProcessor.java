@@ -199,6 +199,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     public void parse(InputSource input) throws IOException, SAXException {
         try {
+            // InputSource is ignored
             process();
         } catch (XMLStreamBufferException e) { 
             throw new SAXException(e);
@@ -207,6 +208,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     public void parse(String systemId) throws IOException, SAXException {
         try {
+            // systemId is ignored
             process();
         } catch (XMLStreamBufferException e) { 
             throw new SAXException(e);
@@ -247,13 +249,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     private void processDocuments() throws XMLStreamBufferException {
         int item = 0;
-        while(item != XMLStreamBuffer.END_OF_BUFFER) {
+        while(item != T_END_OF_BUFFER) {
             item = readStructure();
             switch(item) {
-                case XMLStreamBuffer.DOCUMENT:
+                case T_DOCUMENT:
                     processDocument();
                     break;
-                case XMLStreamBuffer.END_OF_BUFFER:
+                case T_END_OF_BUFFER:
                     break;
                 default:
                     throw new XMLStreamBufferException("Illegal state for DIIs");
@@ -273,11 +275,11 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         do {
             item = readStructure();
             switch(item) {
-                case XMLStreamBuffer.ELEMENT_U_LN_QN:
+                case T_ELEMENT_U_LN_QN:
                     firstElementHasOccured = true;
                     processElement(readStructureString(), readStructureString(), readStructureString()); 
                     break;
-                case XMLStreamBuffer.ELEMENT_P_U_LN:
+                case T_ELEMENT_P_U_LN:
                 {
                     firstElementHasOccured = true;
                     final String prefix = readStructureString();
@@ -286,66 +288,66 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processElement(uri, localName, getQName(prefix, localName));
                     break;
                 }
-                case XMLStreamBuffer.ELEMENT_U_LN: {
+                case T_ELEMENT_U_LN: {
                     firstElementHasOccured = true;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     processElement(uri, localName, localName); 
                     break;
                 }
-                case XMLStreamBuffer.ELEMENT_LN:
+                case T_ELEMENT_LN:
                 {
                     firstElementHasOccured = true;
                     final String localName = readStructureString();
                     processElement("", localName, localName); 
                     break;
                 }
-                case XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY:
+                case T_COMMENT_AS_CHAR_ARRAY:
                 {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY_COPY: 
+                case T_COMMENT_AS_CHAR_ARRAY_COPY: 
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
                     break;
                 }
-                case XMLStreamBuffer.COMMENT_AS_STRING:
+                case T_COMMENT_AS_STRING:
                     processComment(readStructureString());
                     break;
-                case XMLStreamBuffer.PROCESSING_INSTRUCTION:
+                case T_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                case XMLStreamBuffer.END:
+                case T_END:
                     break;
                 default:
                     throw new XMLStreamBufferException("Illegal state for child of DII");
             }
-        } while(item != XMLStreamBuffer.END || !firstElementHasOccured);
+        } while(item != T_END || !firstElementHasOccured);
         
-        while(item != XMLStreamBuffer.END) {
+        while(item != T_END) {
             item = readStructure();
             switch(item) {
-                case XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY:
+                case T_COMMENT_AS_CHAR_ARRAY:
                 {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY_COPY: 
+                case T_COMMENT_AS_CHAR_ARRAY_COPY: 
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
                     break;
                 }
-                case XMLStreamBuffer.PROCESSING_INSTRUCTION:
+                case T_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                case XMLStreamBuffer.END:
+                case T_END:
                     break;
                 default:
                     throw new XMLStreamBufferException("Illegal state for child of DII");
@@ -363,7 +365,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         boolean hasAttributes = false;
         boolean hasNamespaceAttributes = false;
         int item = peakStructure();
-        if ((item & XMLStreamBuffer.TYPE_MASK) == XMLStreamBuffer.ATTRIBUTE) {
+        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             hasAttributes = true;
             hasNamespaceAttributes = processAttributes(item);
         }
@@ -489,30 +491,30 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         boolean hasNamespaceAttributes = false;
         do {
             switch(item) {
-                case XMLStreamBuffer.NAMESPACE_ATTRIBUTE:
+                case T_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     hasNamespaceAttributes = true;
                     processNamespaceAttribute("", "");
                     break;
-                case XMLStreamBuffer.NAMESPACE_ATTRIBUTE_P:
+                case T_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
                     hasNamespaceAttributes = true;
                     processNamespaceAttribute(readStructureString(), "");
                     break;
-                case XMLStreamBuffer.NAMESPACE_ATTRIBUTE_P_U:
+                case T_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
                     hasNamespaceAttributes = true;
                     processNamespaceAttribute(readStructureString(), readStructureString());
                     break;
-                case XMLStreamBuffer.NAMESPACE_ATTRIBUTE_U:
+                case T_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
                     hasNamespaceAttributes = true;
                     processNamespaceAttribute("", readStructureString());
                     break;
-                case XMLStreamBuffer.ATTRIBUTE_U_LN_QN:
+                case T_ATTRIBUTE_U_LN_QN:
                     _attributes.addAttributeWithQName(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;
-                case XMLStreamBuffer.ATTRIBUTE_P_U_LN:
+                case T_ATTRIBUTE_P_U_LN:
                 {
                     final String p = readStructureString();
                     final String u = readStructureString();
@@ -520,13 +522,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     _attributes.addAttributeWithQName(u, ln, getQName(p, ln), readStructureString(), readContentString());
                     break;
                 }
-                case XMLStreamBuffer.ATTRIBUTE_U_LN: {
+                case T_ATTRIBUTE_U_LN: {
                     final String u = readStructureString();
                     final String ln = readStructureString();
                     _attributes.addAttributeWithQName(u, ln, ln, readStructureString(), readContentString()); 
                     break;
                 }
-                case XMLStreamBuffer.ATTRIBUTE_LN: {
+                case T_ATTRIBUTE_LN: {
                     final String ln = readStructureString();
                     _attributes.addAttributeWithQName("", ln, ln, readStructureString(), readContentString()); 
                     break;
@@ -537,7 +539,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             readStructure();
             
             item = peakStructure();
-        } while((item & XMLStreamBuffer.TYPE_MASK) == XMLStreamBuffer.ATTRIBUTE);
+        } while((item & TYPE_MASK) == T_ATTRIBUTE);
         
         
         if (hasNamespaceAttributes) {

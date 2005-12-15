@@ -47,28 +47,28 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int[] _stateTable = new int[256];
     
     static {
-        _stateTable[XMLStreamBuffer.DOCUMENT] = STATE_DOCUMENT;
-        _stateTable[XMLStreamBuffer.DOCUMENT_FRAGMENT] = STATE_DOCUMENT_FRAGMENT;
-        _stateTable[XMLStreamBuffer.ELEMENT_U_LN_QN] = STATE_ELEMENT_U_LN_QN;
-        _stateTable[XMLStreamBuffer.ELEMENT_P_U_LN] = STATE_ELEMENT_P_U_LN;
-        _stateTable[XMLStreamBuffer.ELEMENT_U_LN] = STATE_ELEMENT_U_LN;
-        _stateTable[XMLStreamBuffer.ELEMENT_LN] = STATE_ELEMENT_LN;
-        _stateTable[XMLStreamBuffer.NAMESPACE_ATTRIBUTE] = STATE_NAMESPACE_ATTRIBUTE;
-        _stateTable[XMLStreamBuffer.NAMESPACE_ATTRIBUTE_P] = STATE_NAMESPACE_ATTRIBUTE_P;
-        _stateTable[XMLStreamBuffer.NAMESPACE_ATTRIBUTE_P_U] = STATE_NAMESPACE_ATTRIBUTE_P_U;
-        _stateTable[XMLStreamBuffer.NAMESPACE_ATTRIBUTE_U] = STATE_NAMESPACE_ATTRIBUTE_U;
-        _stateTable[XMLStreamBuffer.ATTRIBUTE_U_LN_QN] = STATE_ATTRIBUTE_U_LN_QN;
-        _stateTable[XMLStreamBuffer.ATTRIBUTE_P_U_LN] = STATE_ATTRIBUTE_P_U_LN;
-        _stateTable[XMLStreamBuffer.ATTRIBUTE_U_LN] = STATE_ATTRIBUTE_U_LN;
-        _stateTable[XMLStreamBuffer.ATTRIBUTE_LN] = STATE_ATTRIBUTE_LN;
-        _stateTable[XMLStreamBuffer.TEXT_AS_CHAR_ARRAY] = STATE_TEXT_AS_CHAR_ARRAY;
-        _stateTable[XMLStreamBuffer.TEXT_AS_CHAR_ARRAY_COPY] = STATE_TEXT_AS_CHAR_ARRAY_COPY;
-        _stateTable[XMLStreamBuffer.TEXT_AS_STRING] = STATE_TEXT_AS_STRING;
-        _stateTable[XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY] = STATE_COMMENT_AS_CHAR_ARRAY;
-        _stateTable[XMLStreamBuffer.COMMENT_AS_CHAR_ARRAY_COPY] = STATE_COMMENT_AS_CHAR_ARRAY_COPY;
-        _stateTable[XMLStreamBuffer.COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
-        _stateTable[XMLStreamBuffer.PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
-        _stateTable[XMLStreamBuffer.END] = STATE_END;
+        _stateTable[T_DOCUMENT] = STATE_DOCUMENT;
+        _stateTable[T_DOCUMENT_FRAGMENT] = STATE_DOCUMENT_FRAGMENT;
+        _stateTable[T_ELEMENT_U_LN_QN] = STATE_ELEMENT_U_LN_QN;
+        _stateTable[T_ELEMENT_P_U_LN] = STATE_ELEMENT_P_U_LN;
+        _stateTable[T_ELEMENT_U_LN] = STATE_ELEMENT_U_LN;
+        _stateTable[T_ELEMENT_LN] = STATE_ELEMENT_LN;
+        _stateTable[T_NAMESPACE_ATTRIBUTE] = STATE_NAMESPACE_ATTRIBUTE;
+        _stateTable[T_NAMESPACE_ATTRIBUTE_P] = STATE_NAMESPACE_ATTRIBUTE_P;
+        _stateTable[T_NAMESPACE_ATTRIBUTE_P_U] = STATE_NAMESPACE_ATTRIBUTE_P_U;
+        _stateTable[T_NAMESPACE_ATTRIBUTE_U] = STATE_NAMESPACE_ATTRIBUTE_U;
+        _stateTable[T_ATTRIBUTE_U_LN_QN] = STATE_ATTRIBUTE_U_LN_QN;
+        _stateTable[T_ATTRIBUTE_P_U_LN] = STATE_ATTRIBUTE_P_U_LN;
+        _stateTable[T_ATTRIBUTE_U_LN] = STATE_ATTRIBUTE_U_LN;
+        _stateTable[T_ATTRIBUTE_LN] = STATE_ATTRIBUTE_LN;
+        _stateTable[T_TEXT_AS_CHAR_ARRAY] = STATE_TEXT_AS_CHAR_ARRAY;
+        _stateTable[T_TEXT_AS_CHAR_ARRAY_COPY] = STATE_TEXT_AS_CHAR_ARRAY_COPY;
+        _stateTable[T_TEXT_AS_STRING] = STATE_TEXT_AS_STRING;
+        _stateTable[T_COMMENT_AS_CHAR_ARRAY] = STATE_COMMENT_AS_CHAR_ARRAY;
+        _stateTable[T_COMMENT_AS_CHAR_ARRAY_COPY] = STATE_COMMENT_AS_CHAR_ARRAY_COPY;
+        _stateTable[T_COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
+        _stateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
+        _stateTable[T_END] = STATE_END;
     }
     
     protected int _structureSize;
@@ -141,7 +141,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         }
         
         _structureSize = 0;
-        return XMLStreamBuffer.END_OF_BUFFER;        
+        return T_END_OF_BUFFER;        
     }
     
     protected final String readStructureString() {
