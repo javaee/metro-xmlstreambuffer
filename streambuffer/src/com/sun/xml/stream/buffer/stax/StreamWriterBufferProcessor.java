@@ -27,6 +27,13 @@ import javax.xml.stream.XMLStreamWriter;
 
 public class StreamWriterBufferProcessor extends AbstractProcessor {
     
+    public StreamWriterBufferProcessor() {
+    }
+    
+    public StreamWriterBufferProcessor(XMLStreamBuffer buffer) {
+        setXMLStreamBuffer(buffer);
+    }
+    
     public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
         setXMLStreamBuffer(buffer);
         process(writer);

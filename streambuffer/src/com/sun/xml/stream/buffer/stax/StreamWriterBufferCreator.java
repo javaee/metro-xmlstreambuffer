@@ -20,6 +20,7 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractCreator;
+import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 
@@ -27,6 +28,13 @@ public class StreamWriterBufferCreator extends AbstractCreator implements javax.
         
     private NamespaceContext namespaceContext = null;
         
+    public StreamWriterBufferCreator() {
+    }
+    
+    public StreamWriterBufferCreator(XMLStreamBuffer buffer) {
+        setXMLStreamBuffer(buffer);
+    }
+    
     public Object getProperty (String str) throws IllegalArgumentException {
         throw new UnsupportedOperationException ();
     }

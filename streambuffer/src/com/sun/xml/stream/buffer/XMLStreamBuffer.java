@@ -24,12 +24,15 @@ import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
+import com.sun.xml.stream.buffer.stax.StreamWriterBufferCreator;
+import com.sun.xml.stream.buffer.stax.StreamWriterBufferProcessor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.ErrorHandler;
@@ -97,7 +100,15 @@ public class XMLStreamBuffer {
         StreamReaderBufferCreator c = new StreamReaderBufferCreator(this);
         c.create(reader);
     }
-    
+
+    public void processUsingXMLStreamWriter(XMLStreamWriter writer) throws XMLStreamException, XMLStreamBufferException {
+        StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this);
+        p.process(writer);
+    }
+
+    public XMLStreamWriter createFromXMLStreamWriter() {
+        return new StreamWriterBufferCreator(this);
+    }
     
     public SAXBufferProcessor processUsingSAXBufferProcessor() {
         return new SAXBufferProcessor(this);
@@ -115,6 +126,19 @@ public class XMLStreamBuffer {
         if (p instanceof ErrorHandler) {
             p.setErrorHandler((ErrorHandler)handler);
         }
+    }
+    
+    public void processUsingSAXContentHandler(ContentHandler handler, ErrorHandler errorHandler) {
+        SAXBufferProcessor p = processUsingSAXBufferProcessor();
+        p.setContentHandler(handler);
+        if (p instanceof LexicalHandler) {
+            p.setLexicalHandler((LexicalHandler)handler);
+        }
+        if (p instanceof DTDHandler) {
+            p.setDTDHandler((DTDHandler)handler);
+        }
+        
+        p.setErrorHandler(errorHandler);
     }
     
     public SAXBufferCreator createFromSAXBufferCreator() {
