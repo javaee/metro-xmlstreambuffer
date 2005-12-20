@@ -157,7 +157,6 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                 
                 case STATE_TEXT_AS_STRING:
                 {
-                    System.out.println("STATE ELEMENT TEXT AS STRING");
                     String s = readStructureString();
                     
                     writer.writeCharacters(s);
