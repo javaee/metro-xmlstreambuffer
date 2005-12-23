@@ -43,7 +43,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int STATE_COMMENT_AS_STRING             = 20;
     protected  static final int STATE_PROCESSING_INSTRUCTION        = 21;
     protected  static final int STATE_END                           = 22;
-    
+    protected static final  int STATE_END_DOCUMENT                  = 23;
     protected  static final int[] _stateTable = new int[256];
     
     static {
@@ -69,6 +69,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _stateTable[T_COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
         _stateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
         _stateTable[T_END] = STATE_END;
+        _stateTable[T_END_DOCUMENT] = STATE_END_DOCUMENT;
     }
     
     protected int _structureSize;
@@ -201,4 +202,5 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _qNameBuffer.setLength(0);
         return qName;
     }        
+   
 }

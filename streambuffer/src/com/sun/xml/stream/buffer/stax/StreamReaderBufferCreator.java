@@ -3,12 +3,12 @@
  * of the Common Development and Distribution License
  * (the "License").  You may not use this file except
  * in compliance with the License.
- * 
+ *
  * You can obtain a copy of the license at
  * https://jwsdp.dev.java.net/CDDLv1.0.html
  * See the License for the specific language governing
  * permissions and limitations under the License.
- * 
+ *
  * When distributing Covered Code, include this CDDL
  * HEADER in each file and include the License file at
  * https://jwsdp.dev.java.net/CDDLv1.0.html  If applicable,
@@ -33,16 +33,11 @@ import javax.xml.stream.XMLStreamReader;
  * attribute on the element is defined
  */
 public class StreamReaderBufferCreator extends AbstractCreator {
-    private int _eventType;
-    
-    private boolean _manageInScopeNamespaces;
-    
-    private boolean _storeInScopeNamespacesOnElementFragment;
-
-    private boolean _markElementsWithIDs;
-    
-    private boolean _storeInScopeNamespacesOnMarkedElements;
-    
+    private int _eventType;    
+    private boolean _manageInScopeNamespaces;    
+    private boolean _storeInScopeNamespacesOnElementFragment;    
+    private boolean _markElementsWithIDs;    
+    private boolean _storeInScopeNamespacesOnMarkedElements;    
     private Map<String, Integer> _inScopePrefixes;
     
     public StreamReaderBufferCreator() {
@@ -55,19 +50,17 @@ public class StreamReaderBufferCreator extends AbstractCreator {
     public XMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
         if (_buffer == null) {
             createBuffer();
-        }
-    
-        store(reader);
-        
+        }        
+        store(reader);        
         return _buffer;
     }
     
-    public XMLStreamBuffer createElementFragment(XMLStreamReader reader, 
+    public XMLStreamBuffer createElementFragment(XMLStreamReader reader,
             boolean storeInScopeNamespaces) throws XMLStreamException, XMLStreamBufferException {
         if (_buffer == null) {
             createBuffer();
         }
-    
+        
         if (!reader.hasNext()) {
             return _buffer;
         }
@@ -77,7 +70,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         _eventType = reader.getEventType();
         if (_eventType != XMLStreamReader.START_ELEMENT) {
             do {
-                _eventType = reader.next();            
+                _eventType = reader.next();
             } while(_eventType != XMLStreamReader.START_ELEMENT && _eventType != XMLStreamReader.END_DOCUMENT);
         }
         
@@ -89,7 +82,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         
         return _buffer;
     }
-
+    
     private void store(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
         if (!reader.hasNext()) {
             return;
@@ -110,7 +103,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
     
     private void storeDocumentAndChildren(XMLStreamReader reader) throws XMLStreamException {
         storeStructure(T_DOCUMENT);
-
+        
         _eventType = reader.next();
         while (_eventType != XMLStreamReader.END_DOCUMENT) {
             switch (_eventType) {
@@ -127,7 +120,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             _eventType = reader.next();
         }
         
-        storeStructure(T_END);
+        storeStructure(T_END_DOCUMENT);
     }
     
     private void storeElementAndChildren(XMLStreamReader reader) throws XMLStreamException {
@@ -160,7 +153,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
                 case XMLStreamReader.CDATA:
                     storeContentCharacters(T_TEXT_AS_CHAR_ARRAY,
                             reader.getTextCharacters(), reader.getTextStart(),
-                            reader.getTextLength());        
+                            reader.getTextLength());
                     break;
                 case XMLStreamReader.COMMENT:
                     storeComment(reader);
@@ -171,7 +164,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             }
         }
         
-        /* 
+        /*
          * Move to next item after the end of the element
          * that has been stored
          */
@@ -181,7 +174,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
     private void storeElementWithInScopeNamespaces(XMLStreamReader reader) throws XMLStreamException {
         storeQualifiedName(T_ELEMENT_LN,
                 reader.getPrefix(), reader.getNamespaceURI(), reader.getLocalName());
-
+        
         if (reader.getNamespaceCount() > 0) {
             storeNamespaceAttributes(reader);
         }
@@ -194,20 +187,20 @@ public class StreamReaderBufferCreator extends AbstractCreator {
     private void storeElement(XMLStreamReader reader) throws XMLStreamException {
         storeQualifiedName(T_ELEMENT_LN,
                 reader.getPrefix(), reader.getNamespaceURI(), reader.getLocalName());
-
+        
         if (reader.getNamespaceCount() > 0) {
             storeNamespaceAttributes(reader);
         }
-
+        
         if (reader.getAttributeCount() > 0) {
             storeAttributes(reader);
         }
     }
-
+    
     private void storeNamespaceAttributes(XMLStreamReader reader) throws XMLStreamException {
         for (int i = 0; i < reader.getNamespaceCount(); i++) {
             storeNamespaceAttribute(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
-        }        
+        }
     }
     
     private void storeNamespaceAttribute(String prefix, String uri) throws XMLStreamException {
@@ -223,10 +216,10 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             storeStructureString(uri);
         }
         
-        storeStructure(item);        
+        storeStructure(item);
     }
     
-    private void storeAttributes(XMLStreamReader reader) throws XMLStreamException {        
+    private void storeAttributes(XMLStreamReader reader) throws XMLStreamException {
         for (int i = 0; i < reader.getAttributeCount(); i++) {
             storeAttribute(reader.getAttributePrefix(i), reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
                     reader.getAttributeType(i), reader.getAttributeValue(i));
@@ -243,16 +236,16 @@ public class StreamReaderBufferCreator extends AbstractCreator {
     
     private void storeComment(XMLStreamReader reader) throws XMLStreamException {
         storeContentCharacters(T_COMMENT_AS_CHAR_ARRAY,
-                reader.getTextCharacters(), reader.getTextStart(), reader.getTextLength());        
+                reader.getTextCharacters(), reader.getTextStart(), reader.getTextLength());
     }
     
     private void storeProcessingInstruction(XMLStreamReader reader) throws XMLStreamException {
         storeStructure(T_PROCESSING_INSTRUCTION);
         storeStructureString(reader.getPITarget());
-        storeStructureString(reader.getPIData());        
+        storeStructureString(reader.getPIData());
     }
     
-    private void storeQualifiedName(int item, String prefix, String uri, String localName) {        
+    private void storeQualifiedName(int item, String prefix, String uri, String localName) {
         if (uri != null && uri.length() > 0) {
             if (prefix != null && prefix.length() > 0) {
                 item |= FLAG_PREFIX;
@@ -262,9 +255,9 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             item |= FLAG_URI;
             storeStructureString(uri);
         }
-
+        
         storeStructureString(localName);
-
+        
         storeStructure(item);
-    }        
+    }
 }

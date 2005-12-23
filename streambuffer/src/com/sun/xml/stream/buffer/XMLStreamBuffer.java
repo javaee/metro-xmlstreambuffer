@@ -3,12 +3,12 @@
  * of the Common Development and Distribution License
  * (the "License").  You may not use this file except
  * in compliance with the License.
- * 
+ *
  * You can obtain a copy of the license at
  * https://jwsdp.dev.java.net/CDDLv1.0.html
  * See the License for the specific language governing
  * permissions and limitations under the License.
- * 
+ *
  * When distributing Covered Code, include this CDDL
  * HEADER in each file and include the License file at
  * https://jwsdp.dev.java.net/CDDLv1.0.html  If applicable,
@@ -42,7 +42,7 @@ import org.xml.sax.ext.LexicalHandler;
 
 public class XMLStreamBuffer {
     public static int DEFAULT_ARRAY_SIZE = 512;
-        
+    
     protected static final Map<String, String> EMTPY_MAP = Collections.emptyMap();
     
     protected Map<String, String> _inscopeNamespaces = EMTPY_MAP;
@@ -60,7 +60,7 @@ public class XMLStreamBuffer {
     
     protected FragmentedArray<char[][]> _contentCharacters;
     protected int _contentCharactersPtr;
-        
+    
     protected FragmentedArray<char[]> _contentCharactersBuffer;
     protected int _contentCharactersBufferPtr;
     
@@ -77,7 +77,7 @@ public class XMLStreamBuffer {
     }
     
     public boolean isMark() {
-        return this instanceof XMLStreamBufferMark;
+        return false;
     }
     
     public Map<String, String> getInscopeNamespaces() {
@@ -95,17 +95,17 @@ public class XMLStreamBuffer {
     public XMLStreamReader processUsingXMLStreamReader() {
         return processUsingStreamReaderBufferProcessor();
     }
-
+    
     public void createFromXMLStreamReader(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
         StreamReaderBufferCreator c = new StreamReaderBufferCreator(this);
         c.create(reader);
     }
-
+    
     public void processUsingXMLStreamWriter(XMLStreamWriter writer) throws XMLStreamException, XMLStreamBufferException {
         StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this);
         p.process(writer);
     }
-
+    
     public XMLStreamWriter createFromXMLStreamWriter() {
         return new StreamWriterBufferCreator(this);
     }
@@ -164,12 +164,12 @@ public class XMLStreamBuffer {
     }
     
     protected void reset() {
-        _structurePtr = 
+        _structurePtr =
                 _structureStringsPtr =
                 _contentStringsPtr =
-                _contentCharactersPtr = 
+                _contentCharactersPtr =
                 _contentCharactersBufferPtr = 0;
-
+        
         // Reset the size of some arrays
         final int size = _structure.getArray().length;
         _structure.setSize(size);
@@ -189,11 +189,13 @@ public class XMLStreamBuffer {
         }
         _contentStrings.setSize(size);
         
-        /* 
+        /*
          * TODO consider truncating the size of _structureStrings and
          * _contentCharactersBuffer to limit the memory used by the buffer
          */
     }
+    
+    
     
     protected FragmentedArray<int[]> getStructure() {
         return _structure;
@@ -226,7 +228,7 @@ public class XMLStreamBuffer {
     protected int getContentCharactersPtr() {
         return _contentCharactersPtr;
     }
-        
+    
     protected FragmentedArray<char[]> getContentCharactersBuffer() {
         return _contentCharactersBuffer;
     }
