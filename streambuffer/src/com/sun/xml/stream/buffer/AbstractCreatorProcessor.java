@@ -67,6 +67,7 @@ public abstract class AbstractCreatorProcessor {
     protected static final int T_COMMENT_AS_STRING           = T_COMMENT | FLAG_AS_STRING;
     
     protected static final int T_END_OF_BUFFER               = -1;
+    protected static final int T_END_DOCUMENT = 0x80;
     
     protected XMLStreamBuffer _buffer;
     
