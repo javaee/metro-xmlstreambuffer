@@ -57,12 +57,13 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void write(XMLStreamWriter writer) throws XMLStreamException{
         int item = 0;
         
-        while(item != T_END_OF_BUFFER) {
+        while(item != STATE_END) {
+        //while(item != T_END_OF_BUFFER) {
+
             item = _stateTable[readStructure()];
             writer.flush();
             switch(item) {
                 case STATE_DOCUMENT:{
-                    
                     break;
                 }
                 case T_END_OF_BUFFER:{
@@ -70,7 +71,6 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_U_LN_QN:{
-                    
                     
                     break;
                 }
@@ -85,11 +85,18 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
+                    String uri = readStructureString();
+                    String localName = readStructureString();
+                    
+                    writer.writeStartElement(uri,localName);
                     
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     
+                    String localName = readStructureString();
+                    
+                    writer.writeStartElement(localName);
                     break;
                 }
                 
@@ -99,7 +106,6 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case T_NAMESPACE_ATTRIBUTE_P:{
-                    //
                     
                     break;
                 }
