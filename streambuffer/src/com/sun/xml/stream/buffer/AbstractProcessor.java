@@ -108,7 +108,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _contentCharactersBuffer = _currentContentCharactersBufferFragment.getArray();
         _contentCharactersBufferPtr = _buffer.getContentCharactersBufferPtr();
         
-        _stringInterningFeature = _buffer.getHasInternedStrings();
+        _stringInterningFeature = _buffer.hasInternedStrings();
     }
     
     protected final int peakStructure() {

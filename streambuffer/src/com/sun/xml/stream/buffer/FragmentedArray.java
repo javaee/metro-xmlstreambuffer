@@ -19,17 +19,17 @@
  */
 package com.sun.xml.stream.buffer;
 
-public class FragmentedArray<T> {
+class FragmentedArray<T> {
     protected int _size;
     protected T _item;
     protected FragmentedArray<T> _next;
     protected FragmentedArray<T> _previous;
     
-    public FragmentedArray(T item) {
+    FragmentedArray(T item) {
         this(item, null);
     }
     
-    public FragmentedArray(T item, FragmentedArray<T> previous) {
+    FragmentedArray(T item, FragmentedArray<T> previous) {
         setArray(item);
         if (previous != null) {
             previous._next = this;
@@ -37,40 +37,40 @@ public class FragmentedArray<T> {
         }
     }
     
-    public T getArray() {
+    T getArray() {
         return _item;
     }
     
-    public void setArray(T item) {
+    void setArray(T item) {
         assert(item.getClass().isArray());
         
         _item = item;
     }
     
-    public int getSize() {
+    int getSize() {
         return _size;
     }
 
-    public void setSize(int size) {
+    void setSize(int size) {
         _size = size;
     }
     
-    public FragmentedArray<T> getNext() {
+    FragmentedArray<T> getNext() {
         return _next;
     }
     
-    public void setNext(FragmentedArray<T> next) {
+    void setNext(FragmentedArray<T> next) {
         _next = next;
         if (next != null) {
             next._previous = this;
         }
     }
     
-    public FragmentedArray<T> getPrevious() {
+    FragmentedArray<T> getPrevious() {
         return _previous;
     }
     
-    public void setPrevious(FragmentedArray<T> previous) {
+    void setPrevious(FragmentedArray<T> previous) {
         _previous = previous;
         if (previous != null) {
             previous._next = this;
