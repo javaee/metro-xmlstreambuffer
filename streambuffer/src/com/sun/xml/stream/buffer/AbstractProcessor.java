@@ -69,7 +69,6 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _stateTable[T_COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
         _stateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
         _stateTable[T_END] = STATE_END;
-        _stateTable[T_END_DOCUMENT] = STATE_END_DOCUMENT;
     }
     
     protected int _structureSize;
@@ -89,7 +88,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _structure = _currentStructureFragment.getArray();
         _structureSize = _currentStructureFragment.getSize();
         _structurePtr = _buffer.getStructurePtr();
-
+        
         _currentStructureStringFragment = _buffer.getStructureStrings();
         _structureStrings = _currentStructureStringFragment.getArray();
         _structureStringsSize = _currentStructureStringFragment.getSize();

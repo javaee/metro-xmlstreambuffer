@@ -120,7 +120,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             _eventType = reader.next();
         }
         
-        storeStructure(T_END_DOCUMENT);
+        storeStructure(T_END);
     }
     
     private void storeElementAndChildren(XMLStreamReader reader) throws XMLStreamException {

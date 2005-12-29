@@ -49,7 +49,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     }
     
     public void process(XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
-        if(_buffer.isMark()){
+        if(_buffer.isFragment()){
             writeFragment(writer);
         }else{
             write(writer);

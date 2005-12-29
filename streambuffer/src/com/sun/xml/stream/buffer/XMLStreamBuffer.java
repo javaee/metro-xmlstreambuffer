@@ -75,9 +75,19 @@ public class XMLStreamBuffer {
         _contentCharacters = new FragmentedArray(new char[size][], size);
         _contentCharactersBuffer = new FragmentedArray(new char[4096], size);
     }
+
+    protected boolean isCreated() {
+        return _structure.getSize() > 0;
+    }
     
-    public boolean isMark() {
-        return false;
+    public boolean isFragment() {
+        return (isCreated() && (_structure.getArray()[_structurePtr] & AbstractCreatorProcessor.TYPE_MASK) 
+                != AbstractCreatorProcessor.T_DOCUMENT);
+    }
+    
+    public boolean isElementFragment() {
+        return (isCreated() && (_structure.getArray()[_structurePtr] & AbstractCreatorProcessor.TYPE_MASK) 
+                == AbstractCreatorProcessor.T_ELEMENT);        
     }
     
     public Map<String, String> getInscopeNamespaces() {
@@ -159,11 +169,7 @@ public class XMLStreamBuffer {
         c.create(reader, in);
     }
     
-    protected void setHasInternedStrings(boolean hasInternedStrings) {
-        _hasInternedStrings = hasInternedStrings;
-    }
-    
-    protected void reset() {
+    public void reset() {
         _structurePtr =
                 _structureStringsPtr =
                 _contentStringsPtr =
@@ -187,7 +193,7 @@ public class XMLStreamBuffer {
         for (int i = 0; i < _contentCharacters.getSize(); i++) {
             c[i] = null;
         }
-        _contentStrings.setSize(size);
+        _contentCharacters.setSize(size);
         
         /*
          * TODO consider truncating the size of _structureStrings and
@@ -196,6 +202,9 @@ public class XMLStreamBuffer {
     }
     
     
+    protected void setHasInternedStrings(boolean hasInternedStrings) {
+        _hasInternedStrings = hasInternedStrings;
+    }
     
     protected FragmentedArray<int[]> getStructure() {
         return _structure;

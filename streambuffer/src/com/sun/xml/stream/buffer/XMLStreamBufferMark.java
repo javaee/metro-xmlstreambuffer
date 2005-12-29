@@ -40,9 +40,5 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
         
         _contentCharactersBuffer = creator._currentContentCharactersBufferFragment;
         _contentCharactersBufferPtr = creator._contentCharactersBufferPtr;
-    }
-    
-    public boolean isMark() {
-        return true;
-    }
+    }    
 }
