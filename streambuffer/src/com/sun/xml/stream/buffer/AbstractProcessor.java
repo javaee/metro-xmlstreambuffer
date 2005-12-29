@@ -88,7 +88,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _structure = _currentStructureFragment.getArray();
         _structureSize = _currentStructureFragment.getSize();
         _structurePtr = _buffer.getStructurePtr();
-        
+
         _currentStructureStringFragment = _buffer.getStructureStrings();
         _structureStrings = _currentStructureStringFragment.getArray();
         _structureStringsSize = _currentStructureStringFragment.getSize();

@@ -25,12 +25,12 @@ public class FragmentedArray<T> {
     protected FragmentedArray<T> _next;
     protected FragmentedArray<T> _previous;
     
-    public FragmentedArray(T item, int size) {
-        this(item, size, null);
+    public FragmentedArray(T item) {
+        this(item, null);
     }
     
-    public FragmentedArray(T item, int size, FragmentedArray<T> previous) {
-        setArray(item, size);
+    public FragmentedArray(T item, FragmentedArray<T> previous) {
+        setArray(item);
         if (previous != null) {
             previous._next = this;
             _previous = previous;
@@ -41,11 +41,10 @@ public class FragmentedArray<T> {
         return _item;
     }
     
-    public void setArray(T item, int size) {
+    public void setArray(T item) {
         assert(item.getClass().isArray());
         
         _item = item;
-        _size = size;
     }
     
     public int getSize() {

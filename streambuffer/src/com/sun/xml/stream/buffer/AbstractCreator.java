@@ -72,13 +72,13 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     
     protected final void resizeStructure() {
         _structurePtr = 0;
+        _currentStructureFragment.setSize(_structure.length);
         if (_currentStructureFragment.getNext() != null) {
             _currentStructureFragment = _currentStructureFragment.getNext();
             _structure = _currentStructureFragment.getArray();
-            _currentStructureFragment.setSize(_structure.length);
         } else {
             _structure = new int[_structure.length];
-            _currentStructureFragment = new FragmentedArray(_structure, _structure.length, _currentStructureFragment);
+            _currentStructureFragment = new FragmentedArray(_structure, _currentStructureFragment);
         }
     }
     
@@ -91,13 +91,13 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     
     protected final void resizeStructureStrings() {
         _structureStringsPtr = 0;
+        _currentStructureStringFragment.setSize(_structureStrings.length);
         if (_currentStructureStringFragment.getNext() != null) {
             _currentStructureStringFragment = _currentStructureStringFragment.getNext();
             _structureStrings = _currentStructureStringFragment.getArray();
-            _currentStructureStringFragment.setSize(_structureStrings.length);
         } else {
             _structureStrings = new String[_structureStrings.length];
-            _currentStructureStringFragment = new FragmentedArray(_structureStrings, _structureStrings.length, _currentStructureStringFragment);
+            _currentStructureStringFragment = new FragmentedArray(_structureStrings, _currentStructureStringFragment);
         }
     }
     
@@ -110,13 +110,13 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     
     protected final void resizeContentStrings() {
         _contentStringsPtr = 0;
+        _currentContentStringFragment.setSize(_contentStrings.length);
         if (_currentContentStringFragment.getNext() != null) {
             _currentContentStringFragment = _currentContentStringFragment.getNext();
             _contentStrings = _currentContentStringFragment.getArray();
-            _currentContentStringFragment.setSize(_contentStrings.length);
         } else {
             _contentStrings = new String[_contentStrings.length];
-            _currentContentStringFragment = new FragmentedArray(_contentStrings, _contentStrings.length, _currentContentStringFragment);
+            _currentContentStringFragment = new FragmentedArray(_contentStrings, _currentContentStringFragment);
         }
     }
 
@@ -144,7 +144,7 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         } else {
             _contentCharactersBuffer = new char[_contentCharactersBuffer.length];
             _currentContentCharactersBufferFragment = new FragmentedArray(_contentCharactersBuffer, 
-                    _contentCharactersBuffer.length, _currentContentCharactersBufferFragment);
+                    _currentContentCharactersBufferFragment);
         }
     }
     
@@ -159,13 +159,13 @@ public class AbstractCreator extends AbstractCreatorProcessor {
 
     protected final void resizeContentCharactersCopy() {
         _contentCharactersPtr = 0;
+        _currentContentCharactersFragment.setSize(_contentCharacters.length);
         if (_currentContentCharactersFragment.getNext() != null) {
             _currentContentCharactersFragment = _currentContentCharactersFragment.getNext();
             _contentCharacters = _currentContentCharactersFragment.getArray();
-            _currentContentCharactersFragment.setSize(_contentCharacters.length);
         } else {
             _contentCharacters = new char[_contentCharacters.length][];
-            _currentContentCharactersFragment = new FragmentedArray(_contentCharacters, _contentCharacters.length, _currentContentCharactersFragment);
+            _currentContentCharactersFragment = new FragmentedArray(_contentCharacters, _currentContentCharactersFragment);
         }
     }
     
@@ -176,6 +176,8 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         
         _currentStructureFragment.setSize(_structurePtr);
         if (_structurePtr > 0) {
+            // Set the size of the next structure fragment to 0, if one exists,
+            // to correctly terminate the buffer
             final FragmentedArray<int[]> structureFragment = _currentStructureFragment.getNext();
             if (structureFragment != null) {
                 structureFragment.setSize(0);
@@ -183,27 +185,7 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         }
                 
         _currentStructureStringFragment.setSize(_structureStringsPtr);
-        if (_structureStringsPtr > 0) {
-            final FragmentedArray<String[]> structureStringFragment = _currentStructureStringFragment.getNext();
-            if (structureStringFragment != null) {
-                structureStringFragment.setSize(0);
-            }
-        }
-        
         _currentContentStringFragment.setSize(_contentStringsPtr);
-        if (_contentStringsPtr > 0) {
-            final FragmentedArray<String[]> contentStringFragment = _currentContentStringFragment.getNext();
-            if (contentStringFragment != null) {
-                contentStringFragment.setSize(0);
-            }
-        }
-        
         _currentContentCharactersFragment.setSize(_contentCharactersPtr);
-        if (_contentCharactersPtr > 0) {
-            FragmentedArray<char[][]> characterFragment = _currentContentCharactersFragment.getNext();
-            if (characterFragment != null) {
-                characterFragment.setSize(0);
-            }
-        }
     } 
 }

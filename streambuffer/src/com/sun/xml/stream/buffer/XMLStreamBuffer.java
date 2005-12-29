@@ -69,14 +69,14 @@ public class XMLStreamBuffer {
     }
     
     public XMLStreamBuffer(int size) {
-        _structure = new FragmentedArray(new int[size], size);
-        _structureStrings = new FragmentedArray(new String[size], size);
-        _contentStrings = new FragmentedArray(new String[size], size);
-        _contentCharacters = new FragmentedArray(new char[size][], size);
-        _contentCharactersBuffer = new FragmentedArray(new char[4096], size);
+        _structure = new FragmentedArray(new int[size]);
+        _structureStrings = new FragmentedArray(new String[size]);
+        _contentStrings = new FragmentedArray(new String[size]);
+        _contentCharacters = new FragmentedArray(new char[size][]);
+        _contentCharactersBuffer = new FragmentedArray(new char[4096]);
     }
 
-    protected boolean isCreated() {
+    public boolean isCreated() {
         return _structure.getSize() > 0;
     }
     
@@ -170,30 +170,30 @@ public class XMLStreamBuffer {
     }
     
     public void reset() {
+        // Reset the ptrs in arrays to 0
         _structurePtr =
                 _structureStringsPtr =
                 _contentStringsPtr =
                 _contentCharactersPtr =
                 _contentCharactersBufferPtr = 0;
         
-        // Reset the size of some arrays
-        final int size = _structure.getArray().length;
-        _structure.setSize(size);
-        _structureStrings.setSize(size);
-        
+        // Reset the size of structure to indicate an empty buffer 
+        // that has not been created
+        _structure.setSize(0);
+
+        // Clean up content strings
         _contentStrings.setNext(null);
         final String[] s = _contentStrings.getArray();
         for (int i = 0; i < _contentStrings.getSize(); i++) {
             s[i] = null;
         }
-        _contentStrings.setSize(size);
         
+        // Clean up content characters
         _contentCharacters.setNext(null);
         final char[][] c = _contentCharacters.getArray();
         for (int i = 0; i < _contentCharacters.getSize(); i++) {
             c[i] = null;
         }
-        _contentCharacters.setSize(size);
         
         /*
          * TODO consider truncating the size of _structureStrings and
