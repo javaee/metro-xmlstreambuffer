@@ -43,7 +43,6 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int STATE_COMMENT_AS_STRING             = 20;
     protected  static final int STATE_PROCESSING_INSTRUCTION        = 21;
     protected  static final int STATE_END                           = 22;
-    protected static final  int STATE_END_DOCUMENT                  = 23;
     protected  static final int[] _stateTable = new int[256];
     
     static {
@@ -199,7 +198,15 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _qNameBuffer.append(prefix).append(':').append(localName);
         final String qName = _qNameBuffer.toString();
         _qNameBuffer.setLength(0);
-        return qName;
+        return (_stringInterningFeature) ? qName.intern() : qName;
     }        
    
+    protected final String getPrefixFromQName(String qName) {
+        int pIndex = qName.indexOf(':');
+        if (_stringInterningFeature) {
+            return (pIndex != -1) ? qName.substring(0,pIndex).intern() : "";
+        } else {
+            return (pIndex != -1) ? qName.substring(0,pIndex) : "";
+        }
+    }
 }
