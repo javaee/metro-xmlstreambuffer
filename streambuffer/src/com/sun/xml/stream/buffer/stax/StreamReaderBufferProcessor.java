@@ -30,8 +30,11 @@ import javax.xml.stream.XMLStreamReader;
 
 public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReader {
     protected int _eventType;
-    
+    protected int _internalEventType;
     protected char[] _characters;
+    String uri = "";
+    String localName = "";
+    String prefix = "";
     
     public StreamReaderBufferProcessor() {
     }
@@ -47,6 +50,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     public int next() throws XMLStreamException {
         int item = readStructure();
+        _internalEventType = item;
         switch(item) {
             
             case STATE_ELEMENT_U_LN_QN:{
@@ -378,11 +382,36 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final String getLocalName() {
-        if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return null;
+        if(localName.length() >0){
+            return localName;
         }
-        
-        throw new IllegalStateException("");
+        if ( getEventType() == START_ELEMENT ||  getEventType() == END_ELEMENT) {
+            switch(_internalEventType) {
+                
+                case STATE_ELEMENT_U_LN_QN:{
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    prefix = getPrefixFromQName(readStructureString());
+                    break;
+                }
+                case STATE_ELEMENT_P_U_LN:{
+                    prefix = readStructureString();
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    break;
+                }
+                case STATE_ELEMENT_U_LN: {
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    break;
+                }
+                case STATE_ELEMENT_LN: {
+                    localName = readStructureString();
+                    break;
+                }
+            }
+        }
+        return localName;
     }
     
     public final boolean hasName() {
@@ -390,19 +419,71 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final String getNamespaceURI() {
+        if(uri.length() > 0){
+            return  uri;
+        }
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return null;
+             switch(_internalEventType) {
+                
+                case STATE_ELEMENT_U_LN_QN:{
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    prefix = getPrefixFromQName(readStructureString());
+                    break;
+                }
+                case STATE_ELEMENT_P_U_LN:{
+                    prefix = readStructureString();
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    break;
+                }
+                case STATE_ELEMENT_U_LN: {
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    break;
+                }
+                case STATE_ELEMENT_LN: {
+                    localName = readStructureString();
+                    break;
+                }
+            }
         }
         
-        throw new IllegalStateException("");
+        return uri;
     }
     
     public final String getPrefix() {
+        if(prefix.length() >0){
+            return prefix;
+        }        
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return null;
+            switch(_internalEventType) {
+                
+                case STATE_ELEMENT_U_LN_QN:{
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    prefix = getPrefixFromQName(readStructureString());
+                    break;
+                }
+                case STATE_ELEMENT_P_U_LN:{
+                    prefix = readStructureString();
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    break;
+                }
+                case STATE_ELEMENT_U_LN: {
+                    uri = readStructureString();
+                    localName = readStructureString();
+                    break;
+                }
+                case STATE_ELEMENT_LN: {
+                    localName = readStructureString();
+                    break;
+                }
+            }
         }
+        return prefix;      
         
-        throw new IllegalStateException("");
     }
     
     public final String getVersion() {
