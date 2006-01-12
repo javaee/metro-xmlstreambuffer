@@ -3,12 +3,12 @@
  * of the Common Development and Distribution License
  * (the "License").  You may not use this file except
  * in compliance with the License.
- * 
+ *
  * You can obtain a copy of the license at
  * https://jwsdp.dev.java.net/CDDLv1.0.html
  * See the License for the specific language governing
  * permissions and limitations under the License.
- * 
+ *
  * When distributing Covered Code, include this CDDL
  * HEADER in each file and include the License file at
  * https://jwsdp.dev.java.net/CDDLv1.0.html  If applicable,
@@ -19,7 +19,8 @@
  */
 package com.sun.xml.stream.buffer.stax;
 
-import com.sun.xml.stream.buffer.AbstractCreator;
+
+import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -27,9 +28,9 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-public class StreamReaderBufferProcessor extends AbstractCreator implements XMLStreamReader {
+public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReader {
     protected int _eventType;
-
+    
     protected char[] _characters;
     
     public StreamReaderBufferProcessor() {
@@ -37,19 +38,94 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
     
     public StreamReaderBufferProcessor(XMLStreamBuffer buffer) {
         this();
-        setXMLStreamBuffer(buffer);
+        setBuffer(buffer);
     }
     
     public Object getProperty(java.lang.String name) {
         return null;
     }
-        
+    
     public int next() throws XMLStreamException {
-        return -1;
+        int item = readStructure();
+        switch(item) {
+            
+            case STATE_ELEMENT_U_LN_QN:{
+                _eventType = START_ELEMENT;
+                break;
+            }
+            case STATE_ELEMENT_P_U_LN:{
+                _eventType = START_ELEMENT;
+                break;
+            }
+            case STATE_ELEMENT_U_LN: {
+                _eventType = START_ELEMENT;
+                break;
+            }
+            case STATE_ELEMENT_LN: {
+                _eventType = START_ELEMENT;
+                break;
+            }
+            case STATE_NAMESPACE_ATTRIBUTE_P_U:{
+                _eventType = NAMESPACE;
+                break;
+            }
+            case STATE_NAMESPACE_ATTRIBUTE_U:{
+                _eventType = NAMESPACE;
+                break;
+            }
+            case STATE_ATTRIBUTE_U_LN_QN:{
+                _eventType = ATTRIBUTE;
+                break;
+            }
+            case STATE_ATTRIBUTE_P_U_LN:{
+                _eventType = ATTRIBUTE;
+                break;
+            }
+            case STATE_ATTRIBUTE_U_LN : {
+                _eventType = ATTRIBUTE;
+                break;
+            }
+            case STATE_ATTRIBUTE_LN: {
+                _eventType = ATTRIBUTE;
+                break;
+            }
+            case STATE_TEXT_AS_CHAR_ARRAY:{
+                _eventType = CHARACTERS;
+                break;
+            }
+            case STATE_TEXT_AS_STRING:{
+                _eventType = CHARACTERS;
+                break;
+            }
+            case STATE_COMMENT_AS_CHAR_ARRAY:{
+                _eventType = COMMENT;
+                break;
+            }
+            case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
+                _eventType = COMMENT;
+                break;
+            }
+            case STATE_PROCESSING_INSTRUCTION:{
+                _eventType = PROCESSING_INSTRUCTION;
+                break;
+            }
+            case STATE_END:{
+                _eventType = END_ELEMENT;
+                break;
+            }
+//            case STATE_END_DOCUMENT:{
+//                _eventType = END_DOCUMENT;
+//                break;
+//            }
+            default:{
+                throw new XMLStreamException("Invalid State "+item);
+            }
+        }
+        return _eventType;
     }
     
     public final void require(int type, String namespaceURI, String localName)
-            throws XMLStreamException {
+    throws XMLStreamException {
         if( type != _eventType) {
             throw new XMLStreamException("");
         }
@@ -61,7 +137,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
         }
     }
     
-    public final String getElementText() throws XMLStreamException {        
+    public final String getElementText() throws XMLStreamException {
         if(getEventType() != START_ELEMENT) {
             throw new XMLStreamException("");
         }
@@ -125,7 +201,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
     public final boolean hasNext() throws XMLStreamException {
         return (_eventType != END_DOCUMENT);
     }
-        
+    
     public void close() throws XMLStreamException {
     }
     
@@ -152,7 +228,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
             int length = this.getTextLength();
             for (int i=start; i< length;i++){
                 // if(!XMLChar.isSpace(ch[i])){
-                    return false;
+                return false;
                 // }
             }
             return true;
@@ -231,8 +307,8 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
     public final int getNamespaceCount() {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return -1;
-        } 
-
+        }
+        
         throw new IllegalStateException("");
     }
     
@@ -240,7 +316,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return null;
         }
-
+        
         throw new IllegalStateException("");
     }
     
@@ -248,7 +324,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return null;
         }
-         
+        
         throw new IllegalStateException("");
     }
     
@@ -280,7 +356,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
             int targetStart, int length) throws XMLStreamException {
         return -1;
     }
-        
+    
     public final String getEncoding() {
         return null;
     }
@@ -305,7 +381,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return null;
         }
-         
+        
         throw new IllegalStateException("");
     }
     
@@ -316,7 +392,7 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
     public final String getNamespaceURI() {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return null;
-        }         
+        }
         
         throw new IllegalStateException("");
     }
@@ -359,5 +435,5 @@ public class StreamReaderBufferProcessor extends AbstractCreator implements XMLS
         }
         
         throw new IllegalStateException("");
-    }    
+    }
 }
