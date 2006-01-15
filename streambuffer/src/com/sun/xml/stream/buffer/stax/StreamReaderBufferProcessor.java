@@ -29,7 +29,8 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 /**
- * @author Paul.Sandoz@Sun.Com,K.Venugopal@sun.com
+ * @author Paul.Sandoz@Sun.Com
+ * @author K.Venugopal@sun.com
  */
 public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReader {
     protected int _eventType;
