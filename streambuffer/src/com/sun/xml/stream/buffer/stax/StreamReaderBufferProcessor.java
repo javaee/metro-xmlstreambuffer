@@ -28,51 +28,67 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
 /**
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
  */
 public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReader {
+    private static final int CACHE_SIZE = 20;
+    
+    protected IQName _internalQName;
+    protected IQName [] _qnameCache = new IQName[CACHE_SIZE];
+    protected int index;
+    
     protected int _eventType;
     protected int _internalEventType;
-    protected char[] _characters;
-    IQName _internalQName = null;
-    private static final int CACHE_SIZE=20;
-    int index =0;
-    IQName [] _qnameCache = new IQName[CACHE_SIZE];
-    private boolean  _readAttrs = false;
-    AttributesHolder _attributeCache = null;
-    String _text;
-    StringBuilder _buffer;
-    int _textLen =0;
-    int _textOffset =0;
+    protected boolean  _readAttrs;
     
-    //false if data associated with current state has not been read.
-    boolean _stateRead = true;
+    protected AttributesHolder _attributeCache;
+
+    protected String _text;
+    protected char[] _characters;
+    protected int _textLen;
+    protected int _textOffset;
+    
+    // false if data associated with current state has not been read.
+    protected boolean _stateRead = true;
+    
     public StreamReaderBufferProcessor() {
         for(int i=0;i<_qnameCache.length;++i){
             _qnameCache[i]=new IQName();
         }
         _attributeCache = new AttributesHolder();
-        _buffer = new StringBuilder();
     }
     
     public StreamReaderBufferProcessor(XMLStreamBuffer buffer) {
         this();
+        setXMLStreamBuffer(buffer);
+    }
+
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
+        
+        final int item = peakStructure();
+        if (item == T_DOCUMENT) {
+            // TODO initialize for document
+            _eventType = START_DOCUMENT;
+        } else if ((item & TYPE_MASK) == T_ELEMENT) {
+            // TODO initialize for fragment
+        }
     }
     
     public Object getProperty(java.lang.String name) {
         return null;
     }
     
+    
     public int next() throws XMLStreamException {
         
         if(!_stateRead){
             skipToNextEvent();
         }
-        int item = readStructure();
-        _internalEventType = item;
+        int item = _internalEventType = _stateTable[readStructure()];
         
         _stateRead = false;
         _readAttrs = false;
@@ -194,8 +210,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             }
             case STATE_COMMENT_AS_CHAR_ARRAY:
             case STATE_TEXT_AS_CHAR_ARRAY:{
-                readStructure();
-                //readContentCharactersBuffer(length);
+                readContentCharactersBuffer(readStructure());
                 break;
             }
             case STATE_TEXT_AS_STRING:{
@@ -225,6 +240,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
         return _eventType;
     }
+    
     public final void require(int type, String namespaceURI, String localName)
     throws XMLStreamException {
         if( type != _eventType) {
@@ -488,32 +504,30 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         
         if(!_stateRead){
             _stateRead = true;
-            _buffer.setLength(0);
             switch(_internalEventType){
                 case STATE_COMMENT_AS_CHAR_ARRAY:
                 case STATE_TEXT_AS_CHAR_ARRAY:{
                     _textLen = readStructure();
                     _textOffset = readContentCharactersBuffer(_textLen);
-                    break;
+                    _characters = _contentCharactersBuffer;
+                    return new String(_characters, _textOffset, _textLen);
                 }
+                case STATE_COMMENT_AS_STRING:
                 case STATE_TEXT_AS_STRING:{
                     _text = readStructureString();
                     return _text;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
+                case STATE_TEXT_AS_CHAR_ARRAY_COPY:{
                     _characters = readContentCharactersCopy();
                     _textLen = _characters.length;
                     _textOffset = 0;
-                    break;
+                    return new String(_characters, _textOffset, _textLen);
                 }
-            }
-            
+            }            
         }
-        if(_text == null){
-            _buffer.append(_characters,_textOffset,_textLen);
-            _text = _buffer.toString();
-        }
-        return _text;
+        
+        return null;
     }
     
     public final char[] getTextCharacters() {
@@ -523,7 +537,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         
         if(!_stateRead){
             _stateRead = true;
-            _buffer.setLength(0);
             switch(_internalEventType){
                 case STATE_COMMENT_AS_CHAR_ARRAY:
                 case STATE_TEXT_AS_CHAR_ARRAY:{
@@ -532,14 +545,16 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     _characters = _contentCharactersBuffer;
                     break;
                 }
+                case STATE_COMMENT_AS_STRING:
                 case STATE_TEXT_AS_STRING:{
                     _text = readStructureString();
                     _characters = _text.toCharArray();
                     _textLen = _characters.length;
-                    _textLen =0;
+                    _textLen = 0;
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
+                case STATE_TEXT_AS_CHAR_ARRAY_COPY:{
                     _characters = readContentCharactersCopy();
                     _textLen = _characters.length;
                     _textOffset = 0;
