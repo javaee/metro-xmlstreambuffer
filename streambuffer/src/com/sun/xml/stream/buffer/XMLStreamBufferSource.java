@@ -41,7 +41,7 @@ public class XMLStreamBufferSource extends SAXSource {
     }
     
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
-        buffer = _buffer;
+        _buffer = buffer;
     }
     
     public XMLReader getXMLReader() {
