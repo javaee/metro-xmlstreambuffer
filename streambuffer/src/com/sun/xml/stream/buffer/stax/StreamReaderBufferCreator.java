@@ -51,8 +51,9 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         if (_buffer == null) {
             createBuffer();
         }        
-        store(reader);        
-        return _buffer;
+        store(reader);
+        
+        return getXMLStreamBuffer();
     }
     
     public XMLStreamBuffer createElementFragment(XMLStreamReader reader,
@@ -80,7 +81,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         
         storeElementAndChildren(reader);
         
-        return _buffer;
+        return getXMLStreamBuffer();
     }
     
     private void store(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
