@@ -23,6 +23,8 @@ package com.sun.xml.stream.buffer.stax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.util.NamespaceContextImpl;
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -45,12 +47,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     protected boolean  _readAttrs;
     
     protected AttributesHolder _attributeCache;
-
+    
     protected String _text;
     protected char[] _characters;
     protected int _textLen;
     protected int _textOffset;
     
+    protected NamespaceContextImpl _nsCtx = new NamespaceContextImpl();
     // false if data associated with current state has not been read.
     protected boolean _stateRead = true;
     
@@ -65,7 +68,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         this();
         setXMLStreamBuffer(buffer);
     }
-
+    
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
         
@@ -174,6 +177,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 _eventType = END_ELEMENT;
                 index--;
                 _internalQName= getInternalQName(index);
+                if(_internalQName.needsNSPop()){
+                    _nsCtx.pop();
+                }
                 break;
             }
             default:{
@@ -217,7 +223,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 _eventType = CHARACTERS;
                 readStructureString();
                 break;
-            }          
+            }
             
             case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
                 _eventType = COMMENT;
@@ -232,6 +238,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 _eventType = END_ELEMENT;
                 index--;
                 _internalQName= getInternalQName(index);
+                if(_internalQName.needsNSPop()){
+                    _nsCtx.pop();
+                }
                 break;
             }
             default:{
@@ -524,7 +533,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     _textOffset = 0;
                     return new String(_characters, _textOffset, _textLen);
                 }
-            }            
+            }
         }
         
         return null;
@@ -658,7 +667,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 readStructure();
             }
         }
-        
+        boolean needPush = true;
         do{
             switch(eventType){
                 case T_ATTRIBUTE_U_LN_QN:
@@ -684,12 +693,28 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     break;
                 }
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:{
+                    if(needPush){
+                        needPush = false;
+                        _nsCtx.push();
+                        _internalQName.needsNSPop(true);
+                    }
+                    final String prefix = readStructureString();
+                    final String uri = readStructureString();
+                    _nsCtx.declareNamespace(prefix,uri);
                     break;
                 }
                 case STATE_NAMESPACE_ATTRIBUTE_U:{
+                    if(needPush){
+                        needPush = false;
+                        _nsCtx.push();
+                        _internalQName.needsNSPop(true);
+                    }
+                    final String uri = readStructureString();
+                    _nsCtx.declareNamespace(XMLConstants.DEFAULT_NS_PREFIX,uri);
                     break;
                 }
             }
+            
             eventType = peakStructure();
             if((eventType & TYPE_MASK) == T_ATTRIBUTE){
                 readStructure();
@@ -709,7 +734,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 readStructure();
             }
         }
-        
+        boolean needPush = true;
         do{
             switch(eventType){
                 case T_ATTRIBUTE_U_LN_QN:
@@ -743,9 +768,24 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     readContentString();
                 }
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:{
+                    if(needPush){
+                        needPush = false;
+                        _nsCtx.push();
+                        _internalQName.needsNSPop(true);
+                    }
+                    final String prefix = readStructureString();
+                    final String uri = readStructureString();
+                    _nsCtx.declareNamespace(prefix,uri);
                     break;
                 }
                 case STATE_NAMESPACE_ATTRIBUTE_U:{
+                    if(needPush){
+                        needPush = false;
+                        _nsCtx.push();
+                        _internalQName.needsNSPop(true);
+                    }
+                    final String uri = readStructureString();
+                    _nsCtx.declareNamespace(XMLConstants.DEFAULT_NS_PREFIX,uri);
                     break;
                 }
             }
@@ -777,6 +817,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         private String prefix="";
         private String localName="";
         private QName qname = null;
+        boolean needsNSPop = false;
         public String getUri() {
             return uri;
         }
@@ -819,6 +860,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             prefix="";
             localName  ="";
             qname = null;
+        }
+        
+        public boolean needsNSPop(){
+            return needsNSPop;
+        }
+        
+        public void needsNSPop(boolean value){
+            this.needsNSPop = value;
         }
     }
     
