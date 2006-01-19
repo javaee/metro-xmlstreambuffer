@@ -31,7 +31,7 @@ import javax.xml.namespace.NamespaceContext;
  * @author K.Venugopal@sun.com
  */
 public class NamespaceContextImpl implements NamespaceContext{
-    private boolean debug = true;
+    private boolean debug = false;
     protected AttributeNS nsDecl = new AttributeNS();
     protected HashMap<String,Stack> prefixMappings = new HashMap<String,Stack>();
     protected ArrayList<UsedNSList> clearDepth  = new ArrayList<UsedNSList>(10);
