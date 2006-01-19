@@ -22,21 +22,24 @@ package com.sun.xml.stream.buffer.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Stack;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 /**
- *
+ * 
  * @author K.Venugopal@sun.com
  */
-public class NamespaceContextImpl {
-    boolean debug = false;
-    AttributeNS nsDecl = new AttributeNS();
-    HashMap prefixMappings = new HashMap();
-    ArrayList clearDepth  = new ArrayList(10);
-    int nsDepth;
-    int resizeBy = 10;
+public class NamespaceContextImpl implements NamespaceContext{
+    private boolean debug = true;
+    protected AttributeNS nsDecl = new AttributeNS();
+    protected HashMap<String,Stack> prefixMappings = new HashMap<String,Stack>();
+    protected ArrayList<UsedNSList> clearDepth  = new ArrayList<UsedNSList>(10);
+    protected int nsDepth;
+    protected static final int resizeBy = 10;
     
     
-    
+    //TODO ::  Recycle AttributeNS
     public NamespaceContextImpl(){
         //change this
         for(int i=0;i<10;i++){
@@ -46,7 +49,7 @@ public class NamespaceContextImpl {
     }
     
     public AttributeNS getNamespaceDeclaration(String prefix){
-        Stack stack = (Stack)prefixMappings.get(prefix);
+        Stack stack = prefixMappings.get(prefix);
         if(stack == null || stack.empty() ){
             return null;
         }
@@ -58,20 +61,20 @@ public class NamespaceContextImpl {
     
     
     public void declareNamespace(String prefix, String uri){
-        Stack nsDecls = (Stack)prefixMappings.get(prefix);
+        Stack<AttributeNS> nsDecls = prefixMappings.get(prefix);
         nsDecl.setPrefix(prefix);
         nsDecl.setUri(uri);
         if(nsDecls == null){
-            nsDecls = new Stack();
+            nsDecls = new Stack<AttributeNS>();
             try {
-                nsDecls.add(nsDecl.clone());
+                nsDecls.push((AttributeNS)nsDecl.clone());
                 prefixMappings.put(prefix,nsDecls);
             } catch (CloneNotSupportedException ex) {
                 throw new RuntimeException(ex);
             }
-        }else if(!nsDecls.contains(nsDecl)){
+        }else if(!nsDecls.contains(nsDecl)){//peek should do.
             try {
-                nsDecls.add(nsDecl.clone());
+                nsDecls.push((AttributeNS)nsDecl.clone());
             } catch (CloneNotSupportedException ex) {
                 throw new RuntimeException(ex);
             }
@@ -104,7 +107,7 @@ public class NamespaceContextImpl {
         if(nsDepth <=0){
             return;
         }
-        UsedNSList ul = (UsedNSList)clearDepth.get(nsDepth);
+        UsedNSList ul = clearDepth.get(nsDepth);
         if(debug){
             System.out.println("---------------------pop depth----------------------"+nsDepth);
         }
@@ -112,10 +115,10 @@ public class NamespaceContextImpl {
         if(ul == null ){
             return;
         }
-        ArrayList pList  = ul.getPopList();
+        ArrayList<String> pList  = ul.getPopList();
         for(int i=0;i<pList.size();i++){
-            String prefix = (String)pList.get(i);
-            Stack stack = (Stack)prefixMappings.get(prefix);
+            String prefix = pList.get(i);
+            Stack stack = prefixMappings.get(prefix);
             if(debug){
                 System.out.println("clear prefix"+prefix);
             }
@@ -137,22 +140,70 @@ public class NamespaceContextImpl {
             ul.clear();
         }
     }
+    
+    public String getNamespaceURI(String prefix) {
+         if(prefix == null){
+            throw new IllegalArgumentException("Prefix cannot be null");
+        }
+        if(prefix == XMLConstants.XML_NS_PREFIX){
+            return XMLConstants.XML_NS_URI;//xml
+        }else if(prefix == XMLConstants.XMLNS_ATTRIBUTE ){
+            return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;//xmlns
+        }
+        Stack<AttributeNS> stack = prefixMappings.get(prefix);
+        if(stack == null){
+            return null;
+        }
+        if(stack.isEmpty()){
+            return XMLConstants.NULL_NS_URI;
+        }
+        AttributeNS attrNS  = stack.peek();
+        
+        return attrNS.getUri();
+    }
+    
+    public String getPrefix(String namespaceURI) {
+        if(namespaceURI == null){
+            throw new IllegalArgumentException("NamespaceURI cannot be null");
+        }
+        if(namespaceURI == XMLConstants.XML_NS_URI){
+            return XMLConstants.XML_NS_PREFIX;//xml
+        }else if(namespaceURI == XMLConstants.XMLNS_ATTRIBUTE_NS_URI){
+            return XMLConstants.XMLNS_ATTRIBUTE;//xmlns
+        }
+        
+        for(Stack<AttributeNS> st : prefixMappings.values()){
+            if(st.isEmpty()){
+                continue;
+            }
+            AttributeNS attrNS = st.peek();
+            
+            if(attrNS.getUri().equals(namespaceURI)){
+                return attrNS.getPrefix();
+            }
+        }
+        return null;
+    }
+    
+    public Iterator getPrefixes(String namespaceURI) {
+        throw new UnsupportedOperationException("Not supported");
+    }
 }
 
 class UsedNSList {
-    ArrayList usedPrefixList = new ArrayList();
-    ArrayList popPrefixList = new ArrayList();
+//    ArrayList usedPrefixList = new ArrayList();
+    ArrayList <String> popPrefixList = new ArrayList<String>();
     
-    public ArrayList getPopList(){
+    public ArrayList<String> getPopList(){
         return popPrefixList;
     }
     
-    public ArrayList getUsedPrefixList(){
-        return usedPrefixList;
-    }
+//    public ArrayList getUsedPrefixList(){
+//        return usedPrefixList;
+//    }
     
     public void clear(){
-        usedPrefixList.clear();
+//        usedPrefixList.clear();
         popPrefixList.clear();
     }
 }
