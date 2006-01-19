@@ -499,7 +499,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final NamespaceContext getNamespaceContext() {
-        return null;
+        return _nsCtx;
     }
     
     public final int getEventType() {
