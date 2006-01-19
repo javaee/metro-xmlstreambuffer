@@ -860,6 +860,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             prefix="";
             localName  ="";
             qname = null;
+            this.needsNSPop = false;
         }
         
         public boolean needsNSPop(){
