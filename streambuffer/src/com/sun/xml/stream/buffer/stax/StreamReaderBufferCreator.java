@@ -151,11 +151,12 @@ public class StreamReaderBufferCreator extends AbstractCreator {
                     break;
                 case XMLStreamReader.SPACE:
                 case XMLStreamReader.CHARACTERS:
-                case XMLStreamReader.CDATA:
+                case XMLStreamReader.CDATA: {
                     storeContentCharacters(T_TEXT_AS_CHAR_ARRAY,
                             reader.getTextCharacters(), reader.getTextStart(),
                             reader.getTextLength());
                     break;
+                }
                 case XMLStreamReader.COMMENT:
                     storeComment(reader);
                     break;
@@ -232,7 +233,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
                 prefix, uri, localName);
         
         storeStructureString(type);
-        storeStructureString(value);
+        storeContentString(value);
     }
     
     private void storeComment(XMLStreamReader reader) throws XMLStreamException {

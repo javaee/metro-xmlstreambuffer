@@ -43,7 +43,11 @@ public class AttributesHolder {
     public final int getLength() {
         return _attributeCount;
     }
-
+    
+    public final String getPrefix(int index) {
+        return _strings[(index << 3) + PREFIX];
+    }    
+    
     public final String getLocalName(int index) {
         return _strings[(index << 3) + LOCAL_NAME];
     }
@@ -150,7 +154,4 @@ public class AttributesHolder {
         _strings = strings;
     }    
     
-    public final String getPrefix(int index) {
-        return _strings[(index << 3) + PREFIX];
-    }    
 }

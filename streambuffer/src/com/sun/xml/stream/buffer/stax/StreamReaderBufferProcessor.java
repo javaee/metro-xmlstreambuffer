@@ -23,6 +23,7 @@ package com.sun.xml.stream.buffer.stax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.XMLStreamBufferException;
 import com.sun.xml.stream.buffer.util.NamespaceContextImpl;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -36,222 +37,142 @@ import javax.xml.stream.XMLStreamReader;
  * @author K.Venugopal@sun.com
  */
 public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReader {
-    private static final int CACHE_SIZE = 20;
+    private static final int CACHE_SIZE = 16;
     
-    protected IQName _internalQName;
-    protected IQName [] _qnameCache = new IQName[CACHE_SIZE];
-    protected int index;
+    protected ElementStackEntry[] _stack = new ElementStackEntry[CACHE_SIZE];
+    protected ElementStackEntry _stackEntry;
+    protected int _depth;
+
+    protected String[] _namespaceAIIsPrefix = new String[CACHE_SIZE];
+    protected String[] _namespaceAIIsNamespaceName = new String[CACHE_SIZE];
+    protected int _namespaceAIIsIndex;
     
     protected int _eventType;
-    protected int _internalEventType;
-    protected boolean  _readAttrs;
     
     protected AttributesHolder _attributeCache;
     
-    protected String _text;
+    protected String _string;
     protected char[] _characters;
     protected int _textLen;
     protected int _textOffset;
     
     protected NamespaceContextImpl _nsCtx = new NamespaceContextImpl();
-    // false if data associated with current state has not been read.
-    protected boolean _stateRead = true;
+    
+    protected boolean _isDocument;
+    
+    protected boolean _isProcessingComplete;
+    
+    protected String _piTarget;
+    protected String _piData;
     
     public StreamReaderBufferProcessor() {
-        for(int i=0;i<_qnameCache.length;++i){
-            _qnameCache[i]=new IQName();
+        for (int i=0; i < _stack.length; i++){
+            _stack[i] = new ElementStackEntry();
         }
+        
         _attributeCache = new AttributesHolder();
     }
     
-    public StreamReaderBufferProcessor(XMLStreamBuffer buffer) {
+    public StreamReaderBufferProcessor(XMLStreamBuffer buffer) throws XMLStreamException {
         this();
+        
         setXMLStreamBuffer(buffer);
     }
     
-    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer) throws XMLStreamException {
         setBuffer(buffer);
         
-        final int item = peakStructure();
-        if (item == T_DOCUMENT) {
-            // TODO initialize for document
-            _eventType = START_DOCUMENT;
-        } else if ((item & TYPE_MASK) == T_ELEMENT) {
-            // TODO initialize for fragment
-        }
+        _isProcessingComplete = false;
+        _namespaceAIIsIndex = 0;
+        
+        processFirstEvent();
     }
     
     public Object getProperty(java.lang.String name) {
         return null;
     }
     
-    
     public int next() throws XMLStreamException {
-        
-        if(!_stateRead){
-            skipToNextEvent();
+        if (_isProcessingComplete) {
+                throw new XMLStreamException("Invalid State");            
         }
-        int item = _internalEventType = _stateTable[readStructure()];
         
-        _stateRead = false;
-        _readAttrs = false;
-        switch(item) {
-            case STATE_ELEMENT_U_LN_QN:{
-                _eventType = START_ELEMENT;
-                _internalQName= getInternalQName(index);
-                _internalQName.reset();
-                _internalQName.setUri(readStructureString());
-                _internalQName.setLocalName(readStructureString());
-                _internalQName.setPrefix(getPrefixFromQName(readStructureString()));
-                index++;
-                _stateRead = true;
-                break;
+        _characters = null;
+        _string = null;
+        switch(_stateTable[readStructure()]) {
+            case STATE_ELEMENT_U_LN_QN: {
+                final String uri = readStructureString();
+                final String localName = readStructureString();
+                final String prefix = getPrefixFromQName(readStructureString());
+                
+                processElement(prefix, uri, localName);
+                return _eventType = START_ELEMENT;
             }
-            case STATE_ELEMENT_P_U_LN:{
-                _eventType = START_ELEMENT;
-                _internalQName= getInternalQName(index);
-                _internalQName.reset();
-                _internalQName.setPrefix(readStructureString());
-                _internalQName.setUri(readStructureString());
-                _internalQName.setLocalName(readStructureString());
-                index++;
-                _stateRead = true;
-                break;
-            }
-            case STATE_ELEMENT_U_LN: {
-                _eventType = START_ELEMENT;
-                _internalQName= getInternalQName(index);
-                _internalQName.reset();
-                _internalQName.setUri(readStructureString());
-                _internalQName.setLocalName(readStructureString());
-                index++;
-                _stateRead = true;
-                break;
-            }
-            case STATE_ELEMENT_LN: {
-                _eventType = START_ELEMENT;
-                _internalQName= getInternalQName(index);
-                _internalQName.reset();
-                _internalQName.setLocalName(readStructureString());
-                index++;
-                _stateRead = true;
-                break;
-            }
-            case STATE_NAMESPACE_ATTRIBUTE_P_U:
-            case STATE_NAMESPACE_ATTRIBUTE_U:{
-                _eventType = NAMESPACE;
-                readAttributes();
-                _readAttrs = true;
-                _stateRead = true;
-                break;
-            }
-            case STATE_ATTRIBUTE_U_LN_QN:
-            case STATE_ATTRIBUTE_P_U_LN:
-            case STATE_ATTRIBUTE_U_LN :
-            case STATE_ATTRIBUTE_LN: {
-                _eventType = ATTRIBUTE;
-                //wait till user calls any of the attributes;
-                break;
-            }
-            case STATE_TEXT_AS_CHAR_ARRAY:{
-                _eventType = CHARACTERS;
-                break;
-            }
-            case STATE_TEXT_AS_STRING:{
-                _eventType = CHARACTERS;
-                break;
-            }
-            case STATE_COMMENT_AS_CHAR_ARRAY:{
-                _eventType = COMMENT;
-                break;
-            }
-            case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
-                _eventType = COMMENT;
-                break;
-            }
-            case STATE_PROCESSING_INSTRUCTION:{
-                _eventType = PROCESSING_INSTRUCTION;
-                break;
-            }
-            case STATE_END:{
-                _eventType = END_ELEMENT;
-                index--;
-                _internalQName= getInternalQName(index);
-                if(_internalQName.needsNSPop()){
-                    _nsCtx.pop();
-                }
-                break;
-            }
-            default:{
-                throw new XMLStreamException("Invalid State "+item);
-            }
-        }
-        return _eventType;
-    }
-    
-    /*
-     * Reading some data from the buffer could be expensive, attributes, characters.
-     * skipToNextEvent is called to move the pointer to proper position in the buffer incase
-     * user does not read data for the current event and calls next();
-     */
-    private int skipToNextEvent() throws XMLStreamException {
-        int item = _internalEventType;
-        switch(item) {
-            case STATE_ELEMENT_U_LN_QN:
             case STATE_ELEMENT_P_U_LN:
+                processElement(readStructureString(), readStructureString(), readStructureString());
+                return _eventType = START_ELEMENT;
             case STATE_ELEMENT_U_LN:
-            case STATE_ELEMENT_LN:{
-                break;
-            }
-            case STATE_NAMESPACE_ATTRIBUTE_P_U:
-            case STATE_NAMESPACE_ATTRIBUTE_U:
-            case STATE_ATTRIBUTE_U_LN_QN:
-            case STATE_ATTRIBUTE_P_U_LN:
-            case STATE_ATTRIBUTE_U_LN :
-            case STATE_ATTRIBUTE_LN: {
-                _eventType = ATTRIBUTE;
-                skipAttributes(_eventType);
-                //wait till user calls any of the attributes;
-                break;
-            }
-            case STATE_COMMENT_AS_CHAR_ARRAY:
-            case STATE_TEXT_AS_CHAR_ARRAY:{
-                readContentCharactersBuffer(readStructure());
-                break;
-            }
-            case STATE_TEXT_AS_STRING:{
+                processElement("", readStructureString(), readStructureString());
+                return _eventType = START_ELEMENT;
+            case STATE_ELEMENT_LN:
+                processElement("", "", readStructureString());
+                return _eventType = START_ELEMENT;
+            case STATE_TEXT_AS_CHAR_ARRAY:
+                _textLen = readStructure();
+                _textOffset = readContentCharactersBuffer(_textLen);
+                _characters = _contentCharactersBuffer;
+                
+                return _eventType = CHARACTERS;
+            case STATE_TEXT_AS_CHAR_ARRAY_COPY:
+                _characters = readContentCharactersCopy();
+                _textLen = _characters.length;
+                _textOffset = 0;
+                
+                return _eventType = CHARACTERS;
+            case STATE_TEXT_AS_STRING:
                 _eventType = CHARACTERS;
-                readStructureString();
-                break;
-            }
-            
-            case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
-                _eventType = COMMENT;
-                readContentCharactersCopy();
-                break;
-            }
-            case STATE_PROCESSING_INSTRUCTION:{
-                _eventType = PROCESSING_INSTRUCTION;
-                break;
-            }
-            case STATE_END:{
-                _eventType = END_ELEMENT;
-                index--;
-                _internalQName= getInternalQName(index);
-                if(_internalQName.needsNSPop()){
-                    _nsCtx.pop();
+                _string = readStructureString();
+                
+                return _eventType = CHARACTERS;
+            case STATE_COMMENT_AS_CHAR_ARRAY:
+                _textLen = readStructure();
+                _textOffset = readContentCharactersBuffer(_textLen);
+                _characters = _contentCharactersBuffer;
+                
+                return _eventType = COMMENT;
+            case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
+                _characters = readContentCharactersCopy();
+                _textLen = _characters.length;
+                _textOffset = 0;
+                
+                return _eventType = COMMENT;
+            case STATE_COMMENT_AS_STRING:
+                _string = readStructureString();
+                
+                return _eventType = COMMENT;
+            case STATE_PROCESSING_INSTRUCTION:
+                _piTarget = readStructureString();
+                _piData = readStructureString();
+                
+                return _eventType = PROCESSING_INSTRUCTION;
+            case STATE_END:
+                if (_depth > 0) {
+                    popElementStack();
+                    _eventType = END_ELEMENT;
+                    if (!_isDocument && _depth == 0) {
+                        _isProcessingComplete = true;
+                    }
+                } else {
+                    _eventType = END_DOCUMENT;
+                    _isProcessingComplete = true;
                 }
-                break;
-            }
-            default:{
-                throw new XMLStreamException("Invalid State "+item);
-            }
+                return _eventType;
+            default:
+                throw new XMLStreamException("Invalid State");
         }
-        return _eventType;
     }
     
-    public final void require(int type, String namespaceURI, String localName)
-    throws XMLStreamException {
+    public final void require(int type, String namespaceURI, String localName) throws XMLStreamException {
         if( type != _eventType) {
             throw new XMLStreamException("");
         }
@@ -264,12 +185,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final String getElementText() throws XMLStreamException {
-        if(getEventType() != START_ELEMENT) {
+        if(_eventType != START_ELEMENT) {
             throw new XMLStreamException("");
         }
         
-        //current is StartElement, move to the next
-        int eventType = next();
+        next();
         return getElementText(true);
     }
     
@@ -302,7 +222,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final int nextTag() throws XMLStreamException {
-        int eventType = next();
+        next();
         return nextTag(true);
     }
     
@@ -331,10 +251,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     public void close() throws XMLStreamException {
     }
     
-    public final String getNamespaceURI(String prefix) {
-        return null;
-    }
-    
     public final boolean isStartElement() {
         return (_eventType == START_ELEMENT);
     }
@@ -352,10 +268,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             char [] ch = this.getTextCharacters();
             int start = this.getTextStart();
             int length = this.getTextLength();
-            for (int i=start; i< length;i++){
-                // if(!XMLChar.isSpace(ch[i])){
-                return false;
-                // }
+            for (int i = start; i < length; i++){
+                final char c = ch[i];
+                if (c == 0x20 || c == 0x9 || c == 0xD | c == 0xA) {
+                    continue;
+                } else {
+                    return false;
+                }
             }
             return true;
         }
@@ -363,113 +282,66 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final String getAttributeValue(String namespaceURI, String localName) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
         
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
-        }
-        return _attributeCache.getValue(namespaceURI,localName);
-        
+        return _attributeCache.getValue(namespaceURI, localName);
     }
     
     public final int getAttributeCount() {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
-        }
+        
         return _attributeCache.getLength();
     }
     
     public final javax.xml.namespace.QName getAttributeName(int index) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
-        }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
         }
         
         final String prefix = _attributeCache.getPrefix(index);
         final String localName = _attributeCache.getLocalName(index);
         final String uri = _attributeCache.getURI(index);
-        QName qname = null;
-        if(prefix.length() == 0 && uri.length() == 0){
-            qname = new QName(localName);
-        }else if(prefix.length() == 0){
-            qname = new QName(uri,localName);
-        }else{
-            qname = new QName(uri,localName,prefix);
-        }
-        return qname;
+        return new QName(uri,localName,prefix);
     }
     
     
     public final String getAttributeNamespace(int index) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
-        }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
         }
         return _attributeCache.getURI(index);
     }
     
     public final String getAttributeLocalName(int index) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
-        }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
         }
         return _attributeCache.getLocalName(index);
     }
     
     public final String getAttributePrefix(int index) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
-        }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
         }
         return _attributeCache.getPrefix(index);
     }
     
     public final String getAttributeType(int index) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
-        }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
         }
         return _attributeCache.getType(index);
     }
     
     public final String getAttributeValue(int index) {
-        if (_eventType != START_ELEMENT || _eventType == ATTRIBUTE) {
+        if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        if(!_readAttrs){
-            _attributeCache.clear();
-            readAttributes();
-            _readAttrs = true;
-        }
+        
         return _attributeCache.getValue(index);
     }
     
@@ -479,23 +351,31 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     public final int getNamespaceCount() {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return -1;
+            return _stackEntry.namespaceAIIsEnd - _stackEntry.namespaceAIIsStart;
         }
+        
         throw new IllegalStateException("");
     }
     
     public final String getNamespacePrefix(int index) {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return null;
+            return _namespaceAIIsPrefix[_stackEntry.namespaceAIIsStart + index];
         }
+        
         throw new IllegalStateException("");
     }
     
     public final String getNamespaceURI(int index) {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return null;
+            return _namespaceAIIsNamespaceName[_stackEntry.namespaceAIIsStart + index];
         }
+        
         throw new IllegalStateException("");
+    }
+    
+    public final String getNamespaceURI(String prefix) {
+        // TODO
+        return null;
     }
     
     public final NamespaceContext getNamespaceContext() {
@@ -507,128 +387,103 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final String getText() {
-        if(_eventType != CHARACTERS || _eventType != COMMENT){
+        if (_characters != null) {
+            return _string = new String(_characters, _textOffset, _textLen);
+        } else if (_string != null) {
+            return _string;
+        } else {        
             throw new IllegalStateException("");
-        }
-        
-        if(!_stateRead){
-            _stateRead = true;
-            switch(_internalEventType){
-                case STATE_COMMENT_AS_CHAR_ARRAY:
-                case STATE_TEXT_AS_CHAR_ARRAY:{
-                    _textLen = readStructure();
-                    _textOffset = readContentCharactersBuffer(_textLen);
-                    _characters = _contentCharactersBuffer;
-                    return new String(_characters, _textOffset, _textLen);
-                }
-                case STATE_COMMENT_AS_STRING:
-                case STATE_TEXT_AS_STRING:{
-                    _text = readStructureString();
-                    return _text;
-                }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
-                case STATE_TEXT_AS_CHAR_ARRAY_COPY:{
-                    _characters = readContentCharactersCopy();
-                    _textLen = _characters.length;
-                    _textOffset = 0;
-                    return new String(_characters, _textOffset, _textLen);
-                }
-            }
-        }
-        
-        return null;
+        }        
     }
     
     public final char[] getTextCharacters() {
-        if(_eventType != CHARACTERS || _eventType != COMMENT){
+        if (_characters != null) {
+            return _characters;
+        } else if (_string != null) {
+            _characters = _string.toCharArray();
+            _textLen = _characters.length;
+            _textOffset = 0;
+            return _characters;
+        } else {        
             throw new IllegalStateException("");
-        }
-        
-        if(!_stateRead){
-            _stateRead = true;
-            switch(_internalEventType){
-                case STATE_COMMENT_AS_CHAR_ARRAY:
-                case STATE_TEXT_AS_CHAR_ARRAY:{
-                    _textLen = readStructure();
-                    _textOffset = readContentCharactersBuffer(_textLen);
-                    _characters = _contentCharactersBuffer;
-                    break;
-                }
-                case STATE_COMMENT_AS_STRING:
-                case STATE_TEXT_AS_STRING:{
-                    _text = readStructureString();
-                    _characters = _text.toCharArray();
-                    _textLen = _characters.length;
-                    _textLen = 0;
-                    break;
-                }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
-                case STATE_TEXT_AS_CHAR_ARRAY_COPY:{
-                    _characters = readContentCharactersCopy();
-                    _textLen = _characters.length;
-                    _textOffset = 0;
-                    break;
-                }
-            }
-            
-        }
-        return _characters;
+        }        
     }
     
     public final int getTextStart() {
-        if(_eventType != CHARACTERS || _eventType != COMMENT){
+        if (_characters != null) {
+            return _textOffset;
+        } else if (_string != null) {
+            return 0;
+        } else {        
             throw new IllegalStateException("");
-        }
-        return _textOffset;
+        }        
     }
     
     public final int getTextLength() {
-        if(_eventType != CHARACTERS || _eventType != COMMENT){
+        if (_characters != null) {
+            return _textLen;
+        } else if (_string != null) {
+            return _string.length();
+        } else {        
             throw new IllegalStateException("");
-        }
-        return _textLen;
+        }        
     }
     
     public final int getTextCharacters(int sourceStart, char[] target,
             int targetStart, int length) throws XMLStreamException {
-        return -1;
+        if (_characters != null) {
+        } else if (_string != null) {
+            _characters = _string.toCharArray();
+            _textLen = _characters.length;
+            _textOffset = 0;
+        } else {
+            throw new IllegalStateException("");            
+        }
+        
+        try {
+            System.arraycopy(_characters, sourceStart, target,
+                    targetStart, length);
+            return length;
+        } catch (IndexOutOfBoundsException e) {
+            throw new XMLStreamException(e);
+        }
     }
     
     public final String getEncoding() {
-        return null;
+        return "UTF-8";
     }
     
     public final boolean hasText() {
-        return (_characters != null);
+        return (_characters != null || _string != null);
     }
     
     public final Location getLocation() {
         return null;
     }
     
-    public final QName getName() {
-        return _internalQName.getQName();
-    }
-    
-    public final String getLocalName() {
-        return _internalQName.getLocalName();
-    }
-    
     public final boolean hasName() {
         return (_eventType == START_ELEMENT || _eventType == END_ELEMENT);
     }
     
+    public final QName getName() {
+        return _stackEntry.getQName();
+    }
+    
+    public final String getLocalName() {
+        return _stackEntry.localName;
+    }
+    
     public final String getNamespaceURI() {
-        return _internalQName.getUri();
+        return _stackEntry.uri;
     }
     
     public final String getPrefix() {
-        return _internalQName.getPrefix();
+        return _stackEntry.prefix;
         
     }
     
     public final String getVersion() {
-        return null;
+        return "1.0";
     }
     
     public final boolean isStandalone() {
@@ -640,236 +495,205 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final String getCharacterEncodingScheme() {
-        return null;
+        return "UTF-8";
     }
     
     public final String getPITarget() {
         if (_eventType == PROCESSING_INSTRUCTION) {
-            return null;
+            return _piTarget;
         }
         throw new IllegalStateException("");
     }
     
     public final String getPIData() {
         if (_eventType == PROCESSING_INSTRUCTION) {
-            return null;
+            return _piData;
         }
         throw new IllegalStateException("");
     }
     
-    private void readAttributes(){
-        int eventType = _eventType;
-        if(eventType == START_ELEMENT){
-            int topEvent = peakStructure();
-            if((topEvent & TYPE_MASK) != T_ATTRIBUTE){
-                return;
-            }else{
-                readStructure();
+    
+    
+    private void processFirstEvent() throws XMLStreamException {
+        switch(_stateTable[readStructure()]) {
+            case STATE_DOCUMENT:
+                _eventType = START_DOCUMENT;
+                _isDocument = true;
+                break;
+            case STATE_ELEMENT_U_LN_QN: {
+                final String uri = readStructureString();
+                final String localName = readStructureString();
+                final String prefix = getPrefixFromQName(readStructureString());
+                
+                processElement(prefix, uri, localName);
+                break;
             }
+            case STATE_ELEMENT_P_U_LN: {
+                processElement(readStructureString(), readStructureString(), readStructureString());
+                break;
+            }
+            case STATE_ELEMENT_U_LN: {
+                processElement("", readStructureString(), readStructureString());
+                break;
+            }
+            case STATE_ELEMENT_LN: {
+                processElement("", "", readStructureString());
+                break;
+            }
+            default:
+                throw new XMLStreamException("Invalid State");
         }
-        boolean needPush = true;
-        do{
-            switch(eventType){
-                case T_ATTRIBUTE_U_LN_QN:
-                    _attributeCache.addAttributeWithQName(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
-                    break;
-                case T_ATTRIBUTE_P_U_LN:
-                {
-                    final String p = readStructureString();
-                    final String u = readStructureString();
-                    final String ln = readStructureString();
-                    _attributeCache.addAttributeWithQName(u, ln, getQName(p, ln), readStructureString(), readContentString());
-                    break;
+    }
+    
+    private void processElement(String prefix, String uri, String localName) {
+        pushElementStack();
+        _stackEntry.set(prefix, uri, localName);
+        
+        _attributeCache.clear();
+        
+        int item = peakStructure();
+        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
+            if ((item & FLAG_NAMESPACE_ATTRIBUTE) == 0) {
+                processAttributes(item);
+            } else {
+                processNamespaceAttributes(item);
+                item = peakStructure();
+                if ((item & TYPE_MASK) == T_ATTRIBUTE) {
+                    processAttributes(item);
                 }
-                case T_ATTRIBUTE_U_LN: {
-                    final String u = readStructureString();
-                    final String ln = readStructureString();
-                    _attributeCache.addAttributeWithQName(u, ln, ln, readStructureString(), readContentString());
-                    break;
-                }
-                case T_ATTRIBUTE_LN: {
-                    final String ln = readStructureString();
-                    _attributeCache.addAttributeWithQName("", ln, ln, readStructureString(), readContentString());
-                    break;
-                }
-                case STATE_NAMESPACE_ATTRIBUTE_P_U:{
-                    if(needPush){
-                        needPush = false;
-                        _nsCtx.push();
-                        _internalQName.needsNSPop(true);
-                    }
-                    final String prefix = readStructureString();
-                    final String uri = readStructureString();
-                    _nsCtx.declareNamespace(prefix,uri);
-                    break;
-                }
-                case STATE_NAMESPACE_ATTRIBUTE_U:{
-                    if(needPush){
-                        needPush = false;
-                        _nsCtx.push();
-                        _internalQName.needsNSPop(true);
-                    }
-                    final String uri = readStructureString();
-                    _nsCtx.declareNamespace(XMLConstants.DEFAULT_NS_PREFIX,uri);
-                    break;
-                }
+            }            
+        }
+    }
+    
+    private void resizeNamespaceAttributes() {
+        final String[] namespaceAIIsPrefix = new String[_namespaceAIIsIndex * 2];
+        System.arraycopy(_namespaceAIIsPrefix, 0, namespaceAIIsPrefix, 0, _namespaceAIIsIndex);
+        _namespaceAIIsPrefix = namespaceAIIsPrefix;
+
+        final String[] namespaceAIIsNamespaceName = new String[_namespaceAIIsIndex * 2];
+        System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsIndex);
+        _namespaceAIIsNamespaceName = namespaceAIIsNamespaceName;
+    }
+        
+    private void processNamespaceAttributes(int item){
+        _stackEntry.namespaceAIIsStart = _namespaceAIIsIndex;
+        String prefix = "", namespaceName = "";
+
+        do {
+            if (_namespaceAIIsIndex == _namespaceAIIsPrefix.length) {
+                resizeNamespaceAttributes();
             }
             
-            eventType = peakStructure();
-            if((eventType & TYPE_MASK) == T_ATTRIBUTE){
-                readStructure();
-            }else{
-                break;
+            switch(_stateTable[item]){
+                case STATE_NAMESPACE_ATTRIBUTE:
+                    // Undeclaration of default namespace
+                    prefix = namespaceName =
+                            _namespaceAIIsPrefix[_namespaceAIIsIndex] = 
+                            _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = "";
+                    break;
+                case STATE_NAMESPACE_ATTRIBUTE_P:
+                    // Undeclaration of namespace
+                    prefix = _namespaceAIIsPrefix[_namespaceAIIsIndex] = readStructureString();
+                    namespaceName = _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = "";
+                    break;
+                case STATE_NAMESPACE_ATTRIBUTE_P_U:
+                    // Declaration with prefix
+                    prefix = _namespaceAIIsPrefix[_namespaceAIIsIndex] = readStructureString();
+                    namespaceName = _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = readStructureString();
+                    break;
+                case STATE_NAMESPACE_ATTRIBUTE_U:
+                    // Default declaration
+                    prefix = _namespaceAIIsPrefix[_namespaceAIIsIndex] = "";
+                    namespaceName = _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = readStructureString();
+                    break;                
             }
-        }while(true);
+            readStructure();
+            
+            item = peakStructure();
+        } while((item & (TYPE_MASK | FLAG_NAMESPACE_ATTRIBUTE)) == T_NAMESPACE_ATTRIBUTE);
+        
+        _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
     }
     
-    
-    private void skipAttributes(int eventType){
-        if(eventType == START_ELEMENT){
-            int topEvent = peakStructure();
-            if((topEvent & TYPE_MASK) != T_ATTRIBUTE){
-                return;
-            }else{
-                readStructure();
-            }
-        }
-        boolean needPush = true;
-        do{
-            switch(eventType){
-                case T_ATTRIBUTE_U_LN_QN:
-                    readStructureString();
-                    readStructureString();
-                    readStructureString();
-                    readStructureString();
-                    readContentString();
-                    //equivalent to skip
-                    // _attributeCache.addAttributeWithQName(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
-                    break;
-                case T_ATTRIBUTE_P_U_LN:
-                {
-                    readStructureString();
-                    readStructureString();
-                    readStructureString();
-                    readStructureString();
-                    readContentString();
-                    break;
-                }
-                case T_ATTRIBUTE_U_LN: {
-                    readStructureString();
-                    readStructureString();
-                    readStructureString();
-                    readContentString();
-                    break;
-                }
-                case T_ATTRIBUTE_LN: {
-                    readStructureString();
-                    readStructureString();
-                    readContentString();
-                }
-                case STATE_NAMESPACE_ATTRIBUTE_P_U:{
-                    if(needPush){
-                        needPush = false;
-                        _nsCtx.push();
-                        _internalQName.needsNSPop(true);
-                    }
-                    final String prefix = readStructureString();
+    private void processAttributes(int item){
+        do {
+            switch(_stateTable[item]){
+                case STATE_ATTRIBUTE_U_LN_QN: {
                     final String uri = readStructureString();
-                    _nsCtx.declareNamespace(prefix,uri);
+                    final String localName = readStructureString();
+                    final String prefix = getPrefixFromQName(readStructureString());
+                    _attributeCache.addAttributeWithPrefix(prefix, uri, localName, readStructureString(), readContentString());
                     break;
                 }
-                case STATE_NAMESPACE_ATTRIBUTE_U:{
-                    if(needPush){
-                        needPush = false;
-                        _nsCtx.push();
-                        _internalQName.needsNSPop(true);
-                    }
-                    final String uri = readStructureString();
-                    _nsCtx.declareNamespace(XMLConstants.DEFAULT_NS_PREFIX,uri);
+                case STATE_ATTRIBUTE_P_U_LN:
+                    _attributeCache.addAttributeWithPrefix(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
+                    break;
+                case STATE_ATTRIBUTE_U_LN:
+                    _attributeCache.addAttributeWithPrefix("", readStructureString(), readStructureString(), readStructureString(), readContentString());
+                    break;
+                case STATE_ATTRIBUTE_LN: {
+                    _attributeCache.addAttributeWithPrefix("", "", readStructureString(), readStructureString(), readContentString());
                     break;
                 }
             }
-            eventType = peakStructure();
-            if((eventType & TYPE_MASK) == T_ATTRIBUTE){
-                readStructure();
-            }else{
-                break;
-            }
-        }while(true);
+            readStructure();
+            
+            item = peakStructure();
+        } while((item & TYPE_MASK) == T_ATTRIBUTE);
     }
     
-    
-    
-    private IQName getInternalQName(int index){
-        if(index >= _qnameCache.length ){
-            IQName [] tmp =  _qnameCache;
-            _qnameCache = new IQName[_qnameCache.length+CACHE_SIZE];
-            System.arraycopy(tmp,0,_qnameCache,0,tmp.length);
-            for(int i=index;i<_qnameCache.length;++i){
-                _qnameCache[i]=new IQName();
-            }
+    private ElementStackEntry pushElementStack() {
+        if (_depth < _stack.length) {
+            return _stackEntry = _stack[_depth++];
         }
-        return _qnameCache[index];
+        
+        ElementStackEntry [] tmp = _stack;
+        _stack = new ElementStackEntry[_stack.length * 3 /2 + 1];
+        System.arraycopy(tmp, 0, _stack, 0, tmp.length);
+        for (int i = tmp.length; i < _stack.length; i++){
+            _stack[i] = new ElementStackEntry();
+        }
+        
+        return _stackEntry = _stack[_depth++];
     }
     
-    class IQName {
-        private String uri="";
-        private String prefix="";
-        private String localName="";
-        private QName qname = null;
-        boolean needsNSPop = false;
-        public String getUri() {
-            return uri;
+    private ElementStackEntry popElementStack() {
+        if (_depth > 0) {
+            _stackEntry = _stack[--_depth];
+            if (_stackEntry.namespaceAIIsEnd > 0) {
+                _namespaceAIIsIndex = _stackEntry.namespaceAIIsStart;
+            }
+            
+            return _stackEntry;
         }
         
-        public void setUri(String uri) {
-            this.uri = uri;
-        }
+        return null;
+    }
+    
+    private class ElementStackEntry {
+        String prefix;
+        String uri;
+        String localName;
+        QName qname;
         
-        public String getPrefix() {
-            return prefix;
-        }
+        int namespaceAIIsStart;
+        int namespaceAIIsEnd;
         
-        public String getLocalName() {
-            return localName;
-        }
-        
-        public void setPrefix(String prefix){
+        public void set(String prefix, String uri, String localName) {
             this.prefix = prefix;
-        }
-        
-        public void setLocalName(String name){
-            this.localName = name;
+            this.uri = uri;
+            this.localName = localName;
+            
+            this.qname = null;
+            
+            this.namespaceAIIsStart = this.namespaceAIIsEnd = 0;
         }
         
         public QName getQName(){
             if(qname == null){
-                if(prefix.length() == 0 && uri.length() == 0){
-                    qname = new QName(localName);
-                }else if(prefix.length() == 0){
-                    qname = new QName(uri,localName);
-                }else{
-                    qname = new QName(uri,localName,prefix);
-                }
+                qname = new QName(uri,localName,prefix);
             }
             return qname;
         }
-        
-        public void reset(){
-            uri="";
-            prefix="";
-            localName  ="";
-            qname = null;
-            this.needsNSPop = false;
-        }
-        
-        public boolean needsNSPop(){
-            return needsNSPop;
-        }
-        
-        public void needsNSPop(boolean value){
-            this.needsNSPop = value;
-        }
     }
-    
 }

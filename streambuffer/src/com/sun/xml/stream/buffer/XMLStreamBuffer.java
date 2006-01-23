@@ -216,7 +216,7 @@ public class XMLStreamBuffer {
      * @return
      * A an instance of a {@link StreamReaderBufferProcessor}.
      */
-    public StreamReaderBufferProcessor processUsingStreamReaderBufferProcessor() {
+    public StreamReaderBufferProcessor processUsingStreamReaderBufferProcessor() throws XMLStreamException {
         return new StreamReaderBufferProcessor(this);
     }
     
@@ -226,7 +226,7 @@ public class XMLStreamBuffer {
      * @return
      * A XMLStreamReader to read.
      */
-    public XMLStreamReader processUsingXMLStreamReader() {
+    public XMLStreamReader processUsingXMLStreamReader() throws XMLStreamException {
         return processUsingStreamReaderBufferProcessor();
     }
     

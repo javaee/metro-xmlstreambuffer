@@ -409,7 +409,6 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 {
                     final int length = readStructure();
                     int start = readContentCharactersBuffer(length);
-                    
                     try {
                         _contentHandler.characters(_contentCharactersBuffer, start, length);
                     } catch (SAXException e) {
