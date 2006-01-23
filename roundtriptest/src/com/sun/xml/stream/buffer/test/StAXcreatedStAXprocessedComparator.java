@@ -20,33 +20,35 @@
 package com.sun.xml.stream.buffer.test;
 
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.XMLStreamBufferSource;
-import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
-import java.io.ByteArrayOutputStream;
+import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
 import java.io.InputStream;
+import javanet.staxutils.StAXSource;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 import nu.xom.Builder;
 import nu.xom.Document;
 
-public class StAXcreatedSAXprocessedComparator extends BaseComparator {
+/**
+ *
+ * @author Paul.Sandoz@Sun.Com
+ */
+public class StAXcreatedStAXprocessedComparator extends BaseComparator {
     
     public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
         StreamReaderBufferCreator bc = new StreamReaderBufferCreator();
         XMLStreamBuffer buffer = bc.create(reader);
+
+        StreamReaderBufferProcessor bp = new StreamReaderBufferProcessor(buffer);
+        StAXSource s = new StAXSource(bp);
         
-        SAXBufferProcessor bp = new SAXBufferProcessor(buffer);
-        Builder b = new Builder(bp);
+        Builder b = new Builder(s.getXMLReader());
         return b.build(in);
     }
 
     public static void main(String args[]) throws Exception {
-        StAXcreatedSAXprocessedComparator c = new StAXcreatedSAXprocessedComparator();
+        StAXcreatedStAXprocessedComparator c = new StAXcreatedStAXprocessedComparator();
         c.compare(args[0]);
-    }    
+    }
 }
