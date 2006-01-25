@@ -100,9 +100,38 @@ public class MarkTest extends TestCase {
         // Verify that <soap:Body> is present
         verifyTag(reader, SOAP_NAMESPACE_URI, SOAP_BODY);
                 
-        XMLStreamBufferMark mark = marks.get(1);
-        XMLStreamReader markReader = mark.processUsingXMLStreamReader();
-        //TODO: Need to implement StreamReaderBufferProcessor
+        for (XMLStreamBufferMark mark : marks) {
+            XMLStreamReader markReader = mark.processUsingXMLStreamReader();
+            
+            processFragment(markReader);
+        }        
+    }
+    
+    public void processFragment(XMLStreamReader reader) throws XMLStreamException {
+        verifyReaderState(reader,
+                XMLStreamReader.START_ELEMENT);
+        
+        int depth = 1;
+        while(depth > 0) {
+            int event = reader.next();
+            switch(event) {
+                case XMLStreamReader.START_ELEMENT:
+                    depth++;
+                    break;
+                case XMLStreamReader.END_ELEMENT:
+                    depth--;
+                    break;
+            }
+        }
+        
+        boolean exceptionThrown = false;
+        try {
+            reader.next();   
+        } catch (XMLStreamException e) {
+            exceptionThrown = true;
+        }
+        
+        assertEquals(true, exceptionThrown);
     }
     
     public int next(XMLStreamReader reader) throws XMLStreamException {
