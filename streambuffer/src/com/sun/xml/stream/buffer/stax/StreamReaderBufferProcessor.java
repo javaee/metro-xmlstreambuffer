@@ -35,6 +35,9 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 /**
+ * {@link XMLStreamReader} implementation that reads the infoset from
+ * {@link XMLStreamBuffer}.
+ *
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
  */
@@ -70,12 +73,36 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     protected String _piTarget;
     protected String _piData;
-    
-    // True if processing a document, otherwise an element fragment
-    protected boolean _isDocument;
-    
-    // True if processing is complete
-    protected boolean _isProcessingComplete;
+
+    /**
+     * True if processing a document, otherwise an element fragment.
+     */
+    private boolean _isDocument;
+
+    //
+    // Represents the parser state wrt the end of parsing.
+    //
+    /**
+     * The parser is in the middle of parsing a document,
+     * with no end in sight.
+     */
+    private static final int PARSING = 1;
+    /**
+     * The parser has already reported the {@link END_ELEMENT},
+     * and we are parsing a fragment. We'll report {@link END_DOCUMENT}
+     * next and be done.
+     */
+    private static final int PENDING_END_DOCUMENT = 2;
+    /**
+     * The parser has reported the {@link END_DOCUMENT} event,
+     * so we are really done parsing.
+     */
+    private static final int COMPLETED = 3;
+
+    /**
+     * True if processing is complete.
+     */
+    private int _completionState;
     
     public StreamReaderBufferProcessor() {
         for (int i=0; i < _stack.length; i++){
@@ -94,7 +121,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) throws XMLStreamException {
         setBuffer(buffer);
         
-        _isProcessingComplete = false;
+        _completionState = PARSING;
         _namespaceAIIsIndex = 0;
         _characters = null;
         _string = null;
@@ -107,10 +134,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public int next() throws XMLStreamException {
-        if (_isProcessingComplete) {
-            throw new XMLStreamException("Invalid State");            
+        switch(_completionState) {
+        case COMPLETED:
+            throw new XMLStreamException("Invalid State");
+        case PENDING_END_DOCUMENT:
+            _completionState = COMPLETED;
+            return _eventType=END_DOCUMENT;
         }
-        
+
         _characters = null;
         _string = null;
         switch(_stateTable[readStructure()]) {
@@ -176,11 +207,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 } else if (_depth == 1) {
                     popElementStack();
                     if (!_isDocument) {
-                        _isProcessingComplete = true;
+                        _completionState = PENDING_END_DOCUMENT;
                     }
                     return _eventType = END_ELEMENT;
                 } else {
-                    _isProcessingComplete = true;
+                    _completionState = COMPLETED;
                     return _eventType = END_DOCUMENT;
                 }
             default:
@@ -260,7 +291,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         return eventType;
     }
     
-    public final boolean hasNext() throws XMLStreamException {
+    public final boolean hasNext() {
         return (_eventType != END_DOCUMENT);
     }
     
@@ -852,7 +883,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                         findNext();
                         requireFindNext = false;
                     }
-                    return (p == null) ? false : true;
+                    return (p != null);
                 }
                 
                 public Object next() {
