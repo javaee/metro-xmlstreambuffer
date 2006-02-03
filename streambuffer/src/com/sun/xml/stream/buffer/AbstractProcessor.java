@@ -18,7 +18,11 @@
  * [name of copyright owner]
  */
 package com.sun.xml.stream.buffer;
-        
+
+/**
+ * Base class for classes that reads {@link XMLStreamBuffer}
+ * and produces infoset in API-specific form.
+ */
 public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int STATE_ILLEGAL                       = 0;
     protected  static final int STATE_DOCUMENT                      = 1;
