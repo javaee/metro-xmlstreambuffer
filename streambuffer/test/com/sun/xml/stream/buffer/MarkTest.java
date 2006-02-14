@@ -124,6 +124,10 @@ public class MarkTest extends TestCase {
             }
         }
         
+        reader.next();   
+        verifyReaderState(reader,
+                XMLStreamReader.END_DOCUMENT);
+        
         boolean exceptionThrown = false;
         try {
             reader.next();   

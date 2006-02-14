@@ -135,11 +135,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     public int next() throws XMLStreamException {
         switch(_completionState) {
-        case COMPLETED:
-            throw new XMLStreamException("Invalid State");
-        case PENDING_END_DOCUMENT:
-            _completionState = COMPLETED;
-            return _eventType=END_DOCUMENT;
+            case COMPLETED:
+                throw new XMLStreamException("Invalid State");
+            case PENDING_END_DOCUMENT:
+                _completionState = COMPLETED;
+                return _eventType = END_DOCUMENT;
         }
 
         _characters = null;
@@ -176,7 +176,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 return _eventType = CHARACTERS;
             case STATE_TEXT_AS_STRING:
                 _eventType = CHARACTERS;
-                _string = readStructureString();
+                _string = readContentString();
                 
                 return _eventType = CHARACTERS;
             case STATE_COMMENT_AS_CHAR_ARRAY:
@@ -192,7 +192,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 
                 return _eventType = COMMENT;
             case STATE_COMMENT_AS_STRING:
-                _string = readStructureString();
+                _string = readContentString();
                 
                 return _eventType = COMMENT;
             case STATE_PROCESSING_INSTRUCTION:
@@ -331,6 +331,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     public final String getAttributeValue(String namespaceURI, String localName) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
+        }
+    
+        if (namespaceURI == null) {
+            // Set to the empty string to be compatible with the
+            // org.xml.sax.Attributes interface
+            namespaceURI = "";
         }
         
         return _attributeCache.getValue(namespaceURI, localName);
@@ -561,7 +567,18 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     
     private void processFirstEvent(XMLStreamBuffer buffer) throws XMLStreamException {
-        switch(_stateTable[readStructure()]) {
+        final int s = readStructure();
+        if (s == T_END_OF_BUFFER) {
+            // This is an empty buffer
+            // Ensure that start and end document events are produced
+            // TODO not sure this is correct behaviour as this is not a
+            // well formed infoset as there is no element present
+            _eventType = START_DOCUMENT;
+            _completionState = PENDING_END_DOCUMENT;
+            return;
+        }
+        
+        switch(_stateTable[s]) {
             case STATE_DOCUMENT:
                 _eventType = START_DOCUMENT;
                 _isDocument = true;

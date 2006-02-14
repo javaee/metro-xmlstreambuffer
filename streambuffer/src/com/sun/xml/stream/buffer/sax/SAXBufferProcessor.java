@@ -316,7 +316,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     break;
                 }
                 case T_COMMENT_AS_STRING:
-                    processComment(readStructureString());
+                    processComment(readContentString());
                     break;
                 case T_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
@@ -344,6 +344,9 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processComment(ch, 0, ch.length);
                     break;
                 }
+                case T_COMMENT_AS_STRING:
+                    processComment(readContentString());
+                    break;
                 case T_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
@@ -429,7 +432,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 }
                 case STATE_TEXT_AS_STRING:
                 {
-                    final String s = readStructureString();
+                    final String s = readContentString();
                     
                     try {
                         _contentHandler.characters(s.toCharArray(), 0, s.length());
@@ -451,6 +454,9 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processComment(ch, 0, ch.length);
                     break;
                 }
+                case T_COMMENT_AS_STRING:
+                    processComment(readContentString());
+                    break;
                 case STATE_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
