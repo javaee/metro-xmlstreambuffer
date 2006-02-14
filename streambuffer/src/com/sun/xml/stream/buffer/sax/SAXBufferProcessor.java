@@ -119,7 +119,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     public void setFeature(String name, boolean value)
             throws SAXNotRecognizedException, SAXNotSupportedException {
         if (name.equals(Features.NAMESPACES_FEATURE)) {
-            if (value == false) {
+            if (!value) {
                 throw new SAXNotSupportedException(name + ":" + value);
             }
         } else if (name.equals(Features.NAMESPACE_PREFIXES_FEATURE)) {
@@ -238,7 +238,29 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             case T_END:
                 // Empty buffer
                 return;
-            // TODO process element fragment
+            case T_ELEMENT_U_LN_QN:
+                processElement(readStructureString(), readStructureString(), readStructureString());
+                break;
+            case T_ELEMENT_P_U_LN:
+            {
+                final String prefix = readStructureString();
+                final String uri = readStructureString();
+                final String localName = readStructureString();
+                processElement(uri, localName, getQName(prefix, localName));
+                break;
+            }
+            case T_ELEMENT_U_LN: {
+                final String uri = readStructureString();
+                final String localName = readStructureString();
+                processElement(uri, localName, localName);
+                break;
+            }
+            case T_ELEMENT_LN:
+            {
+                final String localName = readStructureString();
+                processElement("", localName, localName);
+                break;
+            }
             default:
                 throw reportFatalError("Illegal state for DIIs: "+item);
         }
