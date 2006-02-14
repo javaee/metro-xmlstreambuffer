@@ -28,6 +28,11 @@
                 <include name="${streambuffer.dir}/**"/>
             </fileset>                
         </zip>    
+	<zip destfile="${package.dir}/streambuffer.src.zip">
+	    <fileset dir="${streambuffer.dir}/src">
+		<include name="**"/>
+	    </fileset>                
+	</zip>
     </target>
     
     <target name="dist-package" depends="dist, prepare">
