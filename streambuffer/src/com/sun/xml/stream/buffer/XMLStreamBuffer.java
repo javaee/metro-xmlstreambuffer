@@ -120,6 +120,10 @@ public class XMLStreamBuffer {
         _contentStrings = new FragmentedArray(new String[size]);
         _contentCharacters = new FragmentedArray(new char[size][]);
         _contentCharactersBuffer = new FragmentedArray(new char[4096]);
+        
+        // Set the first element of structure array to indicate an empty buffer 
+        // that has not been created
+        _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
     }
 
     /**
@@ -133,7 +137,7 @@ public class XMLStreamBuffer {
      * <code>true</code> if the XMLStreamBuffer has been created.
      */
     public boolean isCreated() {
-        return _structure.getSize() > 0;
+        return _structure.getArray()[0] != AbstractCreatorProcessor.T_END;
     }
     
     /**
@@ -417,21 +421,21 @@ public class XMLStreamBuffer {
                 _contentCharactersPtr =
                 _contentCharactersBufferPtr = 0;
         
-        // Reset the size of structure to indicate an empty buffer 
+        // Set the first element of structure array to indicate an empty buffer 
         // that has not been created
-        _structure.setSize(0);
+        _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
 
         // Clean up content strings
         _contentStrings.setNext(null);
         final String[] s = _contentStrings.getArray();
-        for (int i = 0; i < _contentStrings.getSize(); i++) {
+        for (int i = 0; i < s.length; i++) {
             s[i] = null;
         }
         
         // Clean up content characters
         _contentCharacters.setNext(null);
         final char[][] c = _contentCharacters.getArray();
-        for (int i = 0; i < _contentCharacters.getSize(); i++) {
+        for (int i = 0; i < c.length; i++) {
             c[i] = null;
         }
         

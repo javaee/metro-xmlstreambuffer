@@ -568,7 +568,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     private void processFirstEvent(XMLStreamBuffer buffer) throws XMLStreamException {
         final int s = readStructure();
-        if (s == T_END_OF_BUFFER) {
+        if (s == T_END) {
             // This is an empty buffer
             // Ensure that start and end document events are produced
             // TODO not sure this is correct behaviour as this is not a

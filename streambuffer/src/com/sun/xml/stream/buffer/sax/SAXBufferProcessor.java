@@ -226,7 +226,18 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
 
     public final void process() throws XMLStreamBufferException {
         try {
-            processDocuments();
+            final int item = readStructure();
+            switch(item) {
+                case T_DOCUMENT:
+                    processDocument();
+                    break;
+                case T_END:
+                    // Empty buffer
+                    return;
+                // TODO process element fragment
+                default:
+                    throw new XMLStreamBufferException("Illegal state for DIIs");
+            }
         } catch (RuntimeException e) {
             try {
                 _errorHandler.fatalError(new SAXParseException(e.getClass().getName(), null, e));
@@ -246,23 +257,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     private void resetOnError() {
     }
-    
-    private void processDocuments() throws XMLStreamBufferException {
-        int item = 0;
-        while(item != T_END_OF_BUFFER) {
-            item = readStructure();
-            switch(item) {
-                case T_DOCUMENT:
-                    processDocument();
-                    break;
-                case T_END_OF_BUFFER:
-                    break;
-                default:
-                    throw new XMLStreamBufferException("Illegal state for DIIs");
-            }
-        }
-    }
-    
+        
     private void processDocument() throws XMLStreamBufferException {
         try {
             _contentHandler.startDocument();

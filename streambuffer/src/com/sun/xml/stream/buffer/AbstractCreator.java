@@ -19,6 +19,10 @@
  */
 package com.sun.xml.stream.buffer;
 
+/**
+ * Base class for classes that creates {@link XMLStreamBuffer}
+ * and from infoset in API-specific form.
+ */
 public class AbstractCreator extends AbstractCreatorProcessor {
     
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
@@ -26,7 +30,6 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     }
     
     public XMLStreamBuffer getXMLStreamBuffer() {
-        compactBuffer();
         return _buffer;
     }
     
@@ -72,7 +75,6 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     
     protected final void resizeStructure() {
         _structurePtr = 0;
-        _currentStructureFragment.setSize(_structure.length);
         if (_currentStructureFragment.getNext() != null) {
             _currentStructureFragment = _currentStructureFragment.getNext();
             _structure = _currentStructureFragment.getArray();
@@ -91,7 +93,6 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     
     protected final void resizeStructureStrings() {
         _structureStringsPtr = 0;
-        _currentStructureStringFragment.setSize(_structureStrings.length);
         if (_currentStructureStringFragment.getNext() != null) {
             _currentStructureStringFragment = _currentStructureStringFragment.getNext();
             _structureStrings = _currentStructureStringFragment.getArray();
@@ -110,7 +111,6 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     
     protected final void resizeContentStrings() {
         _contentStringsPtr = 0;
-        _currentContentStringFragment.setSize(_contentStrings.length);
         if (_currentContentStringFragment.getNext() != null) {
             _currentContentStringFragment = _currentContentStringFragment.getNext();
             _contentStrings = _currentContentStringFragment.getArray();
@@ -159,7 +159,6 @@ public class AbstractCreator extends AbstractCreatorProcessor {
 
     protected final void resizeContentCharactersCopy() {
         _contentCharactersPtr = 0;
-        _currentContentCharactersFragment.setSize(_contentCharacters.length);
         if (_currentContentCharactersFragment.getNext() != null) {
             _currentContentCharactersFragment = _currentContentCharactersFragment.getNext();
             _contentCharacters = _currentContentCharactersFragment.getArray();
@@ -167,25 +166,5 @@ public class AbstractCreator extends AbstractCreatorProcessor {
             _contentCharacters = new char[_contentCharacters.length][];
             _currentContentCharactersFragment = new FragmentedArray(_contentCharacters, _currentContentCharactersFragment);
         }
-    }
-    
-    protected final void compactBuffer() {
-        if (_buffer == null) {
-            return;
-        }
-        
-        _currentStructureFragment.setSize(_structurePtr);
-        if (_structurePtr > 0) {
-            // Set the size of the next structure fragment to 0, if one exists,
-            // to correctly terminate the buffer
-            final FragmentedArray<int[]> structureFragment = _currentStructureFragment.getNext();
-            if (structureFragment != null) {
-                structureFragment.setSize(0);
-            }
-        }
-                
-        _currentStructureStringFragment.setSize(_structureStringsPtr);
-        _currentContentStringFragment.setSize(_contentStringsPtr);
-        _currentContentCharactersFragment.setSize(_contentCharactersPtr);
-    } 
+    }    
 }

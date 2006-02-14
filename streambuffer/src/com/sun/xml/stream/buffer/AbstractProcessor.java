@@ -20,7 +20,7 @@
 package com.sun.xml.stream.buffer;
 
 /**
- * Base class for classes that reads {@link XMLStreamBuffer}
+ * Base class for classes that processes {@link XMLStreamBuffer}
  * and produces infoset in API-specific form.
  */
 public abstract class AbstractProcessor extends AbstractCreatorProcessor {
@@ -73,15 +73,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _stateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
         _stateTable[T_END] = STATE_END;
     }
-    
-    protected int _structureSize;
-    
-    protected int _structureStringsSize;
-    
-    protected int _contentStringsSize;
-    
-    protected int _contentCharactersSize;
-    
+        
     protected boolean _stringInterningFeature = false;
     
     protected final void setBuffer(XMLStreamBuffer buffer) {
@@ -89,22 +81,18 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         
         _currentStructureFragment = _buffer.getStructure();
         _structure = _currentStructureFragment.getArray();
-        _structureSize = _currentStructureFragment.getSize();
         _structurePtr = _buffer.getStructurePtr();
 
         _currentStructureStringFragment = _buffer.getStructureStrings();
         _structureStrings = _currentStructureStringFragment.getArray();
-        _structureStringsSize = _currentStructureStringFragment.getSize();
         _structureStringsPtr = _buffer.getStructureStringsPtr();
         
         _currentContentStringFragment = _buffer.getContentStrings();
         _contentStrings = _currentContentStringFragment.getArray();
-        _contentStringsSize = _currentContentStringFragment.getSize();
         _contentStringsPtr = _buffer.getContentStringsPtr();
         
         _currentContentCharactersFragment = _buffer.getContentCharacters();
         _contentCharacters = _currentContentCharactersFragment.getArray();
-        _contentCharactersSize = _currentContentCharactersFragment.getSize();
         _contentCharactersPtr = _buffer.getContentCharactersPtr();
         
         _currentContentCharactersBufferFragment = _buffer.getContentCharactersBuffer();
@@ -115,7 +103,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     }
     
     protected final int peakStructure() {
-        if (_structurePtr < _structureSize) {
+        if (_structurePtr < _structure.length) {
             return _structure[_structurePtr];
         }
         
@@ -123,7 +111,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     }
     
     protected final int readStructure() {
-        if (_structurePtr < _structureSize) {
+        if (_structurePtr < _structure.length) {
             return _structure[_structurePtr++];
         }
 
@@ -131,55 +119,42 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     }
     
     private int readFromNextStructure(int v) {
-        if (_structureSize > 0) {
-            _currentStructureFragment = _currentStructureFragment.getNext();
-            if (_currentStructureFragment != null) {
-                _structurePtr = v;
-                _structure = _currentStructureFragment.getArray();
-                _structureSize = _currentStructureFragment.getSize();
-                if (_structureSize > 0) {
-                    return _structure[0];
-                }
-            }
-        }
-        
-        _structureSize = 0;
-        return T_END_OF_BUFFER;        
+        _structurePtr = v;
+        _currentStructureFragment = _currentStructureFragment.getNext();
+        _structure = _currentStructureFragment.getArray();
+        return _structure[0];
     }
     
     protected final String readStructureString() {
-        if (_structureStringsPtr < _structureStringsSize) {
+        if (_structureStringsPtr < _structureStrings.length) {
             return _structureStrings[_structureStringsPtr++];
         }
         
         _structureStringsPtr = 1;
         _currentStructureStringFragment = _currentStructureStringFragment.getNext();
         _structureStrings = _currentStructureStringFragment.getArray();
-        _structureStringsSize = _currentStructureStringFragment.getSize();
         return _structureStrings[0];
     }
     
     protected final String readContentString() {
-        if (_contentStringsPtr < _contentStringsSize) {
+        if (_contentStringsPtr < _contentStrings.length) {
             return _contentStrings[_contentStringsPtr++];
         }
         
         _contentStringsPtr = 1;
         _currentContentStringFragment = _currentContentStringFragment.getNext();
         _contentStrings = _currentContentStringFragment.getArray();
-        _contentStringsSize = _currentContentStringFragment.getSize();
         return _contentStrings[0];
     }
     
     protected final char[] readContentCharactersCopy() {
-        if (_contentCharactersPtr < _contentCharactersSize) {
+        if (_contentCharactersPtr < _contentCharacters.length) {
             return _contentCharacters[_contentCharactersPtr++];
         }
         
         _contentCharactersPtr = 1;
         _currentContentCharactersFragment = _currentContentCharactersFragment.getNext();
         _contentCharacters = _currentContentCharactersFragment.getArray();
-        _contentCharactersSize = _currentContentCharactersFragment.getSize();
         return _contentCharacters[0];
     }
     

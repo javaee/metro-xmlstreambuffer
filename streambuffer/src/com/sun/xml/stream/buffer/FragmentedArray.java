@@ -20,7 +20,6 @@
 package com.sun.xml.stream.buffer;
 
 class FragmentedArray<T> {
-    protected int _size;
     protected T _item;
     protected FragmentedArray<T> _next;
     protected FragmentedArray<T> _previous;
@@ -45,14 +44,6 @@ class FragmentedArray<T> {
         assert(item.getClass().isArray());
         
         _item = item;
-    }
-    
-    int getSize() {
-        return _size;
-    }
-
-    void setSize(int size) {
-        _size = size;
     }
     
     FragmentedArray<T> getNext() {
