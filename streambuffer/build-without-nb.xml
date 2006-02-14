@@ -136,6 +136,11 @@
 		<include name="${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}/**"/>
 	    </fileset>                
 	</zip>
+	<zip destfile="${package.dir}/${ant.project.name}.src.zip">
+	    <fileset dir="src">
+		<include name="**"/>
+	    </fileset>                
+	</zip>
     </target>
 
      <property name="wspack.home" value="fi-wspack" />
