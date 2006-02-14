@@ -35,7 +35,10 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 
-
+/**
+ * SAX {@link XMLReader} that reads from {@link XMLStreamBuffer}.
+ *
+ */
 public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     public static final String XMLNS_NAMESPACE_PREFIX = "xmlns";
     
@@ -219,7 +222,10 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         setXMLStreamBuffer(buffer);
         process();
     }
-    
+
+    /**
+     * Resets the parser to read from the beginning of the given {@link XMLStreamBuffer}.
+     */
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
@@ -254,17 +260,17 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             throw e;
         }
     }
-    
+
     private void resetOnError() {
     }
-        
+
     private void processDocument() throws XMLStreamBufferException {
         try {
             _contentHandler.startDocument();
         } catch (SAXException e) {
             throw new XMLStreamBufferException(e);
         }
-        
+
         boolean firstElementHasOccured = false;
         int item;
         do {
@@ -272,7 +278,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             switch(item) {
                 case T_ELEMENT_U_LN_QN:
                     firstElementHasOccured = true;
-                    processElement(readStructureString(), readStructureString(), readStructureString()); 
+                    processElement(readStructureString(), readStructureString(), readStructureString());
                     break;
                 case T_ELEMENT_P_U_LN:
                 {
@@ -287,14 +293,14 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     firstElementHasOccured = true;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    processElement(uri, localName, localName); 
+                    processElement(uri, localName, localName);
                     break;
                 }
                 case T_ELEMENT_LN:
                 {
                     firstElementHasOccured = true;
                     final String localName = readStructureString();
-                    processElement("", localName, localName); 
+                    processElement("", localName, localName);
                     break;
                 }
                 case T_COMMENT_AS_CHAR_ARRAY:
@@ -304,7 +310,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case T_COMMENT_AS_CHAR_ARRAY_COPY: 
+                case T_COMMENT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
@@ -322,7 +328,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     throw new XMLStreamBufferException("Illegal state for child of DII");
             }
         } while(item != T_END || !firstElementHasOccured);
-        
+
         while(item != T_END) {
             item = readStructure();
             switch(item) {
@@ -333,7 +339,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case T_COMMENT_AS_CHAR_ARRAY_COPY: 
+                case T_COMMENT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
@@ -351,7 +357,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     throw new XMLStreamBufferException("Illegal state for child of DII");
             }
         }
-        
+
         try {
             _contentHandler.endDocument();
         } catch (SAXException e) {
@@ -367,7 +373,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             hasAttributes = true;
             hasNamespaceAttributes = processAttributes(item);
         }
-        
+
         try {
             _contentHandler.startElement(uri, localName, qName, _attributes);
         } catch (SAXException e) {
@@ -377,12 +383,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         if (hasAttributes) {
             _attributes.clear();
         }
-        
+
         do {
             item = _stateTable[readStructure()];
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN:
-                    processElement(readStructureString(), readStructureString(), readStructureString()); 
+                    processElement(readStructureString(), readStructureString(), readStructureString());
                     break;
                 case STATE_ELEMENT_P_U_LN:
                 {
@@ -395,12 +401,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case STATE_ELEMENT_U_LN: {
                     final String u = readStructureString();
                     final String ln = readStructureString();
-                    processElement(u, ln, ln); 
+                    processElement(u, ln, ln);
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     final String ln = readStructureString();
-                    processElement("", ln, ln); 
+                    processElement("", ln, ln);
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY:
@@ -417,7 +423,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case STATE_TEXT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
-                    
+
                     try {
                         _contentHandler.characters(ch, 0, ch.length);
                     } catch (SAXException e) {
@@ -428,12 +434,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case STATE_TEXT_AS_STRING:
                 {
                     final String s = readContentString();
-                    
+
                     try {
                         _contentHandler.characters(s.toCharArray(), 0, s.length());
                     } catch (SAXException e) {
                         throw new XMLStreamBufferException(e);
-                    }                    
+                    }
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY:
@@ -443,7 +449,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY: 
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
