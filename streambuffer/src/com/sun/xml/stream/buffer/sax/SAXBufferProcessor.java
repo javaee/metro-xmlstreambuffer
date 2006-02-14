@@ -226,6 +226,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      * Parse the sub-tree (or a whole document) that {@link XMLStreamBuffer}
      * points to, and sends events to handlers.
      *
+     * <p>
+     * TODO:
+     * We probably need two modes for a sub-tree event generation. One for
+     * firing a sub-tree as if it's a whole document (in which case start/endDocument
+     * and appropriate additional namespace bindings are necessary), and the other
+     * mode for firing a subtree as a subtree, like it does today.
+     *
      * @throws SAXException
      *      Follow the same semantics as {@link XMLReader#parse(InputSource)}.
      */
