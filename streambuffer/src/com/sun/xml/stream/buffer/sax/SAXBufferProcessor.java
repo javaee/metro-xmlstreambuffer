@@ -230,6 +230,10 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         setBuffer(buffer);
     }
 
+    /**
+     * Parse the sub-tree (or a whole document) that {@link XMLStreamBuffer}
+     * points to, and sends events to handlers.
+     */
     public final void process() throws XMLStreamBufferException {
         try {
             final int item = readStructure();
@@ -242,7 +246,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     return;
                 // TODO process element fragment
                 default:
-                    throw new XMLStreamBufferException("Illegal state for DIIs");
+                    throw new XMLStreamBufferException("Illegal state for DIIs: "+item);
             }
         } catch (RuntimeException e) {
             try {
