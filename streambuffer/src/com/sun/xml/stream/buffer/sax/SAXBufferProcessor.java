@@ -21,8 +21,6 @@ package com.sun.xml.stream.buffer.sax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.XMLStreamBufferException;
-import java.io.IOException;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.EntityResolver;
@@ -34,6 +32,8 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
+
+import java.io.IOException;
 
 /**
  * SAX {@link XMLReader} that reads from {@link XMLStreamBuffer}.
@@ -201,24 +201,16 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     }
     
     public void parse(InputSource input) throws IOException, SAXException {
-        try {
-            // InputSource is ignored
-            process();
-        } catch (XMLStreamBufferException e) { 
-            throw new SAXException(e);
-        }
+        // InputSource is ignored
+        process();
     }
     
     public void parse(String systemId) throws IOException, SAXException {
-        try {
-            // systemId is ignored
-            process();
-        } catch (XMLStreamBufferException e) { 
-            throw new SAXException(e);
-        }
+        // systemId is ignored
+        process();
     }
             
-    public final void process(XMLStreamBuffer buffer) throws XMLStreamBufferException {
+    public final void process(XMLStreamBuffer buffer) throws SAXException {
         setXMLStreamBuffer(buffer);
         process();
     }
@@ -233,40 +225,39 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     /**
      * Parse the sub-tree (or a whole document) that {@link XMLStreamBuffer}
      * points to, and sends events to handlers.
+     *
+     * @throws SAXException
+     *      Follow the same semantics as {@link XMLReader#parse(InputSource)}.
      */
-    public final void process() throws XMLStreamBufferException {
-        try {
-            final int item = readStructure();
-            switch(item) {
-                case T_DOCUMENT:
-                    processDocument();
-                    break;
-                case T_END:
-                    // Empty buffer
-                    return;
-                // TODO process element fragment
-                default:
-                    throw new XMLStreamBufferException("Illegal state for DIIs: "+item);
-            }
-        } catch (XMLStreamBufferException e) {
-            try {
-                _errorHandler.fatalError(new SAXParseException(e.getClass().getName(), null, e));
-            } catch (Exception ee) {
-            }
-            resetOnError();
-            throw e;
+    public final void process() throws SAXException {
+        final int item = readStructure();
+        switch(item) {
+            case T_DOCUMENT:
+                processDocument();
+                break;
+            case T_END:
+                // Empty buffer
+                return;
+            // TODO process element fragment
+            default:
+                throw reportFatalError("Illegal state for DIIs: "+item);
         }
     }
 
-    private void resetOnError() {
+    /**
+     * Report a fatal error and abort.
+     *
+     * This is necessary to follow the SAX semantics of error handling.
+     */
+    private SAXParseException reportFatalError(String msg) throws SAXException {
+        SAXParseException spe = new SAXParseException(msg, null);
+        if(_errorHandler!=null)
+            _errorHandler.fatalError(spe);
+        return spe;
     }
 
-    private void processDocument() throws XMLStreamBufferException {
-        try {
-            _contentHandler.startDocument();
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
+    private void processDocument() throws SAXException {
+        _contentHandler.startDocument();
 
         boolean firstElementHasOccured = false;
         int item;
@@ -322,7 +313,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case T_END:
                     break;
                 default:
-                    throw new XMLStreamBufferException("Illegal state for child of DII");
+                    throw reportFatalError("Illegal state for child of DII: "+item);
             }
         } while(item != T_END || !firstElementHasOccured);
 
@@ -351,18 +342,14 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case T_END:
                     break;
                 default:
-                    throw new XMLStreamBufferException("Illegal state for child of DII");
+                    throw reportFatalError("Illegal state for child of DII: "+item);
             }
         }
 
-        try {
-            _contentHandler.endDocument();
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
+        _contentHandler.endDocument();
     }
 
-    private void processElement(String uri, String localName, String qName) throws XMLStreamBufferException {
+    private void processElement(String uri, String localName, String qName) throws SAXException {
         boolean hasAttributes = false;
         boolean hasNamespaceAttributes = false;
         int item = peakStructure();
@@ -371,11 +358,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             hasNamespaceAttributes = processAttributes(item);
         }
 
-        try {
-            _contentHandler.startElement(uri, localName, qName, _attributes);
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
+        _contentHandler.startElement(uri, localName, qName, _attributes);
 
         if (hasAttributes) {
             _attributes.clear();
@@ -410,33 +393,20 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 {
                     final int length = readStructure();
                     int start = readContentCharactersBuffer(length);
-                    try {
-                        _contentHandler.characters(_contentCharactersBuffer, start, length);
-                    } catch (SAXException e) {
-                        throw new XMLStreamBufferException(e);
-                    }
+                    _contentHandler.characters(_contentCharactersBuffer, start, length);
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
 
-                    try {
-                        _contentHandler.characters(ch, 0, ch.length);
-                    } catch (SAXException e) {
-                        throw new XMLStreamBufferException(e);
-                    }
+                    _contentHandler.characters(ch, 0, ch.length);
                     break;
                 }
                 case STATE_TEXT_AS_STRING:
                 {
                     final String s = readContentString();
-
-                    try {
-                        _contentHandler.characters(s.toCharArray(), 0, s.length());
-                    } catch (SAXException e) {
-                        throw new XMLStreamBufferException(e);
-                    }
+                    _contentHandler.characters(s.toCharArray(), 0, s.length());
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY:
@@ -461,36 +431,28 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case STATE_END:
                     break;
                 default:
-                    throw new XMLStreamBufferException("Illegal state for child of EII");
+                    throw reportFatalError("Illegal state for child of EII: "+item);
             }
         } while(item != STATE_END);
         
-        try {
-            _contentHandler.endElement(uri, localName, qName);
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
-        
+        _contentHandler.endElement(uri, localName, qName);
+
         if (hasNamespaceAttributes) {
             processEndPrefixMapping();
         }
     }
     
-    private void processEndPrefixMapping() throws XMLStreamBufferException {
+    private void processEndPrefixMapping() throws SAXException {
         final int end = _namespaceAttributesStack[--_namespaceAttributesStackIndex];
         final int start = (_namespaceAttributesStackIndex > 0) ? _namespaceAttributesStack[_namespaceAttributesStackIndex] : 0;
         
         for (int i = end - 1; i >= start; i--) {
-            try {
-                _contentHandler.endPrefixMapping(_namespacePrefixes[i]);
-            } catch (SAXException e) {
-                throw new XMLStreamBufferException(e);
-            }
+            _contentHandler.endPrefixMapping(_namespacePrefixes[i]);
         }
         _namespacePrefixesIndex = start;
     }
     
-    private boolean processAttributes(int item) throws XMLStreamBufferException {
+    private boolean processAttributes(int item) throws SAXException {
         boolean hasNamespaceAttributes = false;
         do {
             switch(item) {
@@ -537,7 +499,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     break;
                 }
                 default:
-                    throw new XMLStreamBufferException("Illegal state");
+                    throw reportFatalError("Illegal state: "+item);
             }
             readStructure();
             
@@ -551,13 +513,9 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         return hasNamespaceAttributes;
     }
 
-    private void processNamespaceAttribute(String prefix, String uri) throws XMLStreamBufferException {
-        try {
-            _contentHandler.startPrefixMapping(prefix, uri);
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
-        
+    private void processNamespaceAttribute(String prefix, String uri) throws SAXException {
+        _contentHandler.startPrefixMapping(prefix, uri);
+
         if (_namespacePrefixesFeature) {
             // Add the namespace delcaration as an attribute
             if (prefix != "") {
@@ -594,23 +552,15 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _namespaceAttributesStack[_namespaceAttributesStackIndex++] = _namespacePrefixesIndex;
     }
     
-    private void processComment(String s)  throws XMLStreamBufferException {
+    private void processComment(String s)  throws SAXException {
         processComment(s.toCharArray(), 0, s.length());
     }
     
-    private void processComment(char[] ch, int start, int length) throws XMLStreamBufferException {
-        try {
-            _lexicalHandler.comment(ch, start, length);
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
+    private void processComment(char[] ch, int start, int length) throws SAXException {
+        _lexicalHandler.comment(ch, start, length);
     }
 
-    private void processProcessingInstruction(String target, String data) throws XMLStreamBufferException {
-        try {
-            _contentHandler.processingInstruction(target, data);
-        } catch (SAXException e) {
-            throw new XMLStreamBufferException(e);
-        }
-    }    
+    private void processProcessingInstruction(String target, String data) throws SAXException {
+        _contentHandler.processingInstruction(target, data);
+    }
 }
