@@ -248,13 +248,6 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 default:
                     throw new XMLStreamBufferException("Illegal state for DIIs: "+item);
             }
-        } catch (RuntimeException e) {
-            try {
-                _errorHandler.fatalError(new SAXParseException(e.getClass().getName(), null, e));
-            } catch (Exception ee) {
-            }
-            resetOnError();
-            throw new XMLStreamBufferException(e);
         } catch (XMLStreamBufferException e) {
             try {
                 _errorHandler.fatalError(new SAXParseException(e.getClass().getName(), null, e));
