@@ -1,15 +1,24 @@
 package com.sun.xml.stream.buffer;
 
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import junit.framework.*;
+
+import org.xml.sax.helpers.AttributesImpl;
 
 /**
  *
@@ -17,7 +26,7 @@ import junit.framework.*;
  */
 public class MarkTest extends TestCase {
     private static final String SOAP_MESSAGE = "data/soap-message.xml";
-    
+
     private static final String SOAP_NAMESPACE_URI = "http://www.w3.org/2003/05/soap-envelope";
     private static final String SOAP_ENVELOPE = "Envelope";
     private static final String SOAP_HEADER = "Header";
@@ -27,20 +36,20 @@ public class MarkTest extends TestCase {
 
     public MarkTest(String testName) {
         super(testName);
-        
+
         _soapMessageURL = this.getClass().getClassLoader().getResource(SOAP_MESSAGE);
     }
 
     public static Test suite() {
         TestSuite suite = new TestSuite(MarkTest.class);
-        
+
         return suite;
-    }    
-    
-    public void testMark() throws Exception {    
+    }
+
+    public void testMark() throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().
                 createXMLStreamReader(_soapMessageURL.openStream());
-        
+
         nextElementContent(reader);
         verifyReaderState(reader,
                 XMLStreamReader.START_ELEMENT);
@@ -51,7 +60,7 @@ public class MarkTest extends TestCase {
         for (int i = 0; i < reader.getNamespaceCount(); i++) {
             namespaces.put(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
         }
-        
+
         // Move to next element
         nextElementContent(reader);
         verifyReaderState(reader,
@@ -59,17 +68,17 @@ public class MarkTest extends TestCase {
 
         List<XMLStreamBufferMark> marks = new ArrayList();
         StreamReaderBufferCreator creator = new StreamReaderBufferCreator(new XMLStreamBuffer());
-        
-        if (reader.getLocalName() == SOAP_HEADER 
+
+        if (reader.getLocalName() == SOAP_HEADER
                 && reader.getNamespaceURI() == SOAP_NAMESPACE_URI) {
-            
+
             // Collect namespaces on soap:Header
             for (int i = 0; i < reader.getNamespaceCount(); i++) {
                 namespaces.put(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
             }
 
             nextElementContent(reader);
-            
+
             // If SOAP header blocks are present (i.e. not <soap:Header/>)
             if (reader.getEventType() == XMLStreamReader.START_ELEMENT) {
                 while(reader.getEventType() == XMLStreamReader.START_ELEMENT) {
@@ -89,28 +98,41 @@ public class MarkTest extends TestCase {
                     // Create Header
                     marks.add(mark);
 
-                    creator.createElementFragment(reader, false);            
+                    creator.createElementFragment(reader, false);
                 }
 
                 // Move to soap:Body
-                nextElementContent(reader); 
-            }        
+                nextElementContent(reader);
+            }
         }
-        
+
         // Verify that <soap:Body> is present
         verifyTag(reader, SOAP_NAMESPACE_URI, SOAP_BODY);
-                
+
+
+        TransformerHandler t = ((SAXTransformerFactory)TransformerFactory.newInstance()).newTransformerHandler();
+        t.setResult(new StreamResult(System.out));
+        t.startDocument();
+        t.startElement("","root","root",new AttributesImpl());
+
         for (XMLStreamBufferMark mark : marks) {
             XMLStreamReader markReader = mark.processUsingXMLStreamReader();
-            
+
             processFragment(markReader);
-        }        
+
+            // test subtree->SAX.
+            // TODO: think about the way to test the infoset correctness.
+            mark.processUsingSAXContentHandler(t);
+        }
+
+        t.endElement("","root","root");
+        t.endDocument();
     }
-    
+
     public void processFragment(XMLStreamReader reader) throws XMLStreamException {
         verifyReaderState(reader,
                 XMLStreamReader.START_ELEMENT);
-        
+
         int depth = 1;
         while(depth > 0) {
             int event = reader.next();
@@ -123,21 +145,21 @@ public class MarkTest extends TestCase {
                     break;
             }
         }
-        
-        reader.next();   
+
+        reader.next();
         verifyReaderState(reader,
                 XMLStreamReader.END_DOCUMENT);
-        
+
         boolean exceptionThrown = false;
         try {
-            reader.next();   
+            reader.next();
         } catch (XMLStreamException e) {
             exceptionThrown = true;
         }
-        
+
         assertEquals(true, exceptionThrown);
     }
-    
+
     public int next(XMLStreamReader reader) throws XMLStreamException {
         int readerEvent = reader.next();
 
@@ -157,7 +179,7 @@ public class MarkTest extends TestCase {
 
         return readerEvent;
     }
-    
+
     public int nextElementContent(XMLStreamReader reader) throws XMLStreamException {
         int state = nextContent(reader);
         if (state == XMLStreamReader.CHARACTERS) {
@@ -182,7 +204,7 @@ public class MarkTest extends TestCase {
             }
         }
     }
-    
+
     public void verifyReaderState(XMLStreamReader reader, int expectedState) throws XMLStreamException {
         int state = reader.getEventType();
         if (state != expectedState) {
@@ -190,16 +212,16 @@ public class MarkTest extends TestCase {
                 "Unexpected State: " + getStateName(expectedState) + " " + getStateName(state));
         }
     }
-    
+
     public static void verifyTag(XMLStreamReader reader, String namespaceURI, String localName) throws XMLStreamException {
         if (localName != reader.getLocalName() || namespaceURI != reader.getNamespaceURI()) {
             throw new XMLStreamException(
-                "Unexpected State Tag: " + 
+                "Unexpected State Tag: " +
                     "{" + namespaceURI + "}" + localName + " " +
                     "{" + reader.getNamespaceURI() + "}" + reader.getLocalName());
         }
     }
-    
+
     public String getStateName(int state) {
         switch (state) {
             case XMLStreamReader.ATTRIBUTE:
@@ -236,5 +258,5 @@ public class MarkTest extends TestCase {
                 return "UNKNOWN";
         }
     }
-    
+
 }
