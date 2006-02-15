@@ -20,6 +20,7 @@
 package com.sun.xml.stream.buffer.sax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
+import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
@@ -74,7 +75,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      */
     protected boolean _namespacePrefixesFeature = false;
     
-    protected SAXAttributesHolder _attributes;
+    protected AttributesHolder _attributes;
     
     protected String[] _namespacePrefixes = new String[16];
     protected int _namespacePrefixesIndex;
@@ -90,7 +91,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _errorHandler = handler;
         _lexicalHandler = handler;
         
-        _attributes = new SAXAttributesHolder();
+        _attributes = new AttributesHolder();
     }
 
     public SAXBufferProcessor(XMLStreamBuffer buffer) {
@@ -232,6 +233,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      * firing a sub-tree as if it's a whole document (in which case start/endDocument
      * and appropriate additional namespace bindings are necessary), and the other
      * mode for firing a subtree as a subtree, like it does today.
+     * A stream buffer SAX feature could be used to specify this. 
      *
      * @throws SAXException
      *      Follow the same semantics as {@link XMLReader#parse(InputSource)}.

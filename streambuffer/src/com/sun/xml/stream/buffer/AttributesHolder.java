@@ -19,7 +19,10 @@
  */
 package com.sun.xml.stream.buffer;
 
-public class AttributesHolder {   
+/**
+ * Class for holding attributes.
+ */
+public class AttributesHolder implements org.xml.sax.Attributes {   
     protected static final int DEFAULT_CAPACITY = 8;
     protected static final int ITEM_SIZE = 1 << 3;
     
@@ -38,34 +41,38 @@ public class AttributesHolder {
         _strings = new String[DEFAULT_CAPACITY * ITEM_SIZE];
     }
         
-    // org.xml.sax.Attributes
-    
     public final int getLength() {
         return _attributeCount;
     }
     
     public final String getPrefix(int index) {
-        return _strings[(index << 3) + PREFIX];
+        return (index >= 0 && index < _attributeCount) ? 
+            _strings[(index << 3) + PREFIX] : null;
     }    
     
     public final String getLocalName(int index) {
-        return _strings[(index << 3) + LOCAL_NAME];
+        return (index >= 0 && index < _attributeCount) ? 
+            _strings[(index << 3) + LOCAL_NAME] : null;
     }
 
     public final String getQName(int index) {
-        return _strings[(index << 3) + QNAME];
+        return (index >= 0 && index < _attributeCount) ? 
+            _strings[(index << 3) + QNAME] : null;
     }
 
     public final String getType(int index) {
-        return _strings[(index << 3) + TYPE];
+        return (index >= 0 && index < _attributeCount) ? 
+            _strings[(index << 3) + TYPE] : null;
     }
 
     public final String getURI(int index) {
-        return _strings[(index << 3) + URI];
+        return (index >= 0 && index < _attributeCount) ? 
+            _strings[(index << 3) + URI] : null;
     }
 
     public final String getValue(int index) {
-        return _strings[(index << 3) + VALUE];
+        return (index >= 0 && index < _attributeCount) ? 
+            _strings[(index << 3) + VALUE] : null;
     }
 
     public final int getIndex(String qName) {
@@ -78,11 +85,13 @@ public class AttributesHolder {
     }
 
     public final String getType(String qName) {
-        return _strings[(getIndex(qName) << 3) + TYPE];
+        final int i = (getIndex(qName) << 3) + TYPE;
+        return (i >= 0) ? _strings[i] : null;
     }
 
     public final String getValue(String qName) {
-        return _strings[(getIndex(qName) << 3) + VALUE];
+        final int i = (getIndex(qName) << 3) + VALUE;
+        return (i >= 0) ? _strings[i] : null;
     }
 
     public final int getIndex(String uri, String localName) {
@@ -96,11 +105,13 @@ public class AttributesHolder {
     }
 
     public final String getType(String uri, String localName) {
-        return _strings[(getIndex(uri, localName) <<3) + TYPE];
+        final int i = (getIndex(uri, localName) << 3) + TYPE;        
+        return (i >= 0) ? _strings[i] : null;
     }
 
     public final String getValue(String uri, String localName) {
-        return _strings[(getIndex(uri, localName) <<3) + VALUE];
+        final int i = (getIndex(uri, localName) << 3) + VALUE;
+        return (i >= 0) ? _strings[i] : null;
     }
 
     public final void clear() {
@@ -113,8 +124,10 @@ public class AttributesHolder {
     }
 
     
-    // -----
-    
+    /**
+     * Add an attribute using a qualified name that contains the 
+     * prefix and local name.
+     */
     public final void addAttributeWithQName(String uri, String localName, String qName, String type, String value) {
         final int i = _attributeCount << 3;
         if (i == _strings.length) {
@@ -131,6 +144,9 @@ public class AttributesHolder {
         _attributeCount++;
     }
     
+    /**
+     * Add an attribute using a prefix.
+     */
     public final void addAttributeWithPrefix(String prefix, String uri, String localName, String type, String value) {
         final int i = _attributeCount << 3;
         if (i == _strings.length) {

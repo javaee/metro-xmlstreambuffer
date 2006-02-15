@@ -50,6 +50,12 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int[] _stateTable = new int[256];
     
     static {
+        /*
+         * Create a state table from information items and options.
+         * The swtich statement using such states will often generate a more
+         * efficient byte code representation that can be hotspotted using
+         * jump tables.
+         */
         _stateTable[T_DOCUMENT] = STATE_DOCUMENT;
         _stateTable[T_DOCUMENT_FRAGMENT] = STATE_DOCUMENT_FRAGMENT;
         _stateTable[T_ELEMENT_U_LN_QN] = STATE_ELEMENT_U_LN_QN;
