@@ -103,12 +103,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
      * True if processing is complete.
      */
     private int _completionState;
-    
+
     public StreamReaderBufferProcessor() {
         for (int i=0; i < _stack.length; i++){
             _stack[i] = new ElementStackEntry();
         }
-        
+
         _attributeCache = new AttributesHolder();
     }
     
@@ -510,7 +510,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
     
     public final Location getLocation() {
-        return null;
+        return DUMMY_LOCATION;
     }
     
     public final boolean hasName() {
@@ -922,4 +922,26 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             };
         }      
     }
+
+    private static final Location DUMMY_LOCATION = new Location() {
+        public int getLineNumber() {
+            return -1;
+        }
+
+        public int getColumnNumber() {
+            return -1;
+        }
+
+        public int getCharacterOffset() {
+            return -1;
+        }
+
+        public String getPublicId() {
+            return null;
+        }
+
+        public String getSystemId() {
+            return null;
+        }
+    };
 }
