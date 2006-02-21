@@ -625,16 +625,22 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             _namespaceAIIsPrefix[_namespaceAIIsIndex] = e.getKey();
             _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = e.getValue();
         }
-       _stackEntry.namespaceAIIsStart = _namespaceAIIsIndex;
-  
+        _stackEntry.namespaceAIIsStart = _namespaceAIIsIndex;
+
         int item = peakStructure();
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             if ((item & FLAG_NAMESPACE_ATTRIBUTE) == 0) {
                 processAttributes(item);
             } else {
-                // Skip the namespace declarations on the element
-                // they will have been added already
-                item = skipNamespaceAttributes(item);
+                // In-scope namespaces are for namespaces that are declared
+                // on ancestors, and doesn't include the namespaces declared
+                // on the element itself.
+                //
+                // so even if we fill in inscopeNamespaces above, we still
+                // need to take this into account, which is namespaces declared
+                // on the element.
+                // I appreciate a review from Paul - KK
+                item = processNamespaceAttributes(item);
                 if ((item & TYPE_MASK) == T_ATTRIBUTE) {
                     processAttributes(item);
                 }
