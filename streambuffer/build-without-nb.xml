@@ -7,6 +7,8 @@
 
     <path id="compile.class.path">
         <pathelement location="${jsr173_api.jar}"/>
+        <pathelement location="${activation.jar}"/>
+        <pathelement location="${stax-ex.jar}"/>
     </path>
 
     <!-- task that generates a manifest file -->
