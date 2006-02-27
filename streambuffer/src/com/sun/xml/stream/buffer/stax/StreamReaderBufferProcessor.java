@@ -19,7 +19,6 @@
  */
 package com.sun.xml.stream.buffer.stax;
 
-
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
@@ -33,6 +32,8 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.jvnet.staxex.NamespaceContextEx;
+import org.jvnet.staxex.XMLStreamReaderEx;
 
 /**
  * {@link XMLStreamReader} implementation that reads the infoset from
@@ -41,7 +42,7 @@ import javax.xml.stream.XMLStreamReader;
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
  */
-public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReader {
+public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReaderEx {
     private static final int CACHE_SIZE = 16;
     
     // Stack to hold element and namespace declaration information
@@ -63,8 +64,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     // Holder of the attributes
     protected AttributesHolder _attributeCache;
     
-    // Characters as a string
-    protected String _string;
+    // Characters as a CharSequence
+    protected CharSequence _charSequence;
     
     // Characters as a char array with offset and length
     protected char[] _characters;
@@ -124,7 +125,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _completionState = PARSING;
         _namespaceAIIsIndex = 0;
         _characters = null;
-        _string = null;
+        _charSequence = null;
         
         processFirstEvent(buffer);
     }
@@ -143,8 +144,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
 
         _characters = null;
-        _string = null;
-        switch(_stateTable[readStructure()]) {
+        _charSequence = null;
+        switch(_eiiStateTable[readStructure()]) {
             case STATE_ELEMENT_U_LN_QN: {
                 final String uri = readStructureString();
                 final String localName = readStructureString();
@@ -176,7 +177,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 return _eventType = CHARACTERS;
             case STATE_TEXT_AS_STRING:
                 _eventType = CHARACTERS;
-                _string = readContentString();
+                _charSequence = readContentString();
+                
+                return _eventType = CHARACTERS;
+            case STATE_TEXT_AS_OBJECT:
+                _eventType = CHARACTERS;
+                _charSequence = (CharSequence)readContentObject();
                 
                 return _eventType = CHARACTERS;
             case STATE_COMMENT_AS_CHAR_ARRAY:
@@ -192,7 +198,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 
                 return _eventType = COMMENT;
             case STATE_COMMENT_AS_STRING:
-                _string = readContentString();
+                _charSequence = readContentString();
                 
                 return _eventType = COMMENT;
             case STATE_PROCESSING_INSTRUCTION:
@@ -230,6 +236,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             throw new XMLStreamException("");
         }
     }
+    
+    public final String getElementTextTrim() throws XMLStreamException {
+        // TODO getElementText* methods more efficiently
+        return getElementText().trim();
+    }    
     
     public final String getElementText() throws XMLStreamException {
         if(_eventType != START_ELEMENT) {
@@ -430,7 +441,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         return _nsCtx.getNamespaceURI(prefix);
     }
     
-    public final NamespaceContext getNamespaceContext() {
+    public final NamespaceContextEx getNamespaceContext() {
         return _nsCtx;
     }
     
@@ -440,52 +451,56 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     public final String getText() {
         if (_characters != null) {
-            return _string = new String(_characters, _textOffset, _textLen);
-        } else if (_string != null) {
-            return _string;
+            String s = new String(_characters, _textOffset, _textLen);
+            _charSequence = s;
+            return s;
+        } else if (_charSequence != null) {
+            return _charSequence.toString();
         } else {        
-            throw new IllegalStateException("");
+            throw new IllegalStateException();
         }        
     }
     
     public final char[] getTextCharacters() {
         if (_characters != null) {
             return _characters;
-        } else if (_string != null) {
-            _characters = _string.toCharArray();
+        } else if (_charSequence != null) {
+            // TODO try to avoid creation of a temporary String for some
+            // CharSequence implementations
+            _characters = _charSequence.toString().toCharArray();
             _textLen = _characters.length;
             _textOffset = 0;
             return _characters;
         } else {        
-            throw new IllegalStateException("");
+            throw new IllegalStateException();
         }        
     }
     
     public final int getTextStart() {
         if (_characters != null) {
             return _textOffset;
-        } else if (_string != null) {
+        } else if (_charSequence != null) {
             return 0;
         } else {        
-            throw new IllegalStateException("");
+            throw new IllegalStateException();
         }        
     }
     
     public final int getTextLength() {
         if (_characters != null) {
             return _textLen;
-        } else if (_string != null) {
-            return _string.length();
+        } else if (_charSequence != null) {
+            return _charSequence.length();
         } else {        
-            throw new IllegalStateException("");
+            throw new IllegalStateException();
         }        
     }
     
     public final int getTextCharacters(int sourceStart, char[] target,
             int targetStart, int length) throws XMLStreamException {
         if (_characters != null) {
-        } else if (_string != null) {
-            _characters = _string.toCharArray();
+        } else if (_charSequence != null) {
+            _characters = _charSequence.toString().toCharArray();
             _textLen = _characters.length;
             _textOffset = 0;
         } else {
@@ -501,12 +516,57 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
     }
     
+    private class CharSequenceImpl implements CharSequence {
+        private final int _offset;
+        private final int _length;
+        
+        CharSequenceImpl(int offset, int length) {
+            _offset = offset;
+            _length = length;
+        }
+        
+        public int length() {
+            return _length;
+        }
+
+        public char charAt(int index) {
+            if (index >= 0 && index < _textLen) {
+                return _characters[_textOffset + index];
+            } else {
+                throw new IndexOutOfBoundsException();
+            }
+        }
+
+        public CharSequence subSequence(int start, int end) {
+            final int length = end - start;
+            if (end < 0 || start < 0 || end > length || start > end) { 
+                throw new IndexOutOfBoundsException();
+            }
+            
+            return new CharSequenceImpl(_offset + start, length);
+        }
+        
+        public String toString() {
+            return new String(_characters, _offset, _length);
+        }
+    }
+    
+    public final CharSequence getPCDATA() throws XMLStreamException {
+        if (_characters != null) {
+            return new CharSequenceImpl(_textOffset, _textLen);
+        } else if (_charSequence != null) {
+            return _charSequence;
+        } else {        
+            throw new IllegalStateException();
+        }                
+    }
+    
     public final String getEncoding() {
         return "UTF-8";
     }
     
     public final boolean hasText() {
-        return (_characters != null || _string != null);
+        return (_characters != null || _charSequence != null);
     }
     
     public final Location getLocation() {
@@ -578,7 +638,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             return;
         }
         
-        switch(_stateTable[s]) {
+        switch(_eiiStateTable[s]) {
             case STATE_DOCUMENT:
                 _eventType = START_DOCUMENT;
                 _isDocument = true;
@@ -625,27 +685,19 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             _namespaceAIIsPrefix[_namespaceAIIsIndex] = e.getKey();
             _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = e.getValue();
         }
-        _stackEntry.namespaceAIIsStart = _namespaceAIIsIndex;
+        // Ensure that the in-scope namespace deleclarations are declared
+        // on the element.
+        _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
 
         int item = peakStructure();
-        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
-            if ((item & FLAG_NAMESPACE_ATTRIBUTE) == 0) {
-                processAttributes(item);
-            } else {
-                // In-scope namespaces are for namespaces that are declared
-                // on ancestors, and doesn't include the namespaces declared
-                // on the element itself.
-                //
-                // so even if we fill in inscopeNamespaces above, we still
-                // need to take this into account, which is namespaces declared
-                // on the element.
-                // I appreciate a review from Paul - KK
-                item = processNamespaceAttributes(item);
-                if ((item & TYPE_MASK) == T_ATTRIBUTE) {
-                    processAttributes(item);
-                }
-            }            
+        if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
+            // Skip the namespace declarations on the element
+            // they will have been added already
+            item = skipNamespaceAttributes(item);
         }
+        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
+            processAttributes(item);
+        }        
     }
     
     private void processElement(String prefix, String uri, String localName) {
@@ -655,15 +707,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _attributeCache.clear();
         
         int item = peakStructure();
+        if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
+            // Skip the namespace declarations on the element
+            // they will have been added already
+            item = processNamespaceAttributes(item);
+        }
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
-            if ((item & FLAG_NAMESPACE_ATTRIBUTE) == 0) {
-                processAttributes(item);
-            } else {
-                item = processNamespaceAttributes(item);
-                if ((item & TYPE_MASK) == T_ATTRIBUTE) {
-                    processAttributes(item);
-                }
-            }            
+            processAttributes(item);
         }
     }
     
@@ -679,9 +729,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         
     private int skipNamespaceAttributes(int item){
         do {
-            switch(_stateTable[item]){
-                case STATE_NAMESPACE_ATTRIBUTE:
-                    break;
+            switch(_eiiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                 case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Undeclaration of namespace
@@ -696,7 +744,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             readStructure();
             
             item = peakStructure();
-        } while((item & (TYPE_MASK | FLAG_NAMESPACE_ATTRIBUTE)) == T_NAMESPACE_ATTRIBUTE);
+        } while((item & (TYPE_MASK)) == T_NAMESPACE_ATTRIBUTE);
         return item;
     }
     
@@ -708,7 +756,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 resizeNamespaceAttributes();
             }
             
-            switch(_stateTable[item]){
+            switch(_niiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     _namespaceAIIsPrefix[_namespaceAIIsIndex] = 
@@ -733,7 +781,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             readStructure();
             
             item = peakStructure();
-        } while((item & (TYPE_MASK | FLAG_NAMESPACE_ATTRIBUTE)) == T_NAMESPACE_ATTRIBUTE);
+        } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
         
         _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
         
@@ -742,7 +790,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     
     private void processAttributes(int item){
         do {
-            switch(_stateTable[item]){
+            switch(_aiiStateTable[item]){
                 case STATE_ATTRIBUTE_U_LN_QN: {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
@@ -788,11 +836,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         // _depth is checked outside this method
         _stackEntry = _stack[--_depth];
         if (_stackEntry.namespaceAIIsEnd > 0) {
+            // Move back the position of the namespace index 
             _namespaceAIIsIndex = _stackEntry.namespaceAIIsStart;
         }
     }
     
-    private class ElementStackEntry {
+    private final class ElementStackEntry {
         String prefix;
         String uri;
         String localName;
@@ -807,7 +856,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             this.prefix = prefix;
             this.uri = uri;
             this.localName = localName;
-            
             this.qname = null;
             
             this.namespaceAIIsStart = this.namespaceAIIsEnd = 0;
@@ -821,7 +869,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
     }
     
-    private class InternalNamespaceContext implements NamespaceContext {
+    private final class InternalNamespaceContext implements NamespaceContextEx {
         public String getNamespaceURI(String prefix) {
             if (prefix == null) {
                 throw new IllegalArgumentException("Prefix cannot be null");
@@ -889,7 +937,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     while(i >= 0) {
                         // Find the most recently declared namespace
                         if (namespaceURI.equals(_namespaceAIIsNamespaceName[i])) {
-                            // Find the most recently declarad prefix of the namespace
+                            // Find the most recently declared prefix of the namespace
                             // and check if the prefix is in scope with that namespace
                             if (getNamespaceURI(_namespaceAIIsPrefix[i]).equals(
                                     _namespaceAIIsNamespaceName[i])) {
@@ -927,6 +975,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 }
             };
         }      
+
+        public Iterator<NamespaceContextEx.Binding> iterator() {
+            // TODO implement
+            return null;
+        }
     }
 
     private static final Location DUMMY_LOCATION = new Location() {

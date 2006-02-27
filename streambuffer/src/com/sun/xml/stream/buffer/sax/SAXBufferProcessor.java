@@ -240,17 +240,17 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      */
     public final void process() throws SAXException {
         final int item = readStructure();
-        switch(item) {
-            case T_DOCUMENT:
+        switch(_eiiStateTable[item]) {
+            case STATE_DOCUMENT:
                 processDocument();
                 break;
-            case T_END:
+            case STATE_END:
                 // Empty buffer
                 return;
-            case T_ELEMENT_U_LN_QN:
+            case STATE_ELEMENT_U_LN_QN:
                 processElement(readStructureString(), readStructureString(), readStructureString());
                 break;
-            case T_ELEMENT_P_U_LN:
+            case STATE_ELEMENT_P_U_LN:
             {
                 final String prefix = readStructureString();
                 final String uri = readStructureString();
@@ -258,13 +258,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 processElement(uri, localName, getQName(prefix, localName));
                 break;
             }
-            case T_ELEMENT_U_LN: {
+            case STATE_ELEMENT_U_LN: {
                 final String uri = readStructureString();
                 final String localName = readStructureString();
                 processElement(uri, localName, localName);
                 break;
             }
-            case T_ELEMENT_LN:
+            case STATE_ELEMENT_LN:
             {
                 final String localName = readStructureString();
                 processElement("", localName, localName);
@@ -294,12 +294,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         int item;
         do {
             item = readStructure();
-            switch(item) {
-                case T_ELEMENT_U_LN_QN:
+            switch(_eiiStateTable[item]) {
+                case STATE_ELEMENT_U_LN_QN:
                     firstElementHasOccured = true;
                     processElement(readStructureString(), readStructureString(), readStructureString());
                     break;
-                case T_ELEMENT_P_U_LN:
+                case STATE_ELEMENT_P_U_LN:
                 {
                     firstElementHasOccured = true;
                     final String prefix = readStructureString();
@@ -308,40 +308,40 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processElement(uri, localName, getQName(prefix, localName));
                     break;
                 }
-                case T_ELEMENT_U_LN: {
+                case STATE_ELEMENT_U_LN: {
                     firstElementHasOccured = true;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     processElement(uri, localName, localName);
                     break;
                 }
-                case T_ELEMENT_LN:
+                case STATE_ELEMENT_LN:
                 {
                     firstElementHasOccured = true;
                     final String localName = readStructureString();
                     processElement("", localName, localName);
                     break;
                 }
-                case T_COMMENT_AS_CHAR_ARRAY:
+                case STATE_COMMENT_AS_CHAR_ARRAY:
                 {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case T_COMMENT_AS_CHAR_ARRAY_COPY:
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
                     break;
                 }
-                case T_COMMENT_AS_STRING:
+                case STATE_COMMENT_AS_STRING:
                     processComment(readContentString());
                     break;
-                case T_PROCESSING_INSTRUCTION:
+                case STATE_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                case T_END:
+                case STATE_END:
                     break;
                 default:
                     throw reportFatalError("Illegal state for child of DII: "+item);
@@ -350,27 +350,27 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
 
         while(item != T_END) {
             item = readStructure();
-            switch(item) {
-                case T_COMMENT_AS_CHAR_ARRAY:
+            switch(_eiiStateTable[item]) {
+                case STATE_COMMENT_AS_CHAR_ARRAY:
                 {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
                 }
-                case T_COMMENT_AS_CHAR_ARRAY_COPY:
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
                 {
                     final char[] ch = readContentCharactersCopy();
                     processComment(ch, 0, ch.length);
                     break;
                 }
-                case T_COMMENT_AS_STRING:
+                case STATE_COMMENT_AS_STRING:
                     processComment(readContentString());
                     break;
-                case T_PROCESSING_INSTRUCTION:
+                case STATE_PROCESSING_INSTRUCTION:
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                case T_END:
+                case STATE_END:
                     break;
                 default:
                     throw reportFatalError("Illegal state for child of DII: "+item);
@@ -384,9 +384,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         boolean hasAttributes = false;
         boolean hasNamespaceAttributes = false;
         int item = peakStructure();
+        if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
+            hasNamespaceAttributes = true;
+            item = processNamespaceAttributes(item);
+        }        
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             hasAttributes = true;
-            hasNamespaceAttributes = processAttributes(item);
+            processAttributes(item);
         }
 
         _contentHandler.startElement(uri, localName, qName, _attributes);
@@ -396,7 +400,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         }
 
         do {
-            item = _stateTable[readStructure()];
+            item = _eiiStateTable[readStructure()];
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN:
                     processElement(readStructureString(), readStructureString(), readStructureString());
@@ -437,6 +441,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 case STATE_TEXT_AS_STRING:
                 {
                     final String s = readContentString();
+                    _contentHandler.characters(s.toCharArray(), 0, s.length());
+                    break;
+                }
+                case STATE_TEXT_AS_OBJECT:
+                {
+                    final CharSequence c = (CharSequence)readContentObject();
+                    final String s = c.toString();
                     _contentHandler.characters(s.toCharArray(), 0, s.length());
                     break;
                 }
@@ -483,34 +494,46 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _namespacePrefixesIndex = start;
     }
     
-    private boolean processAttributes(int item) throws SAXException {
-        boolean hasNamespaceAttributes = false;
+    private int processNamespaceAttributes(int item) throws SAXException {
         do {
-            switch(item) {
-                case T_NAMESPACE_ATTRIBUTE:
+            switch(_niiStateTable[item]) {
+                case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
-                    hasNamespaceAttributes = true;
                     processNamespaceAttribute("", "");
                     break;
-                case T_NAMESPACE_ATTRIBUTE_P:
+                case STATE_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
-                    hasNamespaceAttributes = true;
                     processNamespaceAttribute(readStructureString(), "");
                     break;
-                case T_NAMESPACE_ATTRIBUTE_P_U:
+                case STATE_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
-                    hasNamespaceAttributes = true;
                     processNamespaceAttribute(readStructureString(), readStructureString());
                     break;
-                case T_NAMESPACE_ATTRIBUTE_U:
+                case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
-                    hasNamespaceAttributes = true;
                     processNamespaceAttribute("", readStructureString());
                     break;
-                case T_ATTRIBUTE_U_LN_QN:
+                default:
+                    throw reportFatalError("Illegal state: "+item);
+            }
+            readStructure();
+            
+            item = peakStructure();
+        } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
+        
+        
+        cacheNamespacePrefixIndex();
+        
+        return item;
+    }
+    
+    private void processAttributes(int item) throws SAXException {
+        do {
+            switch(_aiiStateTable[item]) {
+                case STATE_ATTRIBUTE_U_LN_QN:
                     _attributes.addAttributeWithQName(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;
-                case T_ATTRIBUTE_P_U_LN:
+                case STATE_ATTRIBUTE_P_U_LN:
                 {
                     final String p = readStructureString();
                     final String u = readStructureString();
@@ -518,13 +541,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     _attributes.addAttributeWithQName(u, ln, getQName(p, ln), readStructureString(), readContentString());
                     break;
                 }
-                case T_ATTRIBUTE_U_LN: {
+                case STATE_ATTRIBUTE_U_LN: {
                     final String u = readStructureString();
                     final String ln = readStructureString();
                     _attributes.addAttributeWithQName(u, ln, ln, readStructureString(), readContentString()); 
                     break;
                 }
-                case T_ATTRIBUTE_LN: {
+                case STATE_ATTRIBUTE_LN: {
                     final String ln = readStructureString();
                     _attributes.addAttributeWithQName("", ln, ln, readStructureString(), readContentString()); 
                     break;
@@ -536,12 +559,6 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             
             item = peakStructure();
         } while((item & TYPE_MASK) == T_ATTRIBUTE);
-        
-        
-        if (hasNamespaceAttributes) {
-            cacheNamespacePrefixIndex();
-        }        
-        return hasNamespaceAttributes;
     }
 
     private void processNamespaceAttribute(String prefix, String uri) throws SAXException {

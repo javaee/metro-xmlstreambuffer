@@ -49,17 +49,13 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         _structureStrings = _currentStructureStringFragment.getArray();
         _structureStringsPtr = 0;
 
-        _currentContentStringFragment = _buffer.getContentStrings();
-        _contentStrings = _currentContentStringFragment.getArray();
-        _contentStringsPtr = 0;
-        
-        _currentContentCharactersFragment = _buffer.getContentCharacters();
-        _contentCharacters = _currentContentCharactersFragment.getArray();
-        _contentCharactersPtr = 0;
-        
         _currentContentCharactersBufferFragment = _buffer.getContentCharactersBuffer();
         _contentCharactersBuffer = _currentContentCharactersBufferFragment.getArray();
         _contentCharactersBufferPtr = 0;
+        
+        _currentContentObjectFragment = _buffer.getContentObjects();
+        _contentObjects = _currentContentObjectFragment.getArray();
+        _contentObjectsPtr = 0;
     }
     
     protected final void setHasInternedStrings(boolean hasInternedStrings) {
@@ -103,27 +99,13 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     }
     
     protected final void storeContentString(String s) {
-        _contentStrings[_contentStringsPtr++] = s;
-        if (_contentStringsPtr == _contentStrings.length) {
-            resizeContentStrings();
-        }
+        storeContentObject(s);
     }
     
-    protected final void resizeContentStrings() {
-        _contentStringsPtr = 0;
-        if (_currentContentStringFragment.getNext() != null) {
-            _currentContentStringFragment = _currentContentStringFragment.getNext();
-            _contentStrings = _currentContentStringFragment.getArray();
-        } else {
-            _contentStrings = new String[_contentStrings.length];
-            _currentContentStringFragment = new FragmentedArray(_contentStrings, _currentContentStringFragment);
-        }
-    }
-
     protected final void storeContentCharacters(int type, char[] ch, int start, int length) {        
         if (_contentCharactersBufferPtr + length >= _contentCharactersBuffer.length) {
             if (length >= 512) {
-                storeStructure(type | FLAG_AS_CHAR_ARRAY_COPY);
+                storeStructure(type | CONTENT_TYPE_CHAR_ARRAY_COPY);
                 storeContentCharactersCopy(ch, start, length);
                 return;
             }
@@ -151,20 +133,24 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     protected final void storeContentCharactersCopy(char[] ch, int start, int length) {
         char[] copyOfCh = new char[length];
         System.arraycopy(ch, start, copyOfCh, 0, length);
-        _contentCharacters[_contentCharactersPtr++] = copyOfCh;
-        if (_contentCharactersPtr  == _contentCharacters.length) {
-            resizeContentCharacters();
-        }
+        storeContentObject(copyOfCh);
     }
 
-    protected final void resizeContentCharactersCopy() {
-        _contentCharactersPtr = 0;
-        if (_currentContentCharactersFragment.getNext() != null) {
-            _currentContentCharactersFragment = _currentContentCharactersFragment.getNext();
-            _contentCharacters = _currentContentCharactersFragment.getArray();
+    protected final void storeContentObject(Object s) {
+        _contentObjects[_contentObjectsPtr++] = s;
+        if (_contentObjectsPtr == _contentObjects.length) {
+            resizeContentObjects();
+        }
+    }
+    
+    protected final void resizeContentObjects() {
+        _contentObjectsPtr = 0;
+        if (_currentContentObjectFragment.getNext() != null) {
+            _currentContentObjectFragment = _currentContentObjectFragment.getNext();
+            _contentObjects = _currentContentObjectFragment.getArray();
         } else {
-            _contentCharacters = new char[_contentCharacters.length][];
-            _currentContentCharactersFragment = new FragmentedArray(_contentCharacters, _currentContentCharactersFragment);
+            _contentObjects = new Object[_contentObjects.length];
+            _currentContentObjectFragment = new FragmentedArray(_contentObjects, _currentContentObjectFragment);
         }
     }    
 }

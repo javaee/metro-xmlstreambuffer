@@ -71,14 +71,11 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
         _structureStrings = creator._currentStructureStringFragment;
         _structureStringsPtr = creator._structureStringsPtr;
         
-        _contentStrings = creator._currentContentStringFragment;
-        _contentStringsPtr = creator._contentStringsPtr;
-        
-        _contentCharacters = creator._currentContentCharactersFragment;
-        _contentCharactersPtr = creator._contentCharactersPtr;
-        
         _contentCharactersBuffer = creator._currentContentCharactersBufferFragment;
         _contentCharactersBufferPtr = creator._contentCharactersBufferPtr;
+        
+        _contentObjects = creator._currentContentObjectFragment;
+        _contentObjectsPtr = creator._contentObjectsPtr;
     }
     
     /**

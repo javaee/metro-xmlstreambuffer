@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import org.jvnet.staxex.Base64Data;
+import org.jvnet.staxex.XMLStreamReaderEx;
 
 /*
  * TODO
@@ -123,8 +125,71 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         
         storeStructure(T_END);
     }
-    
+
     private void storeElementAndChildren(XMLStreamReader reader) throws XMLStreamException {
+        if (reader instanceof XMLStreamReaderEx) {
+            storeElementAndChildrenEx((XMLStreamReaderEx)reader);
+        } else {
+            storeElementAndChildrenNoEx(reader);
+        }
+    }
+    
+    private void storeElementAndChildrenEx(XMLStreamReaderEx reader) throws XMLStreamException {
+        int depth = 1;
+        if (_storeInScopeNamespacesOnElementFragment) {
+            storeElementWithInScopeNamespaces(reader);
+        } else {
+            storeElement(reader);
+        }
+        
+        while(depth > 0) {
+            _eventType = reader.next();
+            switch (_eventType) {
+                case XMLStreamReader.START_ELEMENT:
+                    depth++;
+                    storeElement(reader);
+                    break;
+                case XMLStreamReader.END_ELEMENT:
+                    depth--;
+                    storeStructure(T_END);
+                    break;
+                case XMLStreamReader.NAMESPACE:
+                    storeNamespaceAttributes(reader);
+                    break;
+                case XMLStreamReader.ATTRIBUTE:
+                    storeAttributes(reader);
+                    break;
+                case XMLStreamReader.SPACE:
+                case XMLStreamReader.CHARACTERS:
+                case XMLStreamReader.CDATA: {
+                    CharSequence c = reader.getPCDATA();
+                    if (c instanceof Base64Data) {
+                        storeStructure(T_TEXT_AS_OBJECT);
+                        storeContentObject(((Base64Data)c).clone());
+                    } else {
+                        storeContentCharacters(T_TEXT_AS_CHAR_ARRAY,
+                                reader.getTextCharacters(), reader.getTextStart(),
+                                reader.getTextLength());
+                    }
+                    break;
+                }
+                case XMLStreamReader.COMMENT:
+                    storeComment(reader);
+                    break;
+                case XMLStreamReader.PROCESSING_INSTRUCTION:
+                    storeProcessingInstruction(reader);
+                    break;
+            }
+        }
+        
+        /*
+         * Move to next item after the end of the element
+         * that has been stored
+         */
+        _eventType = reader.next();        
+    }
+    
+    private void storeElementAndChildrenNoEx(XMLStreamReader reader) throws XMLStreamException {
         int depth = 1;
         if (_storeInScopeNamespacesOnElementFragment) {
             storeElementWithInScopeNamespaces(reader);
@@ -261,5 +326,5 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         storeStructureString(localName);
         
         storeStructure(item);
-    }
+    }    
 }

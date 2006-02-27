@@ -25,29 +25,39 @@ package com.sun.xml.stream.buffer;
  */
 public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int STATE_ILLEGAL                       = 0;
+    
     protected  static final int STATE_DOCUMENT                      = 1;
     protected  static final int STATE_DOCUMENT_FRAGMENT             = 2;
     protected  static final int STATE_ELEMENT_U_LN_QN               = 3;
     protected  static final int STATE_ELEMENT_P_U_LN                = 4;
     protected  static final int STATE_ELEMENT_U_LN                  = 5;
     protected  static final int STATE_ELEMENT_LN                    = 6;
-    protected  static final int STATE_NAMESPACE_ATTRIBUTE           = 7;
-    protected  static final int STATE_NAMESPACE_ATTRIBUTE_P         = 8;
-    protected  static final int STATE_NAMESPACE_ATTRIBUTE_P_U       = 9;
-    protected  static final int STATE_NAMESPACE_ATTRIBUTE_U         = 10;
-    protected  static final int STATE_ATTRIBUTE_U_LN_QN             = 11;
-    protected  static final int STATE_ATTRIBUTE_P_U_LN              = 12;
-    protected  static final int STATE_ATTRIBUTE_U_LN                = 13;
-    protected  static final int STATE_ATTRIBUTE_LN                  = 14;
-    protected  static final int STATE_TEXT_AS_CHAR_ARRAY            = 15;
-    protected  static final int STATE_TEXT_AS_CHAR_ARRAY_COPY       = 16;
-    protected  static final int STATE_TEXT_AS_STRING                = 17;
-    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY         = 18;
-    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY_COPY    = 19;
-    protected  static final int STATE_COMMENT_AS_STRING             = 20;
-    protected  static final int STATE_PROCESSING_INSTRUCTION        = 21;
-    protected  static final int STATE_END                           = 22;
-    protected  static final int[] _stateTable = new int[256];
+    protected  static final int STATE_TEXT_AS_CHAR_ARRAY            = 7;
+    protected  static final int STATE_TEXT_AS_CHAR_ARRAY_COPY       = 8;
+    protected  static final int STATE_TEXT_AS_STRING                = 9;
+    protected  static final int STATE_TEXT_AS_OBJECT                = 10;
+    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY         = 11;
+    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY_COPY    = 12;
+    protected  static final int STATE_COMMENT_AS_STRING             = 13;
+    protected  static final int STATE_PROCESSING_INSTRUCTION        = 14;
+    protected  static final int STATE_END                           = 15;
+    protected  static final int[] _eiiStateTable = new int[256];
+    
+    protected  static final int STATE_NAMESPACE_ATTRIBUTE           = 1;
+    protected  static final int STATE_NAMESPACE_ATTRIBUTE_P         = 2;
+    protected  static final int STATE_NAMESPACE_ATTRIBUTE_P_U       = 3;
+    protected  static final int STATE_NAMESPACE_ATTRIBUTE_U         = 4;
+    protected  static final int[] _niiStateTable = new int[256];
+    
+    protected  static final int STATE_ATTRIBUTE_U_LN_QN             = 1;
+    protected  static final int STATE_ATTRIBUTE_P_U_LN              = 2;
+    protected  static final int STATE_ATTRIBUTE_U_LN                = 3;
+    protected  static final int STATE_ATTRIBUTE_LN                  = 4;
+    protected  static final int STATE_ATTRIBUTE_U_LN_QN_OBJECT      = 5;
+    protected  static final int STATE_ATTRIBUTE_P_U_LN_OBJECT       = 6;
+    protected  static final int STATE_ATTRIBUTE_U_LN_OBJECT         = 7;
+    protected  static final int STATE_ATTRIBUTE_LN_OBJECT           = 8;
+    protected  static final int[] _aiiStateTable = new int[256];
     
     static {
         /*
@@ -56,28 +66,35 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
          * efficient byte code representation that can be hotspotted using
          * jump tables.
          */
-        _stateTable[T_DOCUMENT] = STATE_DOCUMENT;
-        _stateTable[T_DOCUMENT_FRAGMENT] = STATE_DOCUMENT_FRAGMENT;
-        _stateTable[T_ELEMENT_U_LN_QN] = STATE_ELEMENT_U_LN_QN;
-        _stateTable[T_ELEMENT_P_U_LN] = STATE_ELEMENT_P_U_LN;
-        _stateTable[T_ELEMENT_U_LN] = STATE_ELEMENT_U_LN;
-        _stateTable[T_ELEMENT_LN] = STATE_ELEMENT_LN;
-        _stateTable[T_NAMESPACE_ATTRIBUTE] = STATE_NAMESPACE_ATTRIBUTE;
-        _stateTable[T_NAMESPACE_ATTRIBUTE_P] = STATE_NAMESPACE_ATTRIBUTE_P;
-        _stateTable[T_NAMESPACE_ATTRIBUTE_P_U] = STATE_NAMESPACE_ATTRIBUTE_P_U;
-        _stateTable[T_NAMESPACE_ATTRIBUTE_U] = STATE_NAMESPACE_ATTRIBUTE_U;
-        _stateTable[T_ATTRIBUTE_U_LN_QN] = STATE_ATTRIBUTE_U_LN_QN;
-        _stateTable[T_ATTRIBUTE_P_U_LN] = STATE_ATTRIBUTE_P_U_LN;
-        _stateTable[T_ATTRIBUTE_U_LN] = STATE_ATTRIBUTE_U_LN;
-        _stateTable[T_ATTRIBUTE_LN] = STATE_ATTRIBUTE_LN;
-        _stateTable[T_TEXT_AS_CHAR_ARRAY] = STATE_TEXT_AS_CHAR_ARRAY;
-        _stateTable[T_TEXT_AS_CHAR_ARRAY_COPY] = STATE_TEXT_AS_CHAR_ARRAY_COPY;
-        _stateTable[T_TEXT_AS_STRING] = STATE_TEXT_AS_STRING;
-        _stateTable[T_COMMENT_AS_CHAR_ARRAY] = STATE_COMMENT_AS_CHAR_ARRAY;
-        _stateTable[T_COMMENT_AS_CHAR_ARRAY_COPY] = STATE_COMMENT_AS_CHAR_ARRAY_COPY;
-        _stateTable[T_COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
-        _stateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
-        _stateTable[T_END] = STATE_END;
+        _eiiStateTable[T_DOCUMENT] = STATE_DOCUMENT;
+        _eiiStateTable[T_DOCUMENT_FRAGMENT] = STATE_DOCUMENT_FRAGMENT;
+        _eiiStateTable[T_ELEMENT_U_LN_QN] = STATE_ELEMENT_U_LN_QN;
+        _eiiStateTable[T_ELEMENT_P_U_LN] = STATE_ELEMENT_P_U_LN;
+        _eiiStateTable[T_ELEMENT_U_LN] = STATE_ELEMENT_U_LN;
+        _eiiStateTable[T_ELEMENT_LN] = STATE_ELEMENT_LN;
+        _eiiStateTable[T_TEXT_AS_CHAR_ARRAY] = STATE_TEXT_AS_CHAR_ARRAY;
+        _eiiStateTable[T_TEXT_AS_CHAR_ARRAY_COPY] = STATE_TEXT_AS_CHAR_ARRAY_COPY;
+        _eiiStateTable[T_TEXT_AS_STRING] = STATE_TEXT_AS_STRING;
+        _eiiStateTable[T_TEXT_AS_OBJECT] = STATE_TEXT_AS_OBJECT;
+        _eiiStateTable[T_COMMENT_AS_CHAR_ARRAY] = STATE_COMMENT_AS_CHAR_ARRAY;
+        _eiiStateTable[T_COMMENT_AS_CHAR_ARRAY_COPY] = STATE_COMMENT_AS_CHAR_ARRAY_COPY;
+        _eiiStateTable[T_COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
+        _eiiStateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
+        _eiiStateTable[T_END] = STATE_END;
+        
+        _niiStateTable[T_NAMESPACE_ATTRIBUTE] = STATE_NAMESPACE_ATTRIBUTE;
+        _niiStateTable[T_NAMESPACE_ATTRIBUTE_P] = STATE_NAMESPACE_ATTRIBUTE_P;
+        _niiStateTable[T_NAMESPACE_ATTRIBUTE_P_U] = STATE_NAMESPACE_ATTRIBUTE_P_U;
+        _niiStateTable[T_NAMESPACE_ATTRIBUTE_U] = STATE_NAMESPACE_ATTRIBUTE_U;
+        
+        _aiiStateTable[T_ATTRIBUTE_U_LN_QN] = STATE_ATTRIBUTE_U_LN_QN;
+        _aiiStateTable[T_ATTRIBUTE_P_U_LN] = STATE_ATTRIBUTE_P_U_LN;
+        _aiiStateTable[T_ATTRIBUTE_U_LN] = STATE_ATTRIBUTE_U_LN;
+        _aiiStateTable[T_ATTRIBUTE_LN] = STATE_ATTRIBUTE_LN;
+        _aiiStateTable[T_ATTRIBUTE_U_LN_QN_OBJECT] = STATE_ATTRIBUTE_U_LN_QN_OBJECT;
+        _aiiStateTable[T_ATTRIBUTE_P_U_LN_OBJECT] = STATE_ATTRIBUTE_P_U_LN_OBJECT;
+        _aiiStateTable[T_ATTRIBUTE_U_LN_OBJECT] = STATE_ATTRIBUTE_U_LN_OBJECT;
+        _aiiStateTable[T_ATTRIBUTE_LN_OBJECT] = STATE_ATTRIBUTE_LN_OBJECT;
     }
         
     protected boolean _stringInterningFeature = false;
@@ -93,17 +110,13 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _structureStrings = _currentStructureStringFragment.getArray();
         _structureStringsPtr = _buffer.getStructureStringsPtr();
         
-        _currentContentStringFragment = _buffer.getContentStrings();
-        _contentStrings = _currentContentStringFragment.getArray();
-        _contentStringsPtr = _buffer.getContentStringsPtr();
-        
-        _currentContentCharactersFragment = _buffer.getContentCharacters();
-        _contentCharacters = _currentContentCharactersFragment.getArray();
-        _contentCharactersPtr = _buffer.getContentCharactersPtr();
-        
         _currentContentCharactersBufferFragment = _buffer.getContentCharactersBuffer();
         _contentCharactersBuffer = _currentContentCharactersBufferFragment.getArray();
         _contentCharactersBufferPtr = _buffer.getContentCharactersBufferPtr();
+        
+        _currentContentObjectFragment = _buffer.getContentObjects();
+        _contentObjects = _currentContentObjectFragment.getArray();
+        _contentObjectsPtr = _buffer.getContentObjectsPtr();
         
         _stringInterningFeature = _buffer.hasInternedStrings();
     }
@@ -143,25 +156,11 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     }
     
     protected final String readContentString() {
-        if (_contentStringsPtr < _contentStrings.length) {
-            return _contentStrings[_contentStringsPtr++];
-        }
-        
-        _contentStringsPtr = 1;
-        _currentContentStringFragment = _currentContentStringFragment.getNext();
-        _contentStrings = _currentContentStringFragment.getArray();
-        return _contentStrings[0];
+        return (String)readContentObject();
     }
     
     protected final char[] readContentCharactersCopy() {
-        if (_contentCharactersPtr < _contentCharacters.length) {
-            return _contentCharacters[_contentCharactersPtr++];
-        }
-        
-        _contentCharactersPtr = 1;
-        _currentContentCharactersFragment = _currentContentCharactersFragment.getNext();
-        _contentCharacters = _currentContentCharactersFragment.getArray();
-        return _contentCharacters[0];
+        return (char[])readContentObject();
     }
     
     protected final int readContentCharactersBuffer(int length) {
@@ -175,6 +174,17 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _currentContentCharactersBufferFragment = _currentContentCharactersBufferFragment.getNext();
         _contentCharactersBuffer = _currentContentCharactersBufferFragment.getArray();
         return 0;
+    }
+    
+    protected final Object readContentObject() {
+        if (_contentObjectsPtr < _contentObjects.length) {
+            return _contentObjects[_contentObjectsPtr++];
+        }
+        
+        _contentObjectsPtr = 1;
+        _currentContentObjectFragment = _currentContentObjectFragment.getNext();
+        _contentObjects = _currentContentObjectFragment.getArray();
+        return _contentObjects[0];
     }
     
     protected final StringBuilder _qNameBuffer = new StringBuilder();

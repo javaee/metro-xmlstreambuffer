@@ -75,27 +75,46 @@ public class XMLStreamBuffer {
      */
     public static int DEFAULT_ARRAY_SIZE = 512;
     
+    /**
+     * Empty map for the default in scope namespaces on a fragment
+     */
     protected static final Map<String, String> EMTPY_MAP = Collections.emptyMap();
     
+    /**
+     * In scope namespaces on a fragment
+     */
     protected Map<String, String> _inscopeNamespaces = EMTPY_MAP;
     
+    /**
+     * True if the buffer was created from a parser that interns Strings
+     * as specified by the SAX interning features
+     */
     protected boolean _hasInternedStrings;
-    
+
+    /**
+     * Fragmented array to hold structural information
+     */
     protected FragmentedArray<int[]> _structure;
     protected int _structurePtr;
     
+    /**
+     * Fragmented array to hold structural information as strings
+     */
     protected FragmentedArray<String[]> _structureStrings;
     protected int _structureStringsPtr;
     
-    protected FragmentedArray<String[]> _contentStrings;
-    protected int _contentStringsPtr;
-    
-    protected FragmentedArray<char[][]> _contentCharacters;
-    protected int _contentCharactersPtr;
-    
+    /**
+     * Fragmented array to hold content information in a shared char[]
+     */
     protected FragmentedArray<char[]> _contentCharactersBuffer;
     protected int _contentCharactersBufferPtr;
 
+    /**
+     * Fragmented array to hold content information as objects
+     */
+    protected FragmentedArray<Object[]> _contentObjects;
+    protected int _contentObjectsPtr;
+    
     /**
      * Create a new XMLStreamBuffer using the 
      * {@link XMLStreamBuffer#DEFAULT_ARRAY_SIZE}.
@@ -117,9 +136,8 @@ public class XMLStreamBuffer {
     public XMLStreamBuffer(int size) {
         _structure = new FragmentedArray(new int[size]);
         _structureStrings = new FragmentedArray(new String[size]);
-        _contentStrings = new FragmentedArray(new String[size]);
-        _contentCharacters = new FragmentedArray(new char[size][]);
         _contentCharactersBuffer = new FragmentedArray(new char[4096]);
+        _contentObjects = new FragmentedArray(new Object[size]);
 
         // Set the first element of structure array to indicate an empty buffer
         // that has not been created
@@ -424,26 +442,22 @@ public class XMLStreamBuffer {
         // Reset the ptrs in arrays to 0
         _structurePtr =
                 _structureStringsPtr =
-                _contentStringsPtr =
-                _contentCharactersPtr =
-                _contentCharactersBufferPtr = 0;
+                _contentCharactersBufferPtr = 
+                _contentObjectsPtr = 0;
 
         // Set the first element of structure array to indicate an empty buffer
         // that has not been created
         _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
 
-        // Clean up content strings
-        _contentStrings.setNext(null);
-        final String[] s = _contentStrings.getArray();
-        for (int i = 0; i < s.length; i++) {
-            s[i] = null;
-        }
-
-        // Clean up content characters
-        _contentCharacters.setNext(null);
-        final char[][] c = _contentCharacters.getArray();
-        for (int i = 0; i < c.length; i++) {
-            c[i] = null;
+        // Clean up content objects
+        _contentObjects.setNext(null);
+        final Object[] o = _contentObjects.getArray();
+        for (int i = 0; i < o.length; i++) {
+            if (o[i] != null) {
+                o[i] = null;
+            } else {
+                break;
+            }
         }
         
         /*
@@ -453,48 +467,39 @@ public class XMLStreamBuffer {
     }
     
     
-    protected void setHasInternedStrings(boolean hasInternedStrings) {
+    protected final void setHasInternedStrings(boolean hasInternedStrings) {
         _hasInternedStrings = hasInternedStrings;
     }
     
-    protected FragmentedArray<int[]> getStructure() {
+    protected final FragmentedArray<int[]> getStructure() {
         return _structure;
     }
     
-    protected int getStructurePtr() {
+    protected final int getStructurePtr() {
         return _structurePtr;
     }
     
-    protected FragmentedArray<String[]> getStructureStrings() {
+    protected final FragmentedArray<String[]> getStructureStrings() {
         return _structureStrings;
     }
     
-    protected int getStructureStringsPtr() {
+    protected final int getStructureStringsPtr() {
         return _structureStringsPtr;
     }
-    
-    protected FragmentedArray<String[]> getContentStrings() {
-        return _contentStrings;
-    }
-    
-    protected int getContentStringsPtr() {
-        return _contentStringsPtr;
-    }
-    
-    protected FragmentedArray<char[][]> getContentCharacters() {
-        return _contentCharacters;
-    }
-    
-    protected int getContentCharactersPtr() {
-        return _contentCharactersPtr;
-    }
-    
-    protected FragmentedArray<char[]> getContentCharactersBuffer() {
+        
+    protected final FragmentedArray<char[]> getContentCharactersBuffer() {
         return _contentCharactersBuffer;
     }
     
-    protected int getContentCharactersBufferPtr() {
+    protected final int getContentCharactersBufferPtr() {
         return _contentCharactersBufferPtr;
     }
     
+    protected final FragmentedArray<Object[]> getContentObjects() {
+        return _contentObjects;
+    }
+    
+    protected final int getContentObjectsPtr() {
+        return _contentObjectsPtr;
+    }
 }
