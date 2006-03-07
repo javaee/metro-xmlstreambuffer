@@ -115,7 +115,7 @@ public class MarkTest extends TestCase {
         t.startElement("","root","root",new AttributesImpl());
 
         for (XMLStreamBufferMark mark : marks) {
-            XMLStreamReader markReader = mark.processUsingXMLStreamReader();
+            XMLStreamReader markReader = mark.newXMLStreamReader();
 
             processFragment(markReader);
 
