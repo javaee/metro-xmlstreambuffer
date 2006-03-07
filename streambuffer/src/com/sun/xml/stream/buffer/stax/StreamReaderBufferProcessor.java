@@ -22,18 +22,18 @@ package com.sun.xml.stream.buffer.stax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import org.jvnet.staxex.NamespaceContextEx;
+import org.jvnet.staxex.XMLStreamReaderEx;
+
 import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import org.jvnet.staxex.NamespaceContextEx;
-import org.jvnet.staxex.XMLStreamReaderEx;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * {@link XMLStreamReader} implementation that reads the infoset from
@@ -44,7 +44,7 @@ import org.jvnet.staxex.XMLStreamReaderEx;
  */
 public class StreamReaderBufferProcessor extends AbstractProcessor implements XMLStreamReaderEx {
     private static final int CACHE_SIZE = 16;
-    
+
     // Stack to hold element and namespace declaration information
     protected ElementStackEntry[] _stack = new ElementStackEntry[CACHE_SIZE];
     protected ElementStackEntry _stackEntry;
@@ -54,19 +54,19 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     protected String[] _namespaceAIIsPrefix = new String[CACHE_SIZE];
     protected String[] _namespaceAIIsNamespaceName = new String[CACHE_SIZE];
     protected int _namespaceAIIsIndex;
-    
+
     // Internal namespace context implementation
     protected InternalNamespaceContext _nsCtx = new InternalNamespaceContext();
-    
-    // The current event type 
+
+    // The current event type
     protected int _eventType;
-    
+
     // Holder of the attributes
     protected AttributesHolder _attributeCache;
-    
+
     // Characters as a CharSequence
     protected CharSequence _charSequence;
-    
+
     // Characters as a char array with offset and length
     protected char[] _characters;
     protected int _textOffset;
@@ -112,28 +112,28 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
         _attributeCache = new AttributesHolder();
     }
-    
+
     public StreamReaderBufferProcessor(XMLStreamBuffer buffer) throws XMLStreamException {
         this();
-        
+
         setXMLStreamBuffer(buffer);
     }
-    
+
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) throws XMLStreamException {
         setBuffer(buffer);
-        
+
         _completionState = PARSING;
         _namespaceAIIsIndex = 0;
         _characters = null;
         _charSequence = null;
-        
+
         processFirstEvent(buffer);
     }
-    
+
     public Object getProperty(java.lang.String name) {
         return null;
     }
-    
+
     public int next() throws XMLStreamException {
         switch(_completionState) {
             case COMPLETED:
@@ -150,7 +150,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 final String uri = readStructureString();
                 final String localName = readStructureString();
                 final String prefix = getPrefixFromQName(readStructureString());
-                
+
                 processElement(prefix, uri, localName);
                 return _eventType = START_ELEMENT;
             }
@@ -158,53 +158,53 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 processElement(readStructureString(), readStructureString(), readStructureString());
                 return _eventType = START_ELEMENT;
             case STATE_ELEMENT_U_LN:
-                processElement("", readStructureString(), readStructureString());
+                processElement(null, readStructureString(), readStructureString());
                 return _eventType = START_ELEMENT;
             case STATE_ELEMENT_LN:
-                processElement("", "", readStructureString());
+                processElement(null, null, readStructureString());
                 return _eventType = START_ELEMENT;
             case STATE_TEXT_AS_CHAR_ARRAY:
                 _textLen = readStructure();
                 _textOffset = readContentCharactersBuffer(_textLen);
                 _characters = _contentCharactersBuffer;
-                
+
                 return _eventType = CHARACTERS;
             case STATE_TEXT_AS_CHAR_ARRAY_COPY:
                 _characters = readContentCharactersCopy();
                 _textLen = _characters.length;
                 _textOffset = 0;
-                
+
                 return _eventType = CHARACTERS;
             case STATE_TEXT_AS_STRING:
                 _eventType = CHARACTERS;
                 _charSequence = readContentString();
-                
+
                 return _eventType = CHARACTERS;
             case STATE_TEXT_AS_OBJECT:
                 _eventType = CHARACTERS;
                 _charSequence = (CharSequence)readContentObject();
-                
+
                 return _eventType = CHARACTERS;
             case STATE_COMMENT_AS_CHAR_ARRAY:
                 _textLen = readStructure();
                 _textOffset = readContentCharactersBuffer(_textLen);
                 _characters = _contentCharactersBuffer;
-                
+
                 return _eventType = COMMENT;
             case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
                 _characters = readContentCharactersCopy();
                 _textLen = _characters.length;
                 _textOffset = 0;
-                
+
                 return _eventType = COMMENT;
             case STATE_COMMENT_AS_STRING:
                 _charSequence = readContentString();
-                
+
                 return _eventType = COMMENT;
             case STATE_PROCESSING_INSTRUCTION:
                 _piTarget = readStructureString();
                 _piData = readStructureString();
-                
+
                 return _eventType = PROCESSING_INSTRUCTION;
             case STATE_END:
                 if (_depth > 1) {
@@ -224,7 +224,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 throw new XMLStreamException("Invalid State");
         }
     }
-    
+
     public final void require(int type, String namespaceURI, String localName) throws XMLStreamException {
         if( type != _eventType) {
             throw new XMLStreamException("");
@@ -236,26 +236,26 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             throw new XMLStreamException("");
         }
     }
-    
+
     public final String getElementTextTrim() throws XMLStreamException {
         // TODO getElementText* methods more efficiently
         return getElementText().trim();
-    }    
-    
+    }
+
     public final String getElementText() throws XMLStreamException {
         if(_eventType != START_ELEMENT) {
             throw new XMLStreamException("");
         }
-        
+
         next();
         return getElementText(true);
     }
-    
+
     public final String getElementText(boolean startElementRead) throws XMLStreamException {
         if (!startElementRead) {
             throw new XMLStreamException("");
         }
-        
+
         int eventType = getEventType();
         StringBuffer content = new StringBuffer();
         while(eventType != END_ELEMENT ) {
@@ -278,12 +278,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
         return content.toString();
     }
-    
+
     public final int nextTag() throws XMLStreamException {
         next();
         return nextTag(true);
     }
-    
+
     public final int nextTag(boolean currentTagRead) throws XMLStreamException {
         int eventType = getEventType();
         if (!currentTagRead) {
@@ -301,26 +301,26 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
         return eventType;
     }
-    
+
     public final boolean hasNext() {
         return (_eventType != END_DOCUMENT);
     }
-    
+
     public void close() throws XMLStreamException {
     }
-    
+
     public final boolean isStartElement() {
         return (_eventType == START_ELEMENT);
     }
-    
+
     public final boolean isEndElement() {
         return (_eventType == END_ELEMENT);
     }
-    
+
     public final boolean isCharacters() {
         return (_eventType == CHARACTERS);
     }
-    
+
     public final boolean isWhiteSpace() {
         if(isCharacters() || (_eventType == CDATA)){
             char [] ch = this.getTextCharacters();
@@ -338,117 +338,117 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
         return false;
     }
-    
+
     public final String getAttributeValue(String namespaceURI, String localName) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-    
+
         if (namespaceURI == null) {
             // Set to the empty string to be compatible with the
             // org.xml.sax.Attributes interface
             namespaceURI = "";
         }
-        
+
         return _attributeCache.getValue(namespaceURI, localName);
     }
-    
+
     public final int getAttributeCount() {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        
+
         return _attributeCache.getLength();
     }
-    
+
     public final javax.xml.namespace.QName getAttributeName(int index) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        
+
         final String prefix = _attributeCache.getPrefix(index);
         final String localName = _attributeCache.getLocalName(index);
         final String uri = _attributeCache.getURI(index);
         return new QName(uri,localName,prefix);
     }
-    
-    
+
+
     public final String getAttributeNamespace(int index) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
         return _attributeCache.getURI(index);
     }
-    
+
     public final String getAttributeLocalName(int index) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
         return _attributeCache.getLocalName(index);
     }
-    
+
     public final String getAttributePrefix(int index) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
         return _attributeCache.getPrefix(index);
     }
-    
+
     public final String getAttributeType(int index) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
         return _attributeCache.getType(index);
     }
-    
+
     public final String getAttributeValue(int index) {
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        
+
         return _attributeCache.getValue(index);
     }
-    
+
     public final boolean isAttributeSpecified(int index) {
         return false;
     }
-    
+
     public final int getNamespaceCount() {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return _stackEntry.namespaceAIIsEnd - _stackEntry.namespaceAIIsStart;
         }
-        
+
         throw new IllegalStateException("");
     }
-    
+
     public final String getNamespacePrefix(int index) {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return _namespaceAIIsPrefix[_stackEntry.namespaceAIIsStart + index];
         }
-        
+
         throw new IllegalStateException("");
     }
-    
+
     public final String getNamespaceURI(int index) {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
             return _namespaceAIIsNamespaceName[_stackEntry.namespaceAIIsStart + index];
         }
-        
+
         throw new IllegalStateException("");
     }
-    
+
     public final String getNamespaceURI(String prefix) {
         return _nsCtx.getNamespaceURI(prefix);
     }
-    
+
     public final NamespaceContextEx getNamespaceContext() {
         return _nsCtx;
     }
-    
+
     public final int getEventType() {
         return _eventType;
     }
-    
+
     public final String getText() {
         if (_characters != null) {
             String s = new String(_characters, _textOffset, _textLen);
@@ -456,11 +456,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             return s;
         } else if (_charSequence != null) {
             return _charSequence.toString();
-        } else {        
+        } else {
             throw new IllegalStateException();
-        }        
+        }
     }
-    
+
     public final char[] getTextCharacters() {
         if (_characters != null) {
             return _characters;
@@ -471,31 +471,31 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             _textLen = _characters.length;
             _textOffset = 0;
             return _characters;
-        } else {        
+        } else {
             throw new IllegalStateException();
-        }        
+        }
     }
-    
+
     public final int getTextStart() {
         if (_characters != null) {
             return _textOffset;
         } else if (_charSequence != null) {
             return 0;
-        } else {        
+        } else {
             throw new IllegalStateException();
-        }        
+        }
     }
-    
+
     public final int getTextLength() {
         if (_characters != null) {
             return _textLen;
         } else if (_charSequence != null) {
             return _charSequence.length();
-        } else {        
+        } else {
             throw new IllegalStateException();
-        }        
+        }
     }
-    
+
     public final int getTextCharacters(int sourceStart, char[] target,
             int targetStart, int length) throws XMLStreamException {
         if (_characters != null) {
@@ -504,9 +504,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             _textLen = _characters.length;
             _textOffset = 0;
         } else {
-            throw new IllegalStateException("");            
+            throw new IllegalStateException("");
         }
-        
+
         try {
             System.arraycopy(_characters, sourceStart, target,
                     targetStart, length);
@@ -515,16 +515,16 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             throw new XMLStreamException(e);
         }
     }
-    
+
     private class CharSequenceImpl implements CharSequence {
         private final int _offset;
         private final int _length;
-        
+
         CharSequenceImpl(int offset, int length) {
             _offset = offset;
             _length = length;
         }
-        
+
         public int length() {
             return _length;
         }
@@ -539,93 +539,93 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
         public CharSequence subSequence(int start, int end) {
             final int length = end - start;
-            if (end < 0 || start < 0 || end > length || start > end) { 
+            if (end < 0 || start < 0 || end > length || start > end) {
                 throw new IndexOutOfBoundsException();
             }
-            
+
             return new CharSequenceImpl(_offset + start, length);
         }
-        
+
         public String toString() {
             return new String(_characters, _offset, _length);
         }
     }
-    
-    public final CharSequence getPCDATA() throws XMLStreamException {
+
+    public final CharSequence getPCDATA() {
         if (_characters != null) {
             return new CharSequenceImpl(_textOffset, _textLen);
         } else if (_charSequence != null) {
             return _charSequence;
-        } else {        
+        } else {
             throw new IllegalStateException();
-        }                
+        }
     }
-    
+
     public final String getEncoding() {
         return "UTF-8";
     }
-    
+
     public final boolean hasText() {
         return (_characters != null || _charSequence != null);
     }
-    
+
     public final Location getLocation() {
         return DUMMY_LOCATION;
     }
-    
+
     public final boolean hasName() {
         return (_eventType == START_ELEMENT || _eventType == END_ELEMENT);
     }
-    
+
     public final QName getName() {
         return _stackEntry.getQName();
     }
-    
+
     public final String getLocalName() {
         return _stackEntry.localName;
     }
-    
+
     public final String getNamespaceURI() {
         return _stackEntry.uri;
     }
-    
+
     public final String getPrefix() {
         return _stackEntry.prefix;
-        
+
     }
-    
+
     public final String getVersion() {
         return "1.0";
     }
-    
+
     public final boolean isStandalone() {
         return false;
     }
-    
+
     public final boolean standaloneSet() {
         return false;
     }
-    
+
     public final String getCharacterEncodingScheme() {
         return "UTF-8";
     }
-    
+
     public final String getPITarget() {
         if (_eventType == PROCESSING_INSTRUCTION) {
             return _piTarget;
         }
         throw new IllegalStateException("");
     }
-    
+
     public final String getPIData() {
         if (_eventType == PROCESSING_INSTRUCTION) {
             return _piData;
         }
         throw new IllegalStateException("");
     }
-    
-    
-    
+
+
+
     private void processFirstEvent(XMLStreamBuffer buffer) throws XMLStreamException {
         final int s = readStructure();
         if (s == T_END) {
@@ -637,7 +637,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             _completionState = PENDING_END_DOCUMENT;
             return;
         }
-        
+
         switch(_eiiStateTable[s]) {
             case STATE_DOCUMENT:
                 _eventType = START_DOCUMENT;
@@ -647,7 +647,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 final String uri = readStructureString();
                 final String localName = readStructureString();
                 final String prefix = getPrefixFromQName(readStructureString());
-                
+
                 processElementFragment(buffer.getInscopeNamespaces(), prefix, uri, localName);
                 break;
             }
@@ -667,14 +667,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 throw new XMLStreamException("Invalid State");
         }
     }
-    
-    private void processElementFragment(Map<String, String> inscopeNamespaces, 
+
+    private void processElementFragment(Map<String, String> inscopeNamespaces,
             String prefix, String uri, String localName) {
         _eventType = START_ELEMENT;
-        
+
         pushElementStack();
         _stackEntry.set(prefix, uri, localName);
-        
+
         // Add the current in-scope namespaces to the list
         // Including any namespace declarations on the element
         for (Map.Entry<String, String> e : inscopeNamespaces.entrySet()) {
@@ -697,15 +697,15 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             processAttributes(item);
-        }        
+        }
     }
-    
+
     private void processElement(String prefix, String uri, String localName) {
         pushElementStack();
         _stackEntry.set(prefix, uri, localName);
-        
+
         _attributeCache.clear();
-        
+
         int item = peakStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             // Skip the namespace declarations on the element
@@ -716,7 +716,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             processAttributes(item);
         }
     }
-    
+
     private void resizeNamespaceAttributes() {
         final String[] namespaceAIIsPrefix = new String[_namespaceAIIsIndex * 2];
         System.arraycopy(_namespaceAIIsPrefix, 0, namespaceAIIsPrefix, 0, _namespaceAIIsIndex);
@@ -726,7 +726,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsIndex);
         _namespaceAIIsNamespaceName = namespaceAIIsNamespaceName;
     }
-        
+
     private int skipNamespaceAttributes(int item){
         do {
             switch(_eiiStateTable[item]){
@@ -742,12 +742,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     break;
             }
             readStructure();
-            
+
             item = peakStructure();
         } while((item & (TYPE_MASK)) == T_NAMESPACE_ATTRIBUTE);
         return item;
     }
-    
+
     private int processNamespaceAttributes(int item){
         _stackEntry.namespaceAIIsStart = _namespaceAIIsIndex;
 
@@ -755,11 +755,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             if (_namespaceAIIsIndex == _namespaceAIIsPrefix.length) {
                 resizeNamespaceAttributes();
             }
-            
+
             switch(_niiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
-                    _namespaceAIIsPrefix[_namespaceAIIsIndex] = 
+                    _namespaceAIIsPrefix[_namespaceAIIsIndex] =
                     _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = "";
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P:
@@ -776,18 +776,18 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     // Default declaration
                     _namespaceAIIsPrefix[_namespaceAIIsIndex] = "";
                     _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = readStructureString();
-                    break;                
+                    break;
             }
             readStructure();
-            
+
             item = peakStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
-        
+
         _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
-        
+
         return item;
     }
-    
+
     private void processAttributes(int item){
         do {
             switch(_aiiStateTable[item]){
@@ -810,17 +810,17 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 }
             }
             readStructure();
-            
+
             item = peakStructure();
         } while((item & TYPE_MASK) == T_ATTRIBUTE);
     }
-    
+
     private void pushElementStack() {
         if (_depth < _stack.length) {
             _stackEntry = _stack[_depth++];
             return;
         }
-        
+
         // resize stack
         ElementStackEntry [] tmp = _stack;
         _stack = new ElementStackEntry[_stack.length * 3 /2 + 1];
@@ -828,39 +828,47 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         for (int i = tmp.length; i < _stack.length; i++){
             _stack[i] = new ElementStackEntry();
         }
-        
+
         _stackEntry = _stack[_depth++];
     }
-    
+
     private void popElementStack() {
         // _depth is checked outside this method
         _stackEntry = _stack[--_depth];
         if (_stackEntry.namespaceAIIsEnd > 0) {
-            // Move back the position of the namespace index 
+            // Move back the position of the namespace index
             _namespaceAIIsIndex = _stackEntry.namespaceAIIsStart;
         }
     }
-    
+
     private final class ElementStackEntry {
+        /**
+         * Prefix.
+         * Just like everywhere else in StAX, this can be null but can't be empty.
+         */
         String prefix;
+        /**
+         * Namespace URI.
+         * Just like everywhere else in StAX, this can be null but can't be empty.
+         */
         String uri;
         String localName;
         QName qname;
-        
-        // Start and end of namespace declarations 
+
+        // Start and end of namespace declarations
         // in namespace declaration arrays
         int namespaceAIIsStart;
         int namespaceAIIsEnd;
-        
+
         public void set(String prefix, String uri, String localName) {
             this.prefix = prefix;
             this.uri = uri;
             this.localName = localName;
             this.qname = null;
-            
+
             this.namespaceAIIsStart = this.namespaceAIIsEnd = 0;
         }
-        
+
         public QName getQName() {
             if (qname == null) {
                 qname = new QName(uri, localName, prefix);
@@ -868,7 +876,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             return qname;
         }
     }
-    
+
     private final class InternalNamespaceContext implements NamespaceContextEx {
         public String getNamespaceURI(String prefix) {
             if (prefix == null) {
@@ -905,7 +913,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
             }
 
-            return null;            
+            return null;
         }
 
         public String getPrefix(String namespaceURI) {
@@ -921,7 +929,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             if (namespaceURI == null){
                 throw new IllegalArgumentException("NamespaceURI cannot be null");
             }
-            
+
             if (namespaceURI.equals(XMLConstants.XML_NS_URI)) {
                 return Collections.singletonList(XMLConstants.XML_NS_PREFIX).iterator();
             } else if (namespaceURI.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
@@ -932,7 +940,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 private int i = _namespaceAIIsIndex - 1;
                 private boolean requireFindNext = true;
                 private String p;
-                
+
                 private String findNext() {
                     while(i >= 0) {
                         // Find the most recently declared namespace
@@ -948,7 +956,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     }
                     return p = null;
                 }
-                
+
                 public boolean hasNext() {
                     if (requireFindNext) {
                         findNext();
@@ -956,25 +964,25 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     }
                     return (p != null);
                 }
-                
+
                 public Object next() {
                     if (requireFindNext) {
                         findNext();
                     }
                     requireFindNext = true;
-                    
+
                     if (p == null) {
                         throw new NoSuchElementException();
                     }
-                    
+
                     return p;
                 }
-                
+
                 public void remove() {
                     throw new UnsupportedOperationException();
                 }
             };
-        }      
+        }
 
         public Iterator<NamespaceContextEx.Binding> iterator() {
             // TODO implement

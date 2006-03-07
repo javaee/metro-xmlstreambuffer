@@ -34,63 +34,63 @@ import org.jvnet.staxex.XMLStreamReaderEx;
  * Implement the marking the stream on the element when an ID
  * attribute on the element is defined
  */
-public class StreamReaderBufferCreator extends AbstractCreator {
-    private int _eventType;    
-    private boolean _manageInScopeNamespaces;    
-    private boolean _storeInScopeNamespacesOnElementFragment;    
-    private boolean _markElementsWithIDs;    
-    private boolean _storeInScopeNamespacesOnMarkedElements;    
+public class StreamReaderBufferCreator extends StreamBufferCreator {
+    private int _eventType;
+    private boolean _manageInScopeNamespaces;
+    private boolean _storeInScopeNamespacesOnElementFragment;
+    private boolean _markElementsWithIDs;
+    private boolean _storeInScopeNamespacesOnMarkedElements;
     private Map<String, Integer> _inScopePrefixes;
-    
+
     public StreamReaderBufferCreator() {
     }
-    
+
     public StreamReaderBufferCreator(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
-    
+
     public XMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
         if (_buffer == null) {
             createBuffer();
-        }        
+        }
         store(reader);
-        
+
         return getXMLStreamBuffer();
     }
-    
+
     public XMLStreamBuffer createElementFragment(XMLStreamReader reader,
             boolean storeInScopeNamespaces) throws XMLStreamException, XMLStreamBufferException {
         if (_buffer == null) {
             createBuffer();
         }
-        
+
         if (!reader.hasNext()) {
             return _buffer;
         }
-        
+
         _manageInScopeNamespaces = _storeInScopeNamespacesOnElementFragment = storeInScopeNamespaces;
-        
+
         _eventType = reader.getEventType();
         if (_eventType != XMLStreamReader.START_ELEMENT) {
             do {
                 _eventType = reader.next();
             } while(_eventType != XMLStreamReader.START_ELEMENT && _eventType != XMLStreamReader.END_DOCUMENT);
         }
-        
+
         if (_manageInScopeNamespaces) {
             _inScopePrefixes = new HashMap();
         }
-        
+
         storeElementAndChildren(reader);
-        
+
         return getXMLStreamBuffer();
     }
-    
+
     private void store(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
         if (!reader.hasNext()) {
             return;
         }
-        
+
         _eventType = reader.getEventType();
         switch (_eventType) {
             case XMLStreamReader.START_DOCUMENT:
@@ -103,10 +103,10 @@ public class StreamReaderBufferCreator extends AbstractCreator {
                 throw new XMLStreamBufferException("");
         }
     }
-    
+
     private void storeDocumentAndChildren(XMLStreamReader reader) throws XMLStreamException {
         storeStructure(T_DOCUMENT);
-        
+
         _eventType = reader.next();
         while (_eventType != XMLStreamReader.END_DOCUMENT) {
             switch (_eventType) {
@@ -122,7 +122,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             }
             _eventType = reader.next();
         }
-        
+
         storeStructure(T_END);
     }
 
@@ -133,7 +133,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
             storeElementAndChildrenNoEx(reader);
         }
     }
-    
+
     private void storeElementAndChildrenEx(XMLStreamReaderEx reader) throws XMLStreamException {
         int depth = 1;
         if (_storeInScopeNamespacesOnElementFragment) {
@@ -141,7 +141,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         } else {
             storeElement(reader);
         }
-        
+
         while(depth > 0) {
             _eventType = reader.next();
             switch (_eventType) {
@@ -181,14 +181,14 @@ public class StreamReaderBufferCreator extends AbstractCreator {
                     break;
             }
         }
-        
+
         /*
          * Move to next item after the end of the element
          * that has been stored
          */
-        _eventType = reader.next();        
+        _eventType = reader.next();
     }
-    
+
     private void storeElementAndChildrenNoEx(XMLStreamReader reader) throws XMLStreamException {
         int depth = 1;
         if (_storeInScopeNamespacesOnElementFragment) {
@@ -196,7 +196,7 @@ public class StreamReaderBufferCreator extends AbstractCreator {
         } else {
             storeElement(reader);
         }
-        
+
         while(depth > 0) {
             _eventType = reader.next();
             switch (_eventType) {
@@ -230,101 +230,61 @@ public class StreamReaderBufferCreator extends AbstractCreator {
                     break;
             }
         }
-        
+
         /*
          * Move to next item after the end of the element
          * that has been stored
          */
         _eventType = reader.next();
     }
-    
+
     private void storeElementWithInScopeNamespaces(XMLStreamReader reader) throws XMLStreamException {
         storeQualifiedName(T_ELEMENT_LN,
                 reader.getPrefix(), reader.getNamespaceURI(), reader.getLocalName());
-        
+
         if (reader.getNamespaceCount() > 0) {
             storeNamespaceAttributes(reader);
         }
-        
+
         if (reader.getAttributeCount() > 0) {
             storeAttributes(reader);
         }
     }
-    
+
     private void storeElement(XMLStreamReader reader) throws XMLStreamException {
         storeQualifiedName(T_ELEMENT_LN,
                 reader.getPrefix(), reader.getNamespaceURI(), reader.getLocalName());
-        
+
         if (reader.getNamespaceCount() > 0) {
             storeNamespaceAttributes(reader);
         }
-        
+
         if (reader.getAttributeCount() > 0) {
             storeAttributes(reader);
         }
     }
-    
-    private void storeNamespaceAttributes(XMLStreamReader reader) throws XMLStreamException {
+
+    private void storeNamespaceAttributes(XMLStreamReader reader) {
         for (int i = 0; i < reader.getNamespaceCount(); i++) {
             storeNamespaceAttribute(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
         }
     }
-    
-    private void storeNamespaceAttribute(String prefix, String uri) throws XMLStreamException {
-        int item = T_NAMESPACE_ATTRIBUTE;
-        
-        if (prefix != null && prefix.length() > 0) {
-            item |= FLAG_PREFIX;
-            storeStructureString(prefix);
-        }
-        
-        if (uri != null && uri.length() > 0) {
-            item |= FLAG_URI;
-            storeStructureString(uri);
-        }
-        
-        storeStructure(item);
-    }
-    
+
     private void storeAttributes(XMLStreamReader reader) throws XMLStreamException {
         for (int i = 0; i < reader.getAttributeCount(); i++) {
             storeAttribute(reader.getAttributePrefix(i), reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
                     reader.getAttributeType(i), reader.getAttributeValue(i));
         }
     }
-    
-    private void storeAttribute(String prefix, String uri, String localName, String type, String value) throws XMLStreamException {
-        storeQualifiedName(T_ATTRIBUTE_LN,
-                prefix, uri, localName);
-        
-        storeStructureString(type);
-        storeContentString(value);
-    }
-    
-    private void storeComment(XMLStreamReader reader) throws XMLStreamException {
+
+    private void storeComment(XMLStreamReader reader) {
         storeContentCharacters(T_COMMENT_AS_CHAR_ARRAY,
                 reader.getTextCharacters(), reader.getTextStart(), reader.getTextLength());
     }
-    
-    private void storeProcessingInstruction(XMLStreamReader reader) throws XMLStreamException {
+
+    private void storeProcessingInstruction(XMLStreamReader reader) {
         storeStructure(T_PROCESSING_INSTRUCTION);
         storeStructureString(reader.getPITarget());
         storeStructureString(reader.getPIData());
     }
-    
-    private void storeQualifiedName(int item, String prefix, String uri, String localName) {
-        if (uri != null && uri.length() > 0) {
-            if (prefix != null && prefix.length() > 0) {
-                item |= FLAG_PREFIX;
-                storeStructureString(prefix);
-            }
-            
-            item |= FLAG_URI;
-            storeStructureString(uri);
-        }
-        
-        storeStructureString(localName);
-        
-        storeStructure(item);
-    }    
 }

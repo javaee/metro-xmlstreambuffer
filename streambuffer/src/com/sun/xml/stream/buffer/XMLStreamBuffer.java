@@ -110,6 +110,9 @@ public class XMLStreamBuffer {
     protected int _contentCharactersBufferPtr;
 
     /**
+<<<<<<< XMLStreamBuffer.java
+     * Create a new XMLStreamBuffer using the {@link #DEFAULT_ARRAY_SIZE}.
+=======
      * Fragmented array to hold content information as objects
      */
     protected FragmentedArray<Object[]> _contentObjects;
@@ -118,6 +121,7 @@ public class XMLStreamBuffer {
     /**
      * Create a new XMLStreamBuffer using the 
      * {@link XMLStreamBuffer#DEFAULT_ARRAY_SIZE}.
+>>>>>>> 1.12
      */
     public XMLStreamBuffer() {
         this(DEFAULT_ARRAY_SIZE);
@@ -228,15 +232,12 @@ public class XMLStreamBuffer {
     }
 
     /**
-     * Process using the {@link StreamReaderBufferProcessor} for StAX related
-     * processing.
-     *
-     * <p>
-     * The XMLStreamBuffer can be processed using XMLStreamReader on
-     * {@link StreamReaderBufferProcessor}.
+     * Reads the contents of the buffer by using {@link XMLStreamReader}.
      *
      * @return
-     * A an instance of a {@link StreamReaderBufferProcessor}.
+     * A an instance of a {@link StreamReaderBufferProcessor}. Always non-null.
+     * @deprecated
+     *      use {@link #newXMLStreamReader()}.
      */
     public StreamReaderBufferProcessor processUsingStreamReaderBufferProcessor() throws XMLStreamException {
         return new StreamReaderBufferProcessor(this);
@@ -245,10 +246,22 @@ public class XMLStreamBuffer {
     /**
      * Process using XMLStreamReader.
      *
+     * @deprecated
+     *      use {@link #newXMLStreamReader()}.
      * @return
      * A XMLStreamReader to read.
      */
     public XMLStreamReader processUsingXMLStreamReader() throws XMLStreamException {
+        return processUsingStreamReaderBufferProcessor();
+    }
+
+    /**
+     * Reads the contents of the buffer by using {@link XMLStreamReader}.
+     *
+     * @return
+     * A an instance of a {@link StreamReaderBufferProcessor}. Always non-null.
+     */
+    public StreamReaderBufferProcessor newXMLStreamReader() throws XMLStreamException {
         return processUsingStreamReaderBufferProcessor();
     }
 

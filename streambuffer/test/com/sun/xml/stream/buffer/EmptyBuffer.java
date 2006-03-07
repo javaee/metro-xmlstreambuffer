@@ -22,7 +22,6 @@ package com.sun.xml.stream.buffer;
 
 import javax.xml.stream.XMLStreamReader;
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -47,7 +46,7 @@ public class EmptyBuffer extends TestCase {
     
     public void testEmptyBufferUsingXMLStreamReader() throws Exception {    
         XMLStreamBuffer b = new XMLStreamBuffer();
-        XMLStreamReader r = b.processUsingStreamReaderBufferProcessor();
+        XMLStreamReader r = b.newXMLStreamReader();
         
         assertEquals(true, r.getEventType() == XMLStreamReader.START_DOCUMENT);
         r.next();
