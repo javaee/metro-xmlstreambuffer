@@ -40,9 +40,9 @@
         <property name="build.version" value="${release.impl.version}-${build.id}" />
         <echo message="The build id is: ${build.version}" />
 
-	<tstamp>
-	    <format property="TSTAMP" pattern="hhmmss"/>
-	</tstamp>
+        <tstamp>
+            <format property="TSTAMP" pattern="hhmmss"/>
+        </tstamp>
         <mkdir dir="${build.dir}/classes"/>
         <mkdir dir="${dist.dir}"/>
         <mkdir dir="${package.dir}"/>
@@ -61,10 +61,10 @@
     </target>
 
     <target name="dist" depends="compile">
-	<createManifest file="${basedir}/build/manifest.rt" extensionName="com.sun.xml.stream.buffer" />
+        <createManifest file="${basedir}/build/manifest.rt" extensionName="com.sun.xml.stream.buffer" />
         <jar jarfile="${dist.dir}/${app.jar}"
-		basedir="${build.dir}/classes"
-		manifest="${basedir}/build/manifest.rt"/>
+                basedir="${build.dir}/classes"
+                manifest="${basedir}/build/manifest.rt"/>
     </target>
 
         
@@ -81,7 +81,7 @@
         
     <target name="compile-test" depends="prepare-test, dist">
         <javac srcdir="test" destdir="${build.dir}/test/classes"
-		debug="on" optimize="on" deprecation="on">
+                debug="on" optimize="on" deprecation="on">
             <classpath refid="compile-test.class.path"/>
         </javac>
     </target>
@@ -93,72 +93,72 @@
     </path>
         
     <target name="test" depends="compile-test">
-	<junit printsummary="yes" fork="yes" dir="test">
-		<classpath refid="test.class.path"/>
-		<formatter type="plain"/>
-	    <batchtest todir="${build.dir}/test/results">
-		<fileset dir="test">
-		    <include name="**/*Test*.java"/>
-		</fileset>
-	    </batchtest>
-	</junit>
+        <junit printsummary="yes" fork="yes" dir="test">
+                <classpath refid="test.class.path"/>
+                <formatter type="plain"/>
+            <batchtest todir="${build.dir}/test/results">
+                <fileset dir="test">
+                    <include name="**/*Test*.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>        
         
     <target name="doc" depends="dist">
         <javadoc
-		sourcepath="src"
-		packagenames="com.sun.xml.stream.buffer.*"
-		destdir="${dist.dir}/javadoc"
-		version="true">
+                sourcepath="src"
+                packagenames="com.sun.xml.stream.buffer.*"
+                destdir="${dist.dir}/javadoc"
+                version="true">
             <classpath refid="compile.class.path"/>
-	</javadoc>
+        </javadoc>
     </target>
 
     <target name="package-contents" depends="doc">
-	<copy todir="${package.dir}/${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}">
-	    <fileset dir="dist">
-		<include name="javadoc/**"/>
-	    </fileset>
-	    <fileset dir="${basedir}">
-		<include name="README-PACKAGE.txt"/>
-		<include name="XERCES-APACHE-1.1-license.txt"/>
-		<include name="bin/*"/>
-		<include name="lib/*.jar"/>
-		<include name="${dist.dir}/${app.jar}"/>
-	    </fileset>
-	    <fileset dir="${basedir}/..">
-		<include name="LICENSE.txt"/>
-	    </fileset>
-	</copy>
+        <copy todir="${package.dir}/${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}">
+            <fileset dir="dist">
+                <include name="javadoc/**"/>
+            </fileset>
+            <fileset dir="${basedir}">
+                <include name="README-PACKAGE.txt"/>
+                <include name="XERCES-APACHE-1.1-license.txt"/>
+                <include name="bin/*"/>
+                <include name="lib/*.jar"/>
+                <include name="${dist.dir}/${app.jar}"/>
+            </fileset>
+            <fileset dir="${basedir}/..">
+                <include name="LICENSE.txt"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="package" depends="package-contents">
-	<zip destfile="${package.dir}/${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}.zip">
-	    <fileset dir="${package.dir}">
-		<include name="${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}/**"/>
-	    </fileset>                
-	</zip>
-	<zip destfile="${package.dir}/${ant.project.name}.src.zip">
-	    <fileset dir="src">
-		<include name="**"/>
-	    </fileset>                
-	</zip>
+        <zip destfile="${package.dir}/${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}.zip">
+            <fileset dir="${package.dir}">
+                <include name="${ant.project.name}_${release.impl.version}_${DSTAMP}_${TSTAMP}/**"/>
+            </fileset>                
+        </zip>
+        <zip destfile="${package.dir}/${ant.project.name}.src.zip">
+            <fileset dir="src">
+                <include name="**"/>
+            </fileset>                
+        </zip>
     </target>
 
      <property name="wspack.home" value="fi-wspack" />
 
     <!-- target that would be invoked from wspack build -->
     <target name="wspack" depends="dist" >
-	<mkdir dir="${wspack.home}" />
-	<mkdir dir="${wspack.home}/lib" />
-	<copy file="${dist.dir}/${app.jar}"
-	    todir="${wspack.home}/lib" />
+        <mkdir dir="${wspack.home}" />
+        <mkdir dir="${wspack.home}/lib" />
+        <copy file="${dist.dir}/${app.jar}"
+            todir="${wspack.home}/lib" />
 
-	<!-- docs content -->
-	<mkdir dir="${wspack.home}/docs" />
-	<copy todir="${wspack.home}/docs" >
-	    <fileset dir="${basedir}/docs" />
-	</copy>
+        <!-- docs content -->
+        <mkdir dir="${wspack.home}/docs" />
+        <copy todir="${wspack.home}/docs" >
+            <fileset dir="${basedir}/docs" />
+        </copy>
     </target>
 
 
