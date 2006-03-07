@@ -32,14 +32,14 @@ import org.xml.sax.SAXException;
  *
  * @author Paul.Sandoz@Sun.Com
  */
-public class EmptyBuffer extends TestCase {
+public class EmptyBufferTest extends TestCase {
     
-    public EmptyBuffer(String testName) {
+    public EmptyBufferTest(String testName) {
         super(testName);
     }
     
     public static Test suite() {
-        TestSuite suite = new TestSuite(EmptyBuffer.class);
+        TestSuite suite = new TestSuite(EmptyBufferTest.class);
         
         return suite;
     }    
