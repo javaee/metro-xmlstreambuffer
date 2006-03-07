@@ -70,6 +70,7 @@
         
     <path id="compile-test.class.path">
         <path refid="compile.class.path"/>
+        <fileset dir="${lib.dir}" includes="*.jar" />
         <pathelement location="${dist.dir}/${app.jar}"/>
         <pathelement location="${junit.jar}"/>
     </path>
@@ -94,15 +95,16 @@
         
     <target name="test" depends="compile-test">
         <junit printsummary="yes" fork="yes" dir="test">
-                <classpath refid="test.class.path"/>
-                <formatter type="plain"/>
+            <classpath refid="test.class.path"/>
+            <formatter type="plain"/>
+            <formatter type="xml"/>
             <batchtest todir="${build.dir}/test/results">
                 <fileset dir="test">
-                    <include name="**/*Test*.java"/>
+                    <include name="**/*Test.java"/>
                 </fileset>
             </batchtest>
         </junit>
-    </target>        
+    </target>
         
     <target name="doc" depends="dist">
         <javadoc
