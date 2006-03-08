@@ -871,9 +871,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
         public QName getQName() {
             if (qname == null) {
-                qname = new QName(uri, localName, prefix);
+                qname = new QName(fixNull(uri), localName, fixNull(prefix));
             }
             return qname;
+        }
+
+        private String fixNull(String s) {
+            if(s==null) return "";
+            return s;
         }
     }
 
