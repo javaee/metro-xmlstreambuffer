@@ -187,9 +187,7 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writeProcessingInstruction(String target, String data) throws XMLStreamException {
-        storeStructure(T_PROCESSING_INSTRUCTION);
-        storeContentString(target);
-        storeContentString(data);
+        storeProcessingInstruction(target, data);
     }
 
     public void writePCDATA(CharSequence charSequence) throws XMLStreamException {

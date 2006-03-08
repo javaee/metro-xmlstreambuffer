@@ -13,7 +13,8 @@ import javax.xml.stream.XMLStreamReader;
  * @author Kohsuke Kawaguchi
  */
 abstract class StreamBufferCreator extends AbstractCreator {
-    protected void storeQualifiedName(int item, String prefix, String uri, String localName) {
+    
+    protected final void storeQualifiedName(int item, String prefix, String uri, String localName) {
         if (uri != null && uri.length() > 0) {
             if (prefix != null && prefix.length() > 0) {
                 item |= FLAG_PREFIX;
@@ -51,15 +52,10 @@ abstract class StreamBufferCreator extends AbstractCreator {
         storeStructureString(type);
         storeContentString(value);
     }
-
-    private void storeComment(XMLStreamReader reader) {
-        storeContentCharacters(T_COMMENT_AS_CHAR_ARRAY,
-                reader.getTextCharacters(), reader.getTextStart(), reader.getTextLength());
-    }
-
-    private void storeProcessingInstruction(XMLStreamReader reader) {
+    
+    protected final void storeProcessingInstruction(String target, String data) {
         storeStructure(T_PROCESSING_INSTRUCTION);
-        storeStructureString(reader.getPITarget());
-        storeStructureString(reader.getPIData());
+        storeStructureString(target);
+        storeStructureString(data);
     }
 }

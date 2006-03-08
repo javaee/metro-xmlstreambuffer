@@ -283,8 +283,6 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
     }
 
     private void storeProcessingInstruction(XMLStreamReader reader) {
-        storeStructure(T_PROCESSING_INSTRUCTION);
-        storeStructureString(reader.getPITarget());
-        storeStructureString(reader.getPIData());
+        storeProcessingInstruction(reader.getPITarget(), reader.getPIData());
     }
 }

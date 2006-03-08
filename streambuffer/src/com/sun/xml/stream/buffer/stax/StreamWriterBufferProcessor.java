@@ -58,6 +58,53 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         setBuffer(buffer);
     }
     
+    public void write(XMLStreamWriter writer) throws XMLStreamException{
+        int item = 0;
+        while(item != STATE_END) {
+            
+            item = _eiiStateTable[peakStructure()];
+            writer.flush();
+            
+            switch(item) {
+                case STATE_DOCUMENT:
+                    readStructure();
+                    writer.writeStartDocument();
+                    break;
+                case STATE_ELEMENT_U_LN_QN:
+                case STATE_ELEMENT_P_U_LN:
+                case STATE_ELEMENT_U_LN:
+                case STATE_ELEMENT_LN:
+                    writeFragment(writer);
+                    break;
+                case STATE_COMMENT_AS_CHAR_ARRAY: {
+                    readStructure();
+                    final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    final String comment = new String(_contentCharactersBuffer, start, length);
+                    writer.writeComment(comment);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY: {
+                    readStructure();
+                    final char[] ch = readContentCharactersCopy();
+                    writer.writeComment(new String(ch));
+                    break;
+                }
+                case STATE_PROCESSING_INSTRUCTION:
+                    readStructure();
+                    writer.writeProcessingInstruction(readStructureString(), readStructureString());
+                    break;
+                case STATE_END:
+                    readStructure();
+                    writer.writeEndDocument();
+                    break;
+                default:
+                    throw new XMLStreamException("Invalid State "+item);
+            }
+        }
+        
+    }
+    
     public void writeFragment(XMLStreamWriter writer) throws XMLStreamException {
         if (writer instanceof XMLStreamWriterEx) {
             writeFragmentEx((XMLStreamWriterEx)writer);
@@ -75,21 +122,22 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             item = _eiiStateTable[readStructure()];
             
             switch(item) {
-                case STATE_ELEMENT_U_LN_QN:{
+                case STATE_ELEMENT_U_LN_QN: {
                     index ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
-                    
+                    writeAttributes(writer);
                     break;
                 }
-                case STATE_ELEMENT_P_U_LN:{
+                case STATE_ELEMENT_P_U_LN: {
                     index ++;
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
+                    writeAttributes(writer);
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
@@ -97,54 +145,58 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(uri,localName);
+                    writeAttributes(writer);
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     index ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
+                    writeAttributes(writer);
                     break;
                 }
-                case STATE_TEXT_AS_CHAR_ARRAY:{
+                case STATE_TEXT_AS_CHAR_ARRAY: {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     writer.writeCharacters(_contentCharactersBuffer,start,length);
                     break;
                 }
-                case STATE_TEXT_AS_STRING:{
+                case STATE_TEXT_AS_CHAR_ARRAY_COPY: {
+                    char[] c = readContentCharactersCopy();
+                    writer.writeCharacters(c,0,c.length);
+                    break;
+                }
+                case STATE_TEXT_AS_STRING: {
                     final String s = readContentString();
                     writer.writeCharacters(s);
                     break;
                 }
-                case STATE_TEXT_AS_OBJECT:{
+                case STATE_TEXT_AS_OBJECT: {
                     final CharSequence c = (CharSequence)readContentObject();
                     writer.writePCDATA(c);
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY:{
+                case STATE_COMMENT_AS_CHAR_ARRAY: {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY: {
                     final char[] ch = readContentCharactersCopy();
                     writer.writeComment(new String(ch));
                     break;
                 }
-                case STATE_PROCESSING_INSTRUCTION:{
+                case STATE_PROCESSING_INSTRUCTION:
                     writer.writeProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                }
-                case STATE_END:{
+                case STATE_END:
                     writer.writeEndElement();
                     index --;
                     break;
-                }
-                default:{
+                default:
                     throw new XMLStreamException("Invalid State "+item);
-                }
             }
         } while(index > 0);
         
@@ -159,21 +211,22 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             item = _eiiStateTable[readStructure()];
             
             switch(item) {
-                case STATE_ELEMENT_U_LN_QN:{
+                case STATE_ELEMENT_U_LN_QN: {
                     index ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
-                    
+                    writeAttributes(writer);
                     break;
                 }
-                case STATE_ELEMENT_P_U_LN:{
+                case STATE_ELEMENT_P_U_LN: {
                     index ++;
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
+                    writeAttributes(writer);
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
@@ -181,103 +234,60 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(uri,localName);
+                    writeAttributes(writer);
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     index ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
+                    writeAttributes(writer);
                     break;
                 }
-                case STATE_TEXT_AS_CHAR_ARRAY:{
+                case STATE_TEXT_AS_CHAR_ARRAY: {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     writer.writeCharacters(_contentCharactersBuffer,start,length);
                     break;
                 }
-                case STATE_TEXT_AS_STRING:{
+                case STATE_TEXT_AS_CHAR_ARRAY_COPY: {
+                    char[] c = readContentCharactersCopy();
+                    writer.writeCharacters(c,0,c.length);
+                    break;
+                }                
+                case STATE_TEXT_AS_STRING: {
                     final String s = readContentString();
                     writer.writeCharacters(s);
                     break;
                 }
-                case STATE_TEXT_AS_OBJECT:{
+                case STATE_TEXT_AS_OBJECT: {
                     final CharSequence c = (CharSequence)readContentObject();
                     writer.writeCharacters(c.toString());
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY:{
+                case STATE_COMMENT_AS_CHAR_ARRAY: {
                     final int length = readStructure();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY: {
                     final char[] ch = readContentCharactersCopy();
                     writer.writeComment(new String(ch));
                     break;
                 }
-                case STATE_PROCESSING_INSTRUCTION:{
+                case STATE_PROCESSING_INSTRUCTION:
                     writer.writeProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                }
-                case STATE_END:{
+                case STATE_END:
                     writer.writeEndElement();
                     index --;
                     break;
-                }
-                default:{
+                default:
                     throw new XMLStreamException("Invalid State "+item);
-                }
             }
         } while(index > 0);
-        
-    }
-    
-    public void write(XMLStreamWriter writer) throws XMLStreamException{
-        int item = 0;
-        while(item != STATE_END) {
-            
-            item = _eiiStateTable[readStructure()];
-            writer.flush();
-            
-            switch(item) {
-                case STATE_DOCUMENT:{
-                    writer.writeStartDocument();
-                    break;
-                }
-                case STATE_ELEMENT_U_LN_QN:
-                case STATE_ELEMENT_P_U_LN:
-                case STATE_ELEMENT_U_LN:
-                case STATE_ELEMENT_LN:
-                    writeFragment(writer);
-                    break;
-                case STATE_COMMENT_AS_CHAR_ARRAY:{
-                    final int length = readStructure();
-                    final int start = readContentCharactersBuffer(length);
-                    final String comment = new String(_contentCharactersBuffer, start, length);
-                    writer.writeComment(comment);
-                    break;
-                }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:{
-                    final char[] ch = readContentCharactersCopy();
-                    writer.writeComment(new String(ch));
-                    break;
-                }
-                case STATE_PROCESSING_INSTRUCTION:{
-                    writer.writeProcessingInstruction(readStructureString(), readStructureString());
-                    break;
-                }
-                case STATE_END:{
-                    writer.writeEndDocument();
-                    break;
-                }
-                default:{
-                    throw new XMLStreamException("Invalid State "+item);
-                    
-                }
-            }
-        }
         
     }
     
@@ -340,9 +350,12 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     writer.writeAttribute(readStructureString(), readStructureString(), readContentString());
                     break;
                 case STATE_ATTRIBUTE_LN:
-                    writer.writeAttribute(readStructureString() ,readContentString());
+                    writer.writeAttribute(readStructureString(), readContentString());
                     break;
             }
+            // Ignore the attribute type
+            readStructureString();
+            
             readStructure();
             
             item = peakStructure();
