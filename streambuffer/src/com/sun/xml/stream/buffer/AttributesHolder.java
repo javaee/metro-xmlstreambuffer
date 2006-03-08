@@ -23,7 +23,7 @@ package com.sun.xml.stream.buffer;
  * Class for holding attributes.
  */
 @SuppressWarnings({"PointlessArithmeticExpression"})
-public class AttributesHolder implements org.xml.sax.Attributes {
+public final class AttributesHolder implements org.xml.sax.Attributes {
     protected static final int DEFAULT_CAPACITY = 8;
     protected static final int ITEM_SIZE = 1 << 3;
     
