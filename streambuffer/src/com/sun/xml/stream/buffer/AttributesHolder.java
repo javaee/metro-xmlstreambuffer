@@ -22,7 +22,8 @@ package com.sun.xml.stream.buffer;
 /**
  * Class for holding attributes.
  */
-public class AttributesHolder implements org.xml.sax.Attributes {   
+@SuppressWarnings({"PointlessArithmeticExpression"})
+public class AttributesHolder implements org.xml.sax.Attributes {
     protected static final int DEFAULT_CAPACITY = 8;
     protected static final int ITEM_SIZE = 1 << 3;
     
@@ -127,6 +128,10 @@ public class AttributesHolder implements org.xml.sax.Attributes {
     /**
      * Add an attribute using a qualified name that contains the 
      * prefix and local name.
+     *
+     * @param uri
+     *      When used for StAX, this can be null but not empty, just like everywhere else in StAX.
+     *      When used for SAX, this can be empty but not null, just like everywhere else in SAX.
      */
     public final void addAttributeWithQName(String uri, String localName, String qName, String type, String value) {
         final int i = _attributeCount << 3;
@@ -146,6 +151,13 @@ public class AttributesHolder implements org.xml.sax.Attributes {
     
     /**
      * Add an attribute using a prefix.
+     *
+     * @param prefix
+     *      When used for StAX, this can be null but not empty, just like everywhere else in StAX.
+     *      When used for SAX, this can be empty but not null, just like everywhere else in SAX.
+     * @param uri
+     *      When used for StAX, this can be null but not empty, just like everywhere else in StAX.
+     *      When used for SAX, this can be empty but not null, just like everywhere else in SAX.
      */
     public final void addAttributeWithPrefix(String prefix, String uri, String localName, String type, String value) {
         final int i = _attributeCount << 3;
@@ -163,7 +175,7 @@ public class AttributesHolder implements org.xml.sax.Attributes {
         _attributeCount++;
     }
     
-    private final void resize(int length) {
+    private void resize(int length) {
         final int newLength = length * 2;
         final String[] strings = new String[newLength];         
         System.arraycopy(_strings, 0, strings, 0, length);
