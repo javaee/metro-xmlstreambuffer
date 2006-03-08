@@ -22,6 +22,10 @@
         <ant antfile="build-without-nb.xml" dir="${streambuffer.dir}" target="doc"/>
     </target>
     
+    <target name="test">
+        <ant antfile="build-without-nb.xml" dir="${streambuffer.dir}" target="test"/>
+    </target>
+    
     <target name="source-package" depends="dist, prepare">
         <zip destfile="${package.dir}/${ant.project.name}_src_${release.impl.version}_${DSTAMP}_${TSTAMP}.zip">
             <fileset dir=".">
