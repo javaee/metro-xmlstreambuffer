@@ -110,9 +110,6 @@ public class XMLStreamBuffer {
     protected int _contentCharactersBufferPtr;
 
     /**
-<<<<<<< XMLStreamBuffer.java
-     * Create a new XMLStreamBuffer using the {@link #DEFAULT_ARRAY_SIZE}.
-=======
      * Fragmented array to hold content information as objects
      */
     protected FragmentedArray<Object[]> _contentObjects;
@@ -121,7 +118,6 @@ public class XMLStreamBuffer {
     /**
      * Create a new XMLStreamBuffer using the 
      * {@link XMLStreamBuffer#DEFAULT_ARRAY_SIZE}.
->>>>>>> 1.12
      */
     public XMLStreamBuffer() {
         this(DEFAULT_ARRAY_SIZE);
