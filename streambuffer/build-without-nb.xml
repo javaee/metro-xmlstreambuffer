@@ -89,6 +89,7 @@
 
     <path id="test.class.path">
         <path refid="compile.class.path"/>
+        <pathelement location="${sjsxp.jar}"/>
         <pathelement location="${dist.dir}/${app.jar}"/>
         <pathelement location="${build.dir}/test/classes"/>
     </path>
