@@ -8,11 +8,11 @@ import javax.xml.stream.XMLStreamException;
  *
  * @author Paul Sandoz
  */
-public abstract class TestCase extends junit.framework.TestCase {
-    protected TestCase() {
+public abstract class BaseBufferTestCase extends junit.framework.TestCase {
+    protected BaseBufferTestCase() {
     }
 
-    protected TestCase(String name) {
+    protected BaseBufferTestCase(String name) {
         super(name);
     }
 

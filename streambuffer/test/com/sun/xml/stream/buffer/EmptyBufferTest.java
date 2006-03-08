@@ -32,7 +32,7 @@ import org.xml.sax.SAXException;
  *
  * @author Paul.Sandoz@Sun.Com
  */
-public class EmptyBufferTest extends TestCase {
+public class EmptyBufferTest extends BaseBufferTestCase {
     
     public EmptyBufferTest(String testName) {
         super(testName);

@@ -23,7 +23,7 @@ import org.xml.sax.helpers.AttributesImpl;
  *
  * @author Paul.Sandoz@Sun.Com
  */
-public class MarkTest extends TestCase {
+public class MarkTest extends BaseBufferTestCase {
     private static final String SOAP_MESSAGE = "data/soap-message.xml";
 
     private static final String SOAP_NAMESPACE_URI = "http://www.w3.org/2003/05/soap-envelope";

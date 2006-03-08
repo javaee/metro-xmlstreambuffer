@@ -30,6 +30,7 @@ import org.jvnet.staxex.NamespaceContextEx;
 import org.jvnet.staxex.XMLStreamWriterEx;
 
 import java.io.OutputStream;
+import org.jvnet.staxex.Base64Data;
 
 /**
  * {@link XMLStreamWriter} that fills {@link XMLStreamBuffer}.
@@ -192,13 +193,21 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writePCDATA(CharSequence charSequence) throws XMLStreamException {
-        // TODO: handle binary
-        writeCharacters(charSequence.toString());
+        if (charSequence instanceof Base64Data) {
+            storeStructure(T_TEXT_AS_OBJECT);
+            storeContentObject(((Base64Data)charSequence).clone());
+        } else {
+            writeCharacters(charSequence.toString());
+        }
     }
 
-    public void writeBinary(byte[] bytes, int i, int i1, String endpointURL) throws XMLStreamException {
-        // TODO
-        throw new UnsupportedOperationException();
+    public void writeBinary(byte[] bytes, int offset, int length, String endpointURL) throws XMLStreamException {
+        Base64Data d = new Base64Data();
+        byte b[] = new byte[length];
+        System.arraycopy(bytes, offset, b, 0, length);
+        d.set(b, length, null, true);
+        storeStructure(T_TEXT_AS_OBJECT);
+        storeContentObject(d);
     }
 
     public void writeBinary(DataHandler dataHandler) throws XMLStreamException {

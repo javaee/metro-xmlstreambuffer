@@ -48,6 +48,14 @@
         <mkdir dir="${package.dir}"/>
     </target>
 
+  <target name="integrate-stax-ex-hudson" depends="prepare"
+          description="integrate the last successful stax-ex Hudson build">
+    <get src="http://kohsuke.sfbay/hudson/job/stax-ex/lastSuccessfulBuild/artifact/stax-ex/stax-ex/target/stax-ex.jar"
+         dest="lib/stax-ex.jar" />
+    <get src="http://kohsuke.sfbay/hudson/job/stax-ex/lastSuccessfulBuild/artifact/stax-ex/stax-ex/target/stax-ex-src.zip"
+         dest="lib/stax-ex-src.zip" />
+  </target>
+
     <target name="clean">
         <delete quiet="true" dir="${dist.dir}"/>
         <delete dir="${build.dir}"/>
