@@ -225,7 +225,7 @@ public abstract class ImmutableXMLStreamBuffer {
      * @return
      * A an instance of a {@link SAXBufferProcessor}.
      */
-    public final SAXBufferProcessor processUsingSAXBufferProcessor() {
+    public final SAXBufferProcessor readFromXMLReader() {
         return new SAXBufferProcessor(this);
     }
 
@@ -244,7 +244,7 @@ public abstract class ImmutableXMLStreamBuffer {
      *      if a parsing fails, or if {@link ContentHandler} throws a {@link SAXException}.
      */
     public final void writeTo(ContentHandler handler) throws SAXException {
-        SAXBufferProcessor p = processUsingSAXBufferProcessor();
+        SAXBufferProcessor p = readFromXMLReader();
         p.setContentHandler(handler);
         if (p instanceof LexicalHandler) {
             p.setLexicalHandler((LexicalHandler)handler);
@@ -277,7 +277,7 @@ public abstract class ImmutableXMLStreamBuffer {
      *      or if {@link ContentHandler} throws a {@link SAXException}.
      */
     public final void writeTo(ContentHandler handler, ErrorHandler errorHandler) throws SAXException {
-        SAXBufferProcessor p = processUsingSAXBufferProcessor();
+        SAXBufferProcessor p = readFromXMLReader();
         p.setContentHandler(handler);
         if (p instanceof LexicalHandler) {
             p.setLexicalHandler((LexicalHandler)handler);
