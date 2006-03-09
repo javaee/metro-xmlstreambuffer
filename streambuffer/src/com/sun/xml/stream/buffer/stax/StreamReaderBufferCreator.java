@@ -270,7 +270,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         }
     }
 
-    private void storeAttributes(XMLStreamReader reader) throws XMLStreamException {
+    private void storeAttributes(XMLStreamReader reader) {
         for (int i = 0; i < reader.getAttributeCount(); i++) {
             storeAttribute(reader.getAttributePrefix(i), reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
                     reader.getAttributeType(i), reader.getAttributeValue(i));
