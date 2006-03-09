@@ -19,60 +19,65 @@
  */
 package com.sun.xml.stream.buffer;
 
+import org.xml.sax.Attributes;
+
 /**
  * Class for holding attributes.
+ *
+ * Since it implements {@link Attributes}, this class follows the SAX convention
+ * of using "" instead of null.
  */
 @SuppressWarnings({"PointlessArithmeticExpression"})
-public final class AttributesHolder implements org.xml.sax.Attributes {
+public final class AttributesHolder implements Attributes {
     protected static final int DEFAULT_CAPACITY = 8;
     protected static final int ITEM_SIZE = 1 << 3;
-    
+
     protected static final int PREFIX     = 0;
     protected static final int URI        = 1;
     protected static final int LOCAL_NAME = 2;
     protected static final int QNAME      = 3;
     protected static final int TYPE       = 4;
     protected static final int VALUE      = 5;
-    
+
     protected int _attributeCount;
-    
+
     protected String[] _strings;
-        
+
     public AttributesHolder() {
         _strings = new String[DEFAULT_CAPACITY * ITEM_SIZE];
     }
-        
+
     public final int getLength() {
         return _attributeCount;
     }
-    
+
     public final String getPrefix(int index) {
-        return (index >= 0 && index < _attributeCount) ? 
+        return (index >= 0 && index < _attributeCount) ?
             _strings[(index << 3) + PREFIX] : null;
-    }    
-    
+    }
+
     public final String getLocalName(int index) {
-        return (index >= 0 && index < _attributeCount) ? 
+        return (index >= 0 && index < _attributeCount) ?
             _strings[(index << 3) + LOCAL_NAME] : null;
     }
 
     public final String getQName(int index) {
-        return (index >= 0 && index < _attributeCount) ? 
+        return (index >= 0 && index < _attributeCount) ?
             _strings[(index << 3) + QNAME] : null;
     }
 
     public final String getType(int index) {
-        return (index >= 0 && index < _attributeCount) ? 
+        return (index >= 0 && index < _attributeCount) ?
             _strings[(index << 3) + TYPE] : null;
     }
 
     public final String getURI(int index) {
-        return (index >= 0 && index < _attributeCount) ? 
+        return (index >= 0 && index < _attributeCount) ?
             _strings[(index << 3) + URI] : null;
     }
 
     public final String getValue(int index) {
-        return (index >= 0 && index < _attributeCount) ? 
+        return (index >= 0 && index < _attributeCount) ?
             _strings[(index << 3) + VALUE] : null;
     }
 
@@ -106,7 +111,7 @@ public final class AttributesHolder implements org.xml.sax.Attributes {
     }
 
     public final String getType(String uri, String localName) {
-        final int i = (getIndex(uri, localName) << 3) + TYPE;        
+        final int i = (getIndex(uri, localName) << 3) + TYPE;
         return (i >= 0) ? _strings[i] : null;
     }
 
@@ -124,14 +129,13 @@ public final class AttributesHolder implements org.xml.sax.Attributes {
         }
     }
 
-    
+
     /**
      * Add an attribute using a qualified name that contains the 
      * prefix and local name.
      *
      * @param uri
-     *      When used for StAX, this can be null but not empty, just like everywhere else in StAX.
-     *      When used for SAX, this can be empty but not null, just like everywhere else in SAX.
+     *      This can be empty but not null, just like everywhere else in SAX.
      */
     public final void addAttributeWithQName(String uri, String localName, String qName, String type, String value) {
         final int i = _attributeCount << 3;
@@ -145,19 +149,17 @@ public final class AttributesHolder implements org.xml.sax.Attributes {
         _strings[i + QNAME] = qName;
         _strings[i + TYPE] = type;
         _strings[i + VALUE] = value;
-        
+
         _attributeCount++;
     }
-    
+
     /**
      * Add an attribute using a prefix.
      *
      * @param prefix
-     *      When used for StAX, this can be null but not empty, just like everywhere else in StAX.
-     *      When used for SAX, this can be empty but not null, just like everywhere else in SAX.
+     *      This can be empty but not null, just like everywhere else in SAX.
      * @param uri
-     *      When used for StAX, this can be null but not empty, just like everywhere else in StAX.
-     *      When used for SAX, this can be empty but not null, just like everywhere else in SAX.
+     *      This can be empty but not null, just like everywhere else in SAX.
      */
     public final void addAttributeWithPrefix(String prefix, String uri, String localName, String type, String value) {
         final int i = _attributeCount << 3;
@@ -171,15 +173,15 @@ public final class AttributesHolder implements org.xml.sax.Attributes {
         _strings[i + QNAME] = null;
         _strings[i + TYPE] = type;
         _strings[i + VALUE] = value;
-        
+
         _attributeCount++;
     }
-    
+
     private void resize(int length) {
         final int newLength = length * 2;
-        final String[] strings = new String[newLength];         
+        final String[] strings = new String[newLength];
         System.arraycopy(_strings, 0, strings, 0, length);
         _strings = strings;
-    }    
-    
+    }
+
 }
