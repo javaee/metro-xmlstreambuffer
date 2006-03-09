@@ -802,10 +802,10 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     _attributeCache.addAttributeWithPrefix(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;
                 case STATE_ATTRIBUTE_U_LN:
-                    _attributeCache.addAttributeWithPrefix("", readStructureString(), readStructureString(), readStructureString(), readContentString());
+                    _attributeCache.addAttributeWithPrefix(null, readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;
                 case STATE_ATTRIBUTE_LN: {
-                    _attributeCache.addAttributeWithPrefix("", "", readStructureString(), readStructureString(), readContentString());
+                    _attributeCache.addAttributeWithPrefix(null, null, readStructureString(), readStructureString(), readContentString());
                     break;
                 }
             }
