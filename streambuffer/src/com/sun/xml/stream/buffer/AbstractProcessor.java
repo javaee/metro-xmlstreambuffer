@@ -96,10 +96,12 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _aiiStateTable[T_ATTRIBUTE_U_LN_OBJECT] = STATE_ATTRIBUTE_U_LN_OBJECT;
         _aiiStateTable[T_ATTRIBUTE_LN_OBJECT] = STATE_ATTRIBUTE_LN_OBJECT;
     }
+    
+    protected ImmutableXMLStreamBuffer _buffer;
         
     protected boolean _stringInterningFeature = false;
     
-    protected final void setBuffer(XMLStreamBuffer buffer) {
+    protected final void setBuffer(ImmutableXMLStreamBuffer buffer) {
         _buffer = buffer;
         
         _currentStructureFragment = _buffer.getStructure();

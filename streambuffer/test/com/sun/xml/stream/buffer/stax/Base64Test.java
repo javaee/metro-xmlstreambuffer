@@ -59,7 +59,7 @@ public class Base64Test extends BaseBufferTestCase {
     public void testReadingAsString() throws Exception {
         XMLStreamBuffer buffer = createBuffer();
 
-        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.newXMLStreamReader();
+        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readFromXMLStreamReader();
         assertEquals(XMLStreamConstants.START_DOCUMENT,reader.getEventType());
 
         assertEquals(XMLStreamConstants.START_ELEMENT,reader.next());
@@ -95,18 +95,18 @@ public class Base64Test extends BaseBufferTestCase {
     public void testReadingAsPCDATA() throws Exception {
         XMLStreamBuffer buffer = createBuffer();
 
-        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.newXMLStreamReader();
+        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readFromXMLStreamReader();
         readPCData(reader);
     }
     
     public void testReadingAsPCDATAUsingCopyOfBuffer() throws Exception {
         XMLStreamBuffer originalBuffer = createBuffer();
-        XMLStreamReaderEx originalReader = (XMLStreamReaderEx)originalBuffer.newXMLStreamReader();
+        XMLStreamReaderEx originalReader = (XMLStreamReaderEx)originalBuffer.readFromXMLStreamReader();
         
         XMLStreamBuffer buffer = new XMLStreamBuffer();
         buffer.createFromXMLStreamReader(originalReader);
         
-        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.newXMLStreamReader();
+        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readFromXMLStreamReader();
         readPCData(reader);
     }
 }

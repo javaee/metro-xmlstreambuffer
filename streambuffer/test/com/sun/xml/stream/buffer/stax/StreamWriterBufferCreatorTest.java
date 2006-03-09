@@ -41,7 +41,7 @@ public class StreamWriterBufferCreatorTest extends BaseBufferTestCase {
 
         assertTrue(buffer.isCreated());
 
-        XMLStreamReader reader = buffer.newXMLStreamReader();
+        XMLStreamReader reader = buffer.readFromXMLStreamReader();
         assertEquals(XMLStreamConstants.START_DOCUMENT,reader.getEventType());
 
         assertEquals(XMLStreamConstants.START_ELEMENT,reader.next());

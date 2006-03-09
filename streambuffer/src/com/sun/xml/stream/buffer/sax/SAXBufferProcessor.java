@@ -21,6 +21,7 @@ package com.sun.xml.stream.buffer.sax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
+import com.sun.xml.stream.buffer.ImmutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
@@ -35,16 +36,13 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 
 import java.io.IOException;
+import javax.xml.XMLConstants;
 
 /**
  * SAX {@link XMLReader} that reads from {@link XMLStreamBuffer}.
  *
  */
 public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
-    public static final String XMLNS_NAMESPACE_PREFIX = "xmlns";
-    
-    public static final String XMLNS_NAMESPACE_NAME = "http://www.w3.org/2000/xmlns/";
-    
     /**
      * Reference to entity resolver.
      */
@@ -94,7 +92,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _attributes = new AttributesHolder();
     }
 
-    public SAXBufferProcessor(XMLStreamBuffer buffer) {
+    public SAXBufferProcessor(ImmutableXMLStreamBuffer buffer) {
         this();
         setXMLStreamBuffer(buffer);
     }
@@ -219,7 +217,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     /**
      * Resets the parser to read from the beginning of the given {@link XMLStreamBuffer}.
      */
-    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
+    public void setXMLStreamBuffer(ImmutableXMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
 
@@ -567,12 +565,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         if (_namespacePrefixesFeature) {
             // Add the namespace delcaration as an attribute
             if (prefix != "") {
-                _attributes.addAttributeWithQName(XMLNS_NAMESPACE_NAME, prefix,
-                        getQName(XMLNS_NAMESPACE_PREFIX, prefix),
+                _attributes.addAttributeWithQName(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, prefix,
+                        getQName(XMLConstants.XMLNS_ATTRIBUTE, prefix),
                         "CDATA", uri);
             } else {
-                _attributes.addAttributeWithQName(XMLNS_NAMESPACE_NAME, XMLNS_NAMESPACE_PREFIX, 
-                        XMLNS_NAMESPACE_PREFIX,
+                _attributes.addAttributeWithQName(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, XMLConstants.XMLNS_ATTRIBUTE, 
+                        XMLConstants.XMLNS_ATTRIBUTE,
                         "CDATA", uri);
             }
         }

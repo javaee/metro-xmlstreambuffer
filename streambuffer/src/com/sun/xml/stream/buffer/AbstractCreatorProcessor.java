@@ -93,8 +93,6 @@ public abstract class AbstractCreatorProcessor {
     
     protected static final int T_END_OF_BUFFER               = -1;
     
-    protected XMLStreamBuffer _buffer;
-    
     protected FragmentedArray<int[]> _currentStructureFragment;
     protected int[] _structure;
     protected int _structurePtr;

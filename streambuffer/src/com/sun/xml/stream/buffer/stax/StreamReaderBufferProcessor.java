@@ -21,6 +21,7 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
+import com.sun.xml.stream.buffer.ImmutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import org.jvnet.staxex.NamespaceContextEx;
 import org.jvnet.staxex.XMLStreamReaderEx;
@@ -117,13 +118,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _attributeCache = new AttributesHolder();
     }
 
-    public StreamReaderBufferProcessor(XMLStreamBuffer buffer) throws XMLStreamException {
+    public StreamReaderBufferProcessor(ImmutableXMLStreamBuffer buffer) throws XMLStreamException {
         this();
 
         setXMLStreamBuffer(buffer);
     }
 
-    public void setXMLStreamBuffer(XMLStreamBuffer buffer) throws XMLStreamException {
+    public void setXMLStreamBuffer(ImmutableXMLStreamBuffer buffer) throws XMLStreamException {
         setBuffer(buffer);
 
         _completionState = PARSING;
@@ -131,7 +132,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _characters = null;
         _charSequence = null;
 
-        processFirstEvent(buffer);
+        processFirstEvent();
     }
 
     public Object getProperty(java.lang.String name) {
@@ -630,7 +631,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
 
 
-    private void processFirstEvent(XMLStreamBuffer buffer) throws XMLStreamException {
+    private void processFirstEvent() throws XMLStreamException {
         final int s = readStructure();
         if (s == T_END) {
             // This is an empty buffer
@@ -652,19 +653,19 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 final String localName = readStructureString();
                 final String prefix = getPrefixFromQName(readStructureString());
 
-                processElementFragment(buffer.getInscopeNamespaces(), prefix, uri, localName);
+                processElementFragment(_buffer.getInscopeNamespaces(), prefix, uri, localName);
                 break;
             }
             case STATE_ELEMENT_P_U_LN: {
-                processElementFragment(buffer.getInscopeNamespaces(), readStructureString(), readStructureString(), readStructureString());
+                processElementFragment(_buffer.getInscopeNamespaces(), readStructureString(), readStructureString(), readStructureString());
                 break;
             }
             case STATE_ELEMENT_U_LN: {
-                processElementFragment(buffer.getInscopeNamespaces(), "", readStructureString(), readStructureString());
+                processElementFragment(_buffer.getInscopeNamespaces(), "", readStructureString(), readStructureString());
                 break;
             }
             case STATE_ELEMENT_LN: {
-                processElementFragment(buffer.getInscopeNamespaces(), "", "", readStructureString());
+                processElementFragment(_buffer.getInscopeNamespaces(), "", "", readStructureString());
                 break;
             }
             default:
@@ -882,8 +883,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
 
         private String fixNull(String s) {
-            if(s==null) return "";
-            return s;
+            return (s == null) ? "" : s;
         }
     }
 
@@ -994,9 +994,76 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             };
         }
 
+        private class BindingImpl implements NamespaceContextEx.Binding {
+            final String _prefix;
+            final String _namespaceURI;
+
+            BindingImpl(String prefix, String namespaceURI) {
+                _prefix = prefix;
+                _namespaceURI = namespaceURI;
+            }
+            
+            public String getPrefix() {
+                return _prefix;
+            }
+
+            public String getNamespaceURI() {
+                return _namespaceURI;
+            }
+        };
+        
         public Iterator<NamespaceContextEx.Binding> iterator() {
-            // TODO implement
-            return null;
+            return new Iterator<NamespaceContextEx.Binding>() {
+                private final int end = _namespaceAIIsIndex - 1;
+                private int current = end;
+                private boolean requireFindNext = true;
+                private NamespaceContextEx.Binding namespace;
+
+                private NamespaceContextEx.Binding findNext() {
+                    while(current >= 0) {
+                        final String prefix = _namespaceAIIsPrefix[current];
+                        
+                        // Find if the current prefix occurs more recently
+                        // If so then it is not in scope
+                        int i = end;
+                        for (;i > current; i--) {
+                            if (prefix.equals(_namespaceAIIsPrefix[i])) {
+                                break;
+                            }
+                        }
+                        if (i == current--) {
+                            // The current prefix is in-scope
+                            return namespace = new BindingImpl(prefix, _namespaceAIIsNamespaceName[current]);
+                        }
+                    }
+                    return namespace = null;
+                }
+
+                public boolean hasNext() {
+                    if (requireFindNext) {
+                        findNext();
+                        requireFindNext = false;
+                    }
+                    return (namespace != null);
+                }
+
+                public NamespaceContextEx.Binding next() {
+                    if (requireFindNext) {
+                        findNext();
+                    }
+                    requireFindNext = true;
+
+                    if (namespace == null) {
+                        throw new NoSuchElementException();
+                    }
+
+                    return namespace;
+                }
+
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 

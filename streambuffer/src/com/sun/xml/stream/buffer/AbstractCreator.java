@@ -25,6 +25,8 @@ package com.sun.xml.stream.buffer;
  */
 public class AbstractCreator extends AbstractCreatorProcessor {
     
+    protected XMLStreamBuffer _buffer;
+    
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
@@ -63,6 +65,11 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     }
     
     protected final void storeStructure(int b) {
+        // TODO: investigate the packing of information item identifiers
+        // and lengths of characters
+        // Could be an effective and efficient way to reduce the size of
+        // the structure array since four idenitifiers may be packed into 
+        // one integer
         _structure[_structurePtr++] = b;
         if (_structurePtr == _structure.length) {
             resizeStructure();

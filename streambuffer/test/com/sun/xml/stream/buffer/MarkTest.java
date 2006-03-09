@@ -115,13 +115,13 @@ public class MarkTest extends BaseBufferTestCase {
         t.startElement("","root","root",new AttributesImpl());
 
         for (XMLStreamBufferMark mark : marks) {
-            XMLStreamReader markReader = mark.newXMLStreamReader();
+            XMLStreamReader markReader = mark.readFromXMLStreamReader();
 
             processFragment(markReader);
 
             // test subtree->SAX.
             // TODO: think about the way to test the infoset correctness.
-            mark.processUsingSAXContentHandler(t);
+            mark.writeTo(t);
         }
 
         t.endElement("","root","root");

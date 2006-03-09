@@ -46,7 +46,7 @@ public class EmptyBufferTest extends BaseBufferTestCase {
     
     public void testEmptyBufferUsingXMLStreamReader() throws Exception {    
         XMLStreamBuffer b = new XMLStreamBuffer();
-        XMLStreamReader r = b.newXMLStreamReader();
+        XMLStreamReader r = b.readFromXMLStreamReader();
         
         assertEquals(true, r.getEventType() == XMLStreamReader.START_DOCUMENT);
         r.next();
@@ -55,7 +55,7 @@ public class EmptyBufferTest extends BaseBufferTestCase {
     
     public void testEmptyBufferUsingContentHandler() throws Exception {    
         XMLStreamBuffer b = new XMLStreamBuffer();
-        b.processUsingSAXContentHandler(new ContentHandler() {
+        b.writeTo(new ContentHandler() {
             boolean _startDocument = false;
             
             public void setDocumentLocator(Locator locator) {
