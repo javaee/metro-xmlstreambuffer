@@ -61,7 +61,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     // The current event type
     protected int _eventType;
 
-    // Holder of the attributes
+    /**
+     * Holder of the attributes.
+     *
+     * Be careful that this follows the SAX convention of using "" instead of null.
+     */
     protected AttributesHolder _attributeCache;
 
     // Characters as a CharSequence
@@ -377,7 +381,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        return _attributeCache.getURI(index);
+        return fixEmptyString(_attributeCache.getURI(index));
     }
 
     public final String getAttributeLocalName(int index) {
@@ -391,7 +395,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         if (_eventType != START_ELEMENT) {
             throw new IllegalStateException("");
         }
-        return _attributeCache.getPrefix(index);
+        return fixEmptyString(_attributeCache.getPrefix(index));
     }
 
     public final String getAttributeType(int index) {
@@ -802,10 +806,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     _attributeCache.addAttributeWithPrefix(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;
                 case STATE_ATTRIBUTE_U_LN:
-                    _attributeCache.addAttributeWithPrefix(null, readStructureString(), readStructureString(), readStructureString(), readContentString());
+                    // _attributeCache follows SAX convention
+                    _attributeCache.addAttributeWithPrefix("", readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;
                 case STATE_ATTRIBUTE_LN: {
-                    _attributeCache.addAttributeWithPrefix(null, null, readStructureString(), readStructureString(), readContentString());
+                    _attributeCache.addAttributeWithPrefix("", "", readStructureString(), readStructureString(), readContentString());
                     break;
                 }
             }
@@ -1016,4 +1021,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             return null;
         }
     };
+
+    private static String fixEmptyString(String s) {
+        // s must not be null, so no need to check for that. that would be bug.
+        if(s.length()==0)   return null;
+        else                return s;
+    }
+
 }
