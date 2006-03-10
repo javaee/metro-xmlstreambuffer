@@ -34,6 +34,12 @@ import org.jvnet.staxex.Base64Data;
 
 /**
  * {@link XMLStreamWriter} that fills {@link XMLStreamBuffer}.
+ *
+ * <pre>
+ * TODO: keeping track of in-scope namespace bindings is required to implement some of the methods.
+ * TODO: most likely we need to be able to insert additional namespace declarations to support
+ * {@link #writeAttribute(String, String, String)} correctly
+ * </pre>
  */
 public class StreamWriterBufferCreator extends StreamBufferCreator implements XMLStreamWriterEx {
     private NamespaceContext namespaceContext = null;
