@@ -19,7 +19,7 @@
  */
 package com.sun.xml.stream.buffer.test;
 
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import java.io.BufferedInputStream;
@@ -41,7 +41,7 @@ public class SAXcreatedSAXprocessedComparator extends BaseComparator {
         spf.setNamespaceAware(true);
         SAXParser sp = spf.newSAXParser();        
         SAXBufferCreator bc = new SAXBufferCreator();
-        XMLStreamBuffer buffer = bc.create(sp.getXMLReader(), in);
+        MutableXMLStreamBuffer buffer = bc.create(sp.getXMLReader(), in);
         
         SAXBufferProcessor bp = new SAXBufferProcessor(buffer);
         Builder b = new Builder(bp);

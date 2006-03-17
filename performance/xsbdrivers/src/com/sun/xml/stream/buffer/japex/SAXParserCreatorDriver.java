@@ -21,7 +21,7 @@ package com.sun.xml.stream.buffer.japex;
 
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import com.sun.xml.stream.buffer.sax.Properties;
 import java.io.ByteArrayInputStream;
@@ -36,7 +36,7 @@ public class SAXParserCreatorDriver extends JapexDriverBase {
     SAXParser _parser;
     XMLReader _reader;
     SAXBufferCreator _creator;
-    XMLStreamBuffer _buffer;
+    MutableXMLStreamBuffer _buffer;
     
     public void initializeDriver() {
         _creator = new SAXBufferCreator();
@@ -50,7 +50,7 @@ public class SAXParserCreatorDriver extends JapexDriverBase {
             _reader.setContentHandler(_creator);
             _reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, _creator);
             
-            _buffer = new XMLStreamBuffer();
+            _buffer = new MutableXMLStreamBuffer();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

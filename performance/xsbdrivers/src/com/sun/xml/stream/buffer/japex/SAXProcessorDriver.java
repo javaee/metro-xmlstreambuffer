@@ -21,12 +21,12 @@ package com.sun.xml.stream.buffer.japex;
 
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import java.io.FileInputStream;
 
 public class SAXProcessorDriver extends JapexDriverBase {
-    XMLStreamBuffer _buffer;
+    MutableXMLStreamBuffer _buffer;
     SAXBufferProcessor _processor;
     
     public void initializeDriver() {

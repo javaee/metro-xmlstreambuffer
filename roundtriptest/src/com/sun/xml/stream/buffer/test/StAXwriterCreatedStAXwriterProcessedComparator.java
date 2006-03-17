@@ -9,7 +9,7 @@
 
 package com.sun.xml.stream.buffer.test;
 
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
 import com.sun.xml.stream.buffer.stax.StreamWriterBufferCreator;
@@ -30,9 +30,9 @@ public class StAXwriterCreatedStAXwriterProcessedComparator extends BaseComparat
     public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
         StreamReaderBufferCreator srbc = new StreamReaderBufferCreator();
-        XMLStreamBuffer originalBuffer = srbc.create(reader);
+        MutableXMLStreamBuffer originalBuffer = srbc.create(reader);
 
-        XMLStreamBuffer buffer = new XMLStreamBuffer();
+        MutableXMLStreamBuffer buffer = new MutableXMLStreamBuffer();
         StreamWriterBufferCreator swbc = new StreamWriterBufferCreator();
         swbc.setXMLStreamBuffer(buffer);
         
