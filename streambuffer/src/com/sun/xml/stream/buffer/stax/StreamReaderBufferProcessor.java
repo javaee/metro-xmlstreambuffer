@@ -21,8 +21,8 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
-import com.sun.xml.stream.buffer.ImmutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import org.jvnet.staxex.NamespaceContextEx;
 import org.jvnet.staxex.XMLStreamReaderEx;
 
@@ -37,9 +37,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * {@link XMLStreamReader} implementation that reads the infoset from
- * {@link XMLStreamBuffer}.
- *
+ * A processor of a {@link XMLStreamBuffer} that that reads the XML infoset as
+ * {@link XMLStreamReader}.
+ * 
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
  */
@@ -118,13 +118,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _attributeCache = new AttributesHolder();
     }
 
-    public StreamReaderBufferProcessor(ImmutableXMLStreamBuffer buffer) throws XMLStreamException {
+    public StreamReaderBufferProcessor(XMLStreamBuffer buffer) throws XMLStreamException {
         this();
 
         setXMLStreamBuffer(buffer);
     }
 
-    public void setXMLStreamBuffer(ImmutableXMLStreamBuffer buffer) throws XMLStreamException {
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer) throws XMLStreamException {
         setBuffer(buffer);
 
         _completionState = PARSING;

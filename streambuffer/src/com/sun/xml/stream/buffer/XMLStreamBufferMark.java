@@ -31,10 +31,10 @@ import org.xml.sax.XMLReader;
 
 /**
  * A mark into a buffer.
- *
+ * 
  * <p>
- * A mark can be processed in the same manner as a ImmutableXMLStreamBuffer.
- *
+ * A mark can be processed in the same manner as a XMLStreamBuffer.
+ * 
  * <p>
  * A mark will share a sub set of information of the buffer that is
  * marked. If the buffer is directly or indirectly associated with a
@@ -43,7 +43,7 @@ import org.xml.sax.XMLReader;
  * is undefined. It is the responsibility of the application to manage the
  * relationship between the marked XMLStreamBuffer and one or more marks.
  */
-public class XMLStreamBufferMark extends ImmutableXMLStreamBuffer {
+public class XMLStreamBufferMark extends XMLStreamBuffer {
     
     /**
      * Create a mark from the buffer that is being created.
@@ -78,19 +78,18 @@ public class XMLStreamBufferMark extends ImmutableXMLStreamBuffer {
     
     /**
      * Create a mark from the buffer that is being processed.
-     *
+     * 
      * <p>
      * A mark will be created from the current position of processing of the 
-     * {@link ImmutableXMLStreamBuffer} that is being processed by a
+     * {@link XMLStreamBuffer} that is being processed by a
      * {@link AbstractProcessor}.
-     *
+     * 
      * @param inscopeNamespaces
      * The in-scope namespaces on the fragment of XML infoset that is
      * to be marked.
-     *
      * @param processor
      * The AbstractProcessor from which the current position of processing of
-     * the ImmutableXMLStreamBuffer will be taken as the mark.
+     * the XMLStreamBuffer will be taken as the mark.
      */
     public XMLStreamBufferMark(Map inscopeNamespaces, AbstractProcessor processor) {
         _inscopeNamespaces = inscopeNamespaces;

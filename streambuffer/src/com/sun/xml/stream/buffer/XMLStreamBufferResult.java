@@ -26,18 +26,18 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.ext.LexicalHandler;
 
 public class XMLStreamBufferResult extends SAXResult {
-    XMLStreamBuffer _buffer;
+    MutableXMLStreamBuffer _buffer;
     SAXBufferCreator _bufferCreator;
     
-    public XMLStreamBufferResult(XMLStreamBuffer buffer) {
+    public XMLStreamBufferResult(MutableXMLStreamBuffer buffer) {
         setXMLStreamBuffer(buffer);
     }
     
-    public XMLStreamBuffer getXMLStreamBuffer() {
+    public MutableXMLStreamBuffer getXMLStreamBuffer() {
         return _buffer;
     }    
     
-    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
+    public void setXMLStreamBuffer(MutableXMLStreamBuffer buffer) {
         _buffer = buffer;
     }    
 

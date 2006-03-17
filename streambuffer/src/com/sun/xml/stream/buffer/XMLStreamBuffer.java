@@ -41,180 +41,286 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 
 /**
- *
- * A mutable stream-based buffer of an XML infoset.
- *
+ * 
+ * An immutable stream-based buffer of an XML infoset.
+ * 
  * <p>
- * A XMLStreamBuffer is created using specific SAX and StAX-based 
- * creators. Utility methods on XMLStreamBuffer are provided for 
- * such functionality that utilize SAX and StAX-based creators.
- *
+ * A XMLStreamBuffer is an abstract class. It is immutable with 
+ * respect to the methods on the class, which are non-modifying in terms
+ * of state.
+ * 
  * <p>
- * Once instantiated the same instance of a XMLStreamBuffer may be reused for
- * creation to reduce the amount of Objects instantiated and garbage
- * collected that are required for internally representing an XML infoset.
- *
+ * A XMLStreamBuffer can be processed using specific SAX and StAX-based 
+ * processors. Utility methods on XMLStreamBuffer are provided for 
+ * such functionality that utilize SAX and StAX-based processors.
+ * The same instance of a XMLStreamBuffer may be processed 
+ * multiple times and concurrently by more than one processor.
+ * 
  * <p>
- * A XMLStreamBuffer is not designed to be created and processed 
- * concurrently. If done so unspecified behaviour may occur.
+ * There are two concrete implementations of XMLStreamBuffer.
+ * The first, {@link XMLStreamBuffer}, can be instantiated for the creation 
+ * of a buffer using SAX and StAX-based creators, and from which may be 
+ * processed as an XMLStreamBuffer. The second,
+ * {@link XMLStreamBufferMark}, can be instantiated to mark into an existing
+ * buffer that is being created or processed. Thus one or more 
+ * XMLStreamBuffer instances may make reference to other buffers. It
+ * is the responsibility of the application to manage the relationship between
+ * such instances.
+ * 
+ * <p>
+ * A XMLStreamBuffer can represent a complete XML infoset or a fragment 
+ * of an XML infoset. For example, a fragment of an XML infoset may be 
+ * represented as a mark into an buffer that is being created or processed, see 
+ * {@link XMLStreamBufferMark}.
  */
-public class XMLStreamBuffer extends ImmutableXMLStreamBuffer {
+public abstract class XMLStreamBuffer {
     /**
-     * The default array size for the arrays used in internal representation 
-     * of the XML infoset.
+     * Empty map for the default in scope namespaces on a fragment
      */
-    public static int DEFAULT_ARRAY_SIZE = 512;
+    protected static final Map<String, String> EMTPY_MAP = Collections.emptyMap();
     
     /**
-     * Create a new XMLStreamBuffer using the 
-     * {@link XMLStreamBuffer#DEFAULT_ARRAY_SIZE}.
+     * In scope namespaces on a fragment
      */
-    public XMLStreamBuffer() {
-        this(DEFAULT_ARRAY_SIZE);
-    }
+    protected Map<String, String> _inscopeNamespaces = EMTPY_MAP;
     
     /**
-     * Create a new XMLStreamBuffer.
-     *
-     * @throws NegativeArraySizeException
-     * If the <code>size</code> argument is less than <code>0</code>.
-     *
-     * @param size
-     * The size of the arrays used in the internal representation 
-     * of the XML infoset. 
+     * True if the buffer was created from a parser that interns Strings
+     * as specified by the SAX interning features
      */
-    public XMLStreamBuffer(int size) {
-        _structure = new FragmentedArray(new int[size]);
-        _structureStrings = new FragmentedArray(new String[size]);
-        _contentCharactersBuffer = new FragmentedArray(new char[4096]);
-        _contentObjects = new FragmentedArray(new Object[size]);
-
-        // Set the first element of structure array to indicate an empty buffer
-        // that has not been created
-        _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
-    }
+    protected boolean _hasInternedStrings;
 
     /**
-     * Create contents of a buffer from a XMLStreamReader.
-     *
-     * <p>
-     * The XMLStreamBuffer is reset (see {@link #reset}) before creation.
-     *
-     * <p>
-     * The XMLStreamBuffer is created by consuming the events on the XMLStreamReader using
-     * an instance of {@link StreamReaderBufferCreator}.
-     *
-     * @param reader
-     * A XMLStreamReader to read from to create.
+     * Fragmented array to hold structural information
      */
-    public void createFromXMLStreamReader(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
-        reset();
-        StreamReaderBufferCreator c = new StreamReaderBufferCreator(this);
-        c.create(reader);
-    }
+    protected FragmentedArray<int[]> _structure;
+    protected int _structurePtr;
+    
+    /**
+     * Fragmented array to hold structural information as strings
+     */
+    protected FragmentedArray<String[]> _structureStrings;
+    protected int _structureStringsPtr;
+    
+    /**
+     * Fragmented array to hold content information in a shared char[]
+     */
+    protected FragmentedArray<char[]> _contentCharactersBuffer;
+    protected int _contentCharactersBufferPtr;
 
     /**
-     * Create contents of a buffer from a XMLStreamWriter.
-     *
-     * <p>
-     * The XMLStreamBuffer is reset (see {@link #reset}) before creation.
-     *
-     * <p>
-     * The XMLStreamBuffer is created by consuming events on a XMLStreamWriter using
-     * an instance of {@link StreamWriterBufferCreator}.
+     * Fragmented array to hold content information as objects
      */
-    public XMLStreamWriter createFromXMLStreamWriter() throws XMLStreamBufferException {
-        reset();
-        return new StreamWriterBufferCreator(this);
-    }
+    protected FragmentedArray<Object[]> _contentObjects;
+    protected int _contentObjectsPtr;
 
+    
     /**
-     * Create contents of a buffer from a {@link SAXBufferCreator}.
-     *
-     * <p>
-     * The XMLStreamBuffer is reset (see {@link #reset}) before creation.
-     *
-     * <p>
-     * The XMLStreamBuffer is created by consuming events from a {@link ContentHandler} using
-     * an instance of {@link SAXBufferCreator}.
+     * Is the buffer created by creator.
      *
      * @return
-     * The {@link SAXBufferCreator} to create from.
+     * <code>true</code> if the buffer has been created.
      */
-    public SAXBufferCreator createFromSAXBufferCreator() throws XMLStreamBufferException {
-        reset();
-        SAXBufferCreator c = new SAXBufferCreator();
-        c.setBuffer(this);
-        return c;
+    public final boolean isCreated() {
+        return _structure.getArray()[0] != AbstractCreatorProcessor.T_END;
     }
 
     /**
-     * Create contents of a buffer from a {@link XMLReader} and {@link InputStream}.
+     * Is the buffer a representation of a fragment of an XML infoset.
      *
-     * <p>
-     * The XMLStreamBuffer is reset (see {@link #reset}) before creation.
-     *
-     * <p>
-     * The XMLStreamBuffer is created by using an instance of {@link SAXBufferCreator}
-     * and registering associated handlers on the {@link XMLReader}.
-     *
-     * @param reader
-     * The {@link XMLReader} to use for parsing.
-     * @param in
-     * The {@link InputStream} to be parsed.
+     * @return
+     * <code>true</code> if the buffer is a representation of a fragment
+     * of an XML infoset.
      */
-    public void createFromXMLReader(XMLReader reader, InputStream in) throws XMLStreamBufferException, SAXException, IOException {
-        reset();
-        SAXBufferCreator c = new SAXBufferCreator(this);
-
-        reader.setContentHandler(c);
-        reader.setDTDHandler(c);
-        reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, c);
-
-        c.create(reader, in);
+    public final boolean isFragment() {
+        return (isCreated() && (_structure.getArray()[_structurePtr] & AbstractCreatorProcessor.TYPE_MASK)
+                != AbstractCreatorProcessor.T_DOCUMENT);
     }
 
     /**
-     * Reset the XMLStreamBuffer.
+     * Is the buffer a representation of a fragment of an XML infoset
+     * that is an element (and its contents).
      *
-     * <p>
-     * This method will reset the XMLStreamBuffer to a state of being "uncreated"
-     * similar to the state of a newly instantiated XMLStreamBuffer.
-     *
-     * <p>
-     * As many Objects as possible will be retained for reuse in future creation.
-     *
+     * @return
+     * <code>true</code> if the buffer a representation
+     * of a fragment of an XML infoset that is an element (and its contents).
      */
-    public void reset() {
-        // Reset the ptrs in arrays to 0
-        _structurePtr =
-                _structureStringsPtr =
-                _contentCharactersBufferPtr = 
-                _contentObjectsPtr = 0;
+    public final boolean isElementFragment() {
+        return (isCreated() && (_structure.getArray()[_structurePtr] & AbstractCreatorProcessor.TYPE_MASK)
+                == AbstractCreatorProcessor.T_ELEMENT);
+    }
 
-        // Set the first element of structure array to indicate an empty buffer
-        // that has not been created
-        _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
+    /**
+     * Get the in-scope namespaces.
+     *
+     * <p>
+     *
+     * The in-scope namespaces will be empty if the buffer is not a
+     * fragment ({@link #isFragment} returns <code>false</code>).
+     *
+     * The in-scope namespace will correspond to the in-scope namespaces of the
+     * fragment if the buffer is a fragment ({@link #isFragment}
+     * returns <code>false</code>). The in-scope namespaces will include any
+     * namespace delcarations on an element if the fragment correspond to that
+     * of an element ({@link #isElementFragment} returns <code>false</code>).
+     *
+     * @return
+     * The in-scope namespaces of the XMLStreamBuffer.
+     */
+    public final Map<String, String> getInscopeNamespaces() {
+        return _inscopeNamespaces;
+    }
 
-        // Clean up content objects
-        _contentObjects.setNext(null);
-        final Object[] o = _contentObjects.getArray();
-        for (int i = 0; i < o.length; i++) {
-            if (o[i] != null) {
-                o[i] = null;
-            } else {
-                break;
-            }
+    /**
+     * Has the buffer been created using Strings that have been interned
+     * for certain properties of information items. The Strings that are interned
+     * are those that correspond to Strings that are specified by the SAX API
+     * "string-interning" property
+     * (see <a href="http://java.sun.com/j2se/1.5.0/docs/api/org/xml/sax/package-summary.html#package_description">here</a>).
+     *
+     * <p>
+     * An buffer may have been created, for example, from an XML document parsed
+     * using the Xerces SAX parser. The Xerces SAX parser will have interned certain Strings
+     * according to the SAX string interning property.
+     * This method enables processors to avoid the duplication of
+     * String interning if such a feature is required by a procesing application and the
+     * buffer being processed was created using Strings that have been interned.
+     *
+     * @return
+     * <code>true</code> if the buffer has been created using Strings that
+     * have been interned.
+     */
+    public final boolean hasInternedStrings() {
+        return _hasInternedStrings;
+    }
+
+    /**
+     * Read the contents of the buffer as a {@link XMLStreamReader}.
+     *
+     * @return
+     * A an instance of a {@link StreamReaderBufferProcessor}. Always non-null.
+     */
+    public final StreamReaderBufferProcessor readAsXMLStreamReader() throws XMLStreamException {
+        return new StreamReaderBufferProcessor(this);
+    }
+
+    /**
+     * Write the contents of the buffer to an XMLStreamWriter.
+     *
+     * <p>
+     * The XMLStreamBuffer will be written out to the XMLStreamWriter using
+     * an instance of {@link StreamWriterBufferProcessor}.
+     *
+     * @param writer
+     * A XMLStreamWriter to write to.
+     */
+    public final void writeToXMLStreamWriter(XMLStreamWriter writer) throws XMLStreamException, XMLStreamBufferException {
+        StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this);
+        p.process(writer);
+    }
+
+    /**
+     * Reads the contents of the buffer from a {@link XMLReader}.
+     *
+     * @return
+     * A an instance of a {@link SAXBufferProcessor}.
+     */
+    public final SAXBufferProcessor readAsXMLReader() {
+        return new SAXBufferProcessor(this);
+    }
+
+    /**
+     * Write the contents of the buffer to a {@link ContentHandler}.
+     *
+     * <p>
+     * If the <code>handler</code> is also an instance of other SAX-based
+     * handlers, such as {@link LexicalHandler}, than corresponding SAX events
+     * will be reported to those handlers.
+     *
+     * @param handler
+     *      The ContentHandler to receive SAX events.
+     *
+     * @throws SAXException
+     *      if a parsing fails, or if {@link ContentHandler} throws a {@link SAXException}.
+     */
+    public final void writeTo(ContentHandler handler) throws SAXException {
+        SAXBufferProcessor p = readAsXMLReader();
+        p.setContentHandler(handler);
+        if (p instanceof LexicalHandler) {
+            p.setLexicalHandler((LexicalHandler)handler);
         }
-        
-        /*
-         * TODO consider truncating the size of _structureStrings and
-         * _contentCharactersBuffer to limit the memory used by the buffer
-         */
+        if (p instanceof DTDHandler) {
+            p.setDTDHandler((DTDHandler)handler);
+        }
+        if (p instanceof ErrorHandler) {
+            p.setErrorHandler((ErrorHandler)handler);
+        }
+        p.process();
+    }
+
+    /**
+     * Write the contents of the buffer to a {@link ContentHandler} with errors
+     * report to a {@link ErrorHandler}.
+     *
+     * <p>
+     * If the <code>handler</code> is also an instance of other SAX-based
+     * handlers, such as {@link LexicalHandler}, than corresponding SAX events
+     * will be reported to those handlers.
+     *
+     * @param handler
+     * The ContentHandler to receive SAX events.
+     * @param errorHandler
+     * The ErrorHandler to receive error events.
+     *
+     * @throws SAXException
+     *      if a parsing fails and {@link ErrorHandler} throws a {@link SAXException},
+     *      or if {@link ContentHandler} throws a {@link SAXException}.
+     */
+    public final void writeTo(ContentHandler handler, ErrorHandler errorHandler) throws SAXException {
+        SAXBufferProcessor p = readAsXMLReader();
+        p.setContentHandler(handler);
+        if (p instanceof LexicalHandler) {
+            p.setLexicalHandler((LexicalHandler)handler);
+        }
+        if (p instanceof DTDHandler) {
+            p.setDTDHandler((DTDHandler)handler);
+        }
+
+        p.setErrorHandler(errorHandler);
+
+        p.process();
+    }    
+    
+    
+    protected final FragmentedArray<int[]> getStructure() {
+        return _structure;
     }
     
+    protected final int getStructurePtr() {
+        return _structurePtr;
+    }
     
-    protected void setHasInternedStrings(boolean hasInternedStrings) {
-        _hasInternedStrings = hasInternedStrings;
+    protected final FragmentedArray<String[]> getStructureStrings() {
+        return _structureStrings;
+    }
+    
+    protected final int getStructureStringsPtr() {
+        return _structureStringsPtr;
+    }
+        
+    protected final FragmentedArray<char[]> getContentCharactersBuffer() {
+        return _contentCharactersBuffer;
+    }
+    
+    protected final int getContentCharactersBufferPtr() {
+        return _contentCharactersBufferPtr;
+    }
+    
+    protected final FragmentedArray<Object[]> getContentObjects() {
+        return _contentObjects;
+    }
+    
+    protected final int getContentObjectsPtr() {
+        return _contentObjectsPtr;
     }
 }

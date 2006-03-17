@@ -19,7 +19,7 @@
  */
 package com.sun.xml.stream.buffer.stax;
 
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 
 import javax.activation.DataHandler;
 import javax.xml.namespace.NamespaceContext;
@@ -33,8 +33,8 @@ import java.io.OutputStream;
 import org.jvnet.staxex.Base64Data;
 
 /**
- * {@link XMLStreamWriter} that fills {@link XMLStreamBuffer}.
- *
+ * {@link XMLStreamWriter} that fills {@link MutableXMLStreamBuffer}.
+ * 
  * <pre>
  * TODO: keeping track of in-scope namespace bindings is required to implement some of the methods.
  * TODO: most likely we need to be able to insert additional namespace declarations to support
@@ -47,7 +47,7 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     public StreamWriterBufferCreator() {
     }
 
-    public StreamWriterBufferCreator(XMLStreamBuffer buffer) {
+    public StreamWriterBufferCreator(MutableXMLStreamBuffer buffer) {
         setXMLStreamBuffer(buffer);
     }
 

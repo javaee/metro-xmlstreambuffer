@@ -21,8 +21,8 @@ package com.sun.xml.stream.buffer.sax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
-import com.sun.xml.stream.buffer.ImmutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.EntityResolver;
@@ -39,8 +39,8 @@ import java.io.IOException;
 import javax.xml.XMLConstants;
 
 /**
- * SAX {@link XMLReader} that reads from {@link XMLStreamBuffer}.
- *
+ * A processor of a {@link XMLStreamBuffer} that that reads the XML infoset as
+ * {@link XMLReader}.
  */
 public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     /**
@@ -92,7 +92,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _attributes = new AttributesHolder();
     }
 
-    public SAXBufferProcessor(ImmutableXMLStreamBuffer buffer) {
+    public SAXBufferProcessor(XMLStreamBuffer buffer) {
         this();
         setXMLStreamBuffer(buffer);
     }
@@ -209,22 +209,22 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         process();
     }
             
-    public final void process(XMLStreamBuffer buffer) throws SAXException {
+    public final void process(MutableXMLStreamBuffer buffer) throws SAXException {
         setXMLStreamBuffer(buffer);
         process();
     }
 
     /**
-     * Resets the parser to read from the beginning of the given {@link XMLStreamBuffer}.
+     * Resets the parser to read from the beginning of the given {@link MutableXMLStreamBuffer}.
      */
-    public void setXMLStreamBuffer(ImmutableXMLStreamBuffer buffer) {
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
 
     /**
-     * Parse the sub-tree (or a whole document) that {@link XMLStreamBuffer}
+     * Parse the sub-tree (or a whole document) that {@link MutableXMLStreamBuffer}
      * points to, and sends events to handlers.
-     *
+     * 
      * <p>
      * TODO:
      * We probably need two modes for a sub-tree event generation. One for
@@ -232,7 +232,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      * and appropriate additional namespace bindings are necessary), and the other
      * mode for firing a subtree as a subtree, like it does today.
      * A stream buffer SAX feature could be used to specify this. 
-     *
+     * 
      * @throws SAXException
      *      Follow the same semantics as {@link XMLReader#parse(InputSource)}.
      */

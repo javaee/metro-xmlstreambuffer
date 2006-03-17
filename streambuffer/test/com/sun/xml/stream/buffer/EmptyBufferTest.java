@@ -45,8 +45,8 @@ public class EmptyBufferTest extends BaseBufferTestCase {
     }    
     
     public void testEmptyBufferUsingXMLStreamReader() throws Exception {    
-        XMLStreamBuffer b = new XMLStreamBuffer();
-        XMLStreamReader r = b.readFromXMLStreamReader();
+        MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
+        XMLStreamReader r = b.readAsXMLStreamReader();
         
         assertEquals(true, r.getEventType() == XMLStreamReader.START_DOCUMENT);
         r.next();
@@ -54,7 +54,7 @@ public class EmptyBufferTest extends BaseBufferTestCase {
     }
     
     public void testEmptyBufferUsingContentHandler() throws Exception {    
-        XMLStreamBuffer b = new XMLStreamBuffer();
+        MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         b.writeTo(new ContentHandler() {
             boolean _startDocument = false;
             

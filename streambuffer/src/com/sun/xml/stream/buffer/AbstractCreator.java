@@ -20,27 +20,27 @@
 package com.sun.xml.stream.buffer;
 
 /**
- * Base class for classes that creates {@link XMLStreamBuffer}
+ * Base class for classes that creates {@link MutableXMLStreamBuffer}
  * and from infoset in API-specific form.
  */
 public class AbstractCreator extends AbstractCreatorProcessor {
     
-    protected XMLStreamBuffer _buffer;
+    protected MutableXMLStreamBuffer _buffer;
     
-    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
+    public void setXMLStreamBuffer(MutableXMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
     
-    public XMLStreamBuffer getXMLStreamBuffer() {
+    public MutableXMLStreamBuffer getXMLStreamBuffer() {
         return _buffer;
     }
     
     
     protected final void createBuffer() {
-        setBuffer(new XMLStreamBuffer());
+        setBuffer(new MutableXMLStreamBuffer());
     }
     
-    protected final void setBuffer(XMLStreamBuffer buffer) {
+    protected final void setBuffer(MutableXMLStreamBuffer buffer) {
         _buffer = buffer;
         
         _currentStructureFragment = _buffer.getStructure();

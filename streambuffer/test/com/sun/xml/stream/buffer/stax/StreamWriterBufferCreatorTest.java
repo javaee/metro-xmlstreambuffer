@@ -19,7 +19,7 @@
  */
 package com.sun.xml.stream.buffer.stax;
 
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.BaseBufferTestCase;
 
 import javax.xml.stream.XMLStreamConstants;
@@ -31,7 +31,7 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public class StreamWriterBufferCreatorTest extends BaseBufferTestCase {
     public void test1() throws Exception {
-        XMLStreamBuffer buffer = new XMLStreamBuffer();
+        MutableXMLStreamBuffer buffer = new MutableXMLStreamBuffer();
         XMLStreamWriter writer = buffer.createFromXMLStreamWriter();
         writer.writeStartDocument();
         writer.writeStartElement("foo");
@@ -41,7 +41,7 @@ public class StreamWriterBufferCreatorTest extends BaseBufferTestCase {
 
         assertTrue(buffer.isCreated());
 
-        XMLStreamReader reader = buffer.readFromXMLStreamReader();
+        XMLStreamReader reader = buffer.readAsXMLStreamReader();
         assertEquals(XMLStreamConstants.START_DOCUMENT,reader.getEventType());
 
         assertEquals(XMLStreamConstants.START_ELEMENT,reader.next());

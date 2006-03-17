@@ -20,7 +20,7 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.BaseBufferTestCase;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import javax.xml.stream.XMLStreamConstants;
 import org.jvnet.staxex.Base64Data;
 import org.jvnet.staxex.XMLStreamReaderEx;
@@ -42,8 +42,8 @@ public class Base64Test extends BaseBufferTestCase {
         base64EncodedString = data.toString();
     }
     
-    XMLStreamBuffer createBuffer() throws Exception {
-        XMLStreamBuffer buffer = new XMLStreamBuffer();
+    MutableXMLStreamBuffer createBuffer() throws Exception {
+        MutableXMLStreamBuffer buffer = new MutableXMLStreamBuffer();
         XMLStreamWriterEx writer = (XMLStreamWriterEx)buffer.createFromXMLStreamWriter();
         writer.writeStartDocument();
         writer.writeStartElement("foo");
@@ -57,9 +57,9 @@ public class Base64Test extends BaseBufferTestCase {
     }
     
     public void testReadingAsString() throws Exception {
-        XMLStreamBuffer buffer = createBuffer();
+        MutableXMLStreamBuffer buffer = createBuffer();
 
-        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readFromXMLStreamReader();
+        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readAsXMLStreamReader();
         assertEquals(XMLStreamConstants.START_DOCUMENT,reader.getEventType());
 
         assertEquals(XMLStreamConstants.START_ELEMENT,reader.next());
@@ -93,20 +93,20 @@ public class Base64Test extends BaseBufferTestCase {
     }
     
     public void testReadingAsPCDATA() throws Exception {
-        XMLStreamBuffer buffer = createBuffer();
+        MutableXMLStreamBuffer buffer = createBuffer();
 
-        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readFromXMLStreamReader();
+        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readAsXMLStreamReader();
         readPCData(reader);
     }
     
     public void testReadingAsPCDATAUsingCopyOfBuffer() throws Exception {
-        XMLStreamBuffer originalBuffer = createBuffer();
-        XMLStreamReaderEx originalReader = (XMLStreamReaderEx)originalBuffer.readFromXMLStreamReader();
+        MutableXMLStreamBuffer originalBuffer = createBuffer();
+        XMLStreamReaderEx originalReader = (XMLStreamReaderEx)originalBuffer.readAsXMLStreamReader();
         
-        XMLStreamBuffer buffer = new XMLStreamBuffer();
+        MutableXMLStreamBuffer buffer = new MutableXMLStreamBuffer();
         buffer.createFromXMLStreamReader(originalReader);
         
-        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readFromXMLStreamReader();
+        XMLStreamReaderEx reader = (XMLStreamReaderEx)buffer.readAsXMLStreamReader();
         readPCData(reader);
     }
 }

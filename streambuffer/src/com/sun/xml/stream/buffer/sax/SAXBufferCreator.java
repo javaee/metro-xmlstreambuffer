@@ -22,7 +22,7 @@ package com.sun.xml.stream.buffer.sax;
 import com.sun.xml.stream.buffer.AbstractCreator;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import java.io.IOException;
 import java.io.InputStream;
 import org.xml.sax.ContentHandler;
@@ -50,12 +50,12 @@ public class SAXBufferCreator extends AbstractCreator
         _namespaceAttributes = new String[16 * 2];        
     }
     
-    public SAXBufferCreator(XMLStreamBuffer buffer) {
+    public SAXBufferCreator(MutableXMLStreamBuffer buffer) {
         this();
         setBuffer(buffer);
     }
     
-    public XMLStreamBuffer create(XMLReader reader, InputStream in) throws IOException, SAXException {
+    public MutableXMLStreamBuffer create(XMLReader reader, InputStream in) throws IOException, SAXException {
         if (_buffer == null) {
             createBuffer();
         }

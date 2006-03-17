@@ -21,7 +21,7 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
-import com.sun.xml.stream.buffer.ImmutableXMLStreamBuffer;
+import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBufferException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -29,7 +29,11 @@ import org.jvnet.staxex.XMLStreamWriterEx;
 
 
 /**
- * @author Paul.Sandoz@Sun.Com,K.Venugopal@sun.com
+ * A processor of a {@link XMLStreamBuffer} that writes the XML infoset to a
+ * {@link XMLStreamWriter}.
+ * 
+ * @author Paul.Sandoz@Sun.Com
+ * @author K.Venugopal@sun.com
  */
 public class StreamWriterBufferProcessor extends AbstractProcessor {
     
@@ -37,11 +41,11 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public StreamWriterBufferProcessor() {
     }
     
-    public StreamWriterBufferProcessor(ImmutableXMLStreamBuffer buffer) {
+    public StreamWriterBufferProcessor(XMLStreamBuffer buffer) {
         setXMLStreamBuffer(buffer);
     }
     
-    public final void process(ImmutableXMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
+    public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
         setXMLStreamBuffer(buffer);
         process(writer);
     }
@@ -54,7 +58,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         }
     }
 
-    public void setXMLStreamBuffer(ImmutableXMLStreamBuffer buffer) {
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
     

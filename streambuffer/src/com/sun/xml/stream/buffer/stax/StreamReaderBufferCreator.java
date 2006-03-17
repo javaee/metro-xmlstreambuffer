@@ -20,7 +20,7 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractCreator;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBufferException;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,11 +45,11 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
     public StreamReaderBufferCreator() {
     }
 
-    public StreamReaderBufferCreator(XMLStreamBuffer buffer) {
+    public StreamReaderBufferCreator(MutableXMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
 
-    public XMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
+    public MutableXMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
         if (_buffer == null) {
             createBuffer();
         }
@@ -58,7 +58,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         return getXMLStreamBuffer();
     }
 
-    public XMLStreamBuffer createElementFragment(XMLStreamReader reader,
+    public MutableXMLStreamBuffer createElementFragment(XMLStreamReader reader,
             boolean storeInScopeNamespaces) throws XMLStreamException, XMLStreamBufferException {
         if (_buffer == null) {
             createBuffer();

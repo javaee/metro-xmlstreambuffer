@@ -66,7 +66,7 @@ public class MarkTest extends BaseBufferTestCase {
                 XMLStreamReader.START_ELEMENT);
 
         List<XMLStreamBufferMark> marks = new ArrayList();
-        StreamReaderBufferCreator creator = new StreamReaderBufferCreator(new XMLStreamBuffer());
+        StreamReaderBufferCreator creator = new StreamReaderBufferCreator(new MutableXMLStreamBuffer());
 
         if (reader.getLocalName() == SOAP_HEADER
                 && reader.getNamespaceURI() == SOAP_NAMESPACE_URI) {
@@ -115,7 +115,7 @@ public class MarkTest extends BaseBufferTestCase {
         t.startElement("","root","root",new AttributesImpl());
 
         for (XMLStreamBufferMark mark : marks) {
-            XMLStreamReader markReader = mark.readFromXMLStreamReader();
+            XMLStreamReader markReader = mark.readAsXMLStreamReader();
 
             processFragment(markReader);
 
