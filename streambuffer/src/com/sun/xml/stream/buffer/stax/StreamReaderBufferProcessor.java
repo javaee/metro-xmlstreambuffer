@@ -734,14 +734,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     private int skipNamespaceAttributes(int item){
         do {
-            switch(_eiiStateTable[item]){
+            switch(_niiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                 case STATE_NAMESPACE_ATTRIBUTE_U:
-                    // Undeclaration of namespace
                     readStructureString();
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:
-                    // Declaration with prefix
                     readStructureString();
                     readStructureString();
                     break;
