@@ -22,12 +22,13 @@ package com.sun.xml.stream.buffer.japex;
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
+import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import java.io.FileInputStream;
 
 public class SAXCreatorDriver extends JapexDriverBase {
-    MutableXMLStreamBuffer _initialBuffer;
+    XMLStreamBuffer _initialBuffer;
     SAXBufferProcessor _processor;
     SAXBufferCreator _creator;
     MutableXMLStreamBuffer _buffer;
@@ -55,7 +56,6 @@ public class SAXCreatorDriver extends JapexDriverBase {
             _buffer.reset();
             _creator.setXMLStreamBuffer(_buffer);
             _processor.process(_initialBuffer);
-            _creator.getXMLStreamBuffer();
         } catch (Exception e) {
             e.printStackTrace();
         }

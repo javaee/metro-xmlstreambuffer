@@ -22,15 +22,15 @@ package com.sun.xml.stream.buffer.japex;
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
+import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
 import java.io.FileInputStream;
 
-public class SAXProcessorDriver extends JapexDriverBase {
+public class StAXProcessorDriver extends JapexDriverBase {
     XMLStreamBuffer _buffer;
-    SAXBufferProcessor _processor;
+    StreamReaderBufferProcessor _processor;
     
     public void initializeDriver() {
-        _processor = new SAXBufferProcessor();
+        _processor = new StreamReaderBufferProcessor();
     }   
     
     public void prepare(TestCase testCase) {
@@ -45,7 +45,10 @@ public class SAXProcessorDriver extends JapexDriverBase {
     
     public void run(TestCase testCase) {
         try {
-            _processor.process(_buffer);
+            _processor.setXMLStreamBuffer(_buffer);
+            while(_processor.hasNext()) {
+                _processor.next();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

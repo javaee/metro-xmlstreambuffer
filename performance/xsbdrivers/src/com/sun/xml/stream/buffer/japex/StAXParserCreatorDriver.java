@@ -22,34 +22,21 @@ package com.sun.xml.stream.buffer.japex;
 import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
-import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
-import com.sun.xml.stream.buffer.sax.Properties;
+import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
+import javax.xml.stream.XMLInputFactory;
 
-public class SAXParserCreatorDriver extends JapexDriverBase {
+public class StAXParserCreatorDriver extends JapexDriverBase {
     ByteArrayInputStream _in;
-    SAXParser _parser;
-    XMLReader _reader;
-    SAXBufferCreator _creator;
+    XMLInputFactory _factory;
+    StreamReaderBufferCreator _creator;
     MutableXMLStreamBuffer _buffer;
     
     public void initializeDriver() {
-        _creator = new SAXBufferCreator();
-        
         try {
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            spf.setNamespaceAware(true);
-            _parser = spf.newSAXParser();        
-            _reader = _parser.getXMLReader();
-            
-            _reader.setContentHandler(_creator);
-            _reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, _creator);
-            
+            _factory = XMLInputFactory.newInstance();
+            _creator = new StreamReaderBufferCreator();
             _buffer = new MutableXMLStreamBuffer();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -70,7 +57,7 @@ public class SAXParserCreatorDriver extends JapexDriverBase {
             _in.reset();
             _buffer.reset();
             _creator.setXMLStreamBuffer(_buffer);
-            _reader.parse(new InputSource(_in));
+            _creator.create(_factory.createXMLStreamReader(_in));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);

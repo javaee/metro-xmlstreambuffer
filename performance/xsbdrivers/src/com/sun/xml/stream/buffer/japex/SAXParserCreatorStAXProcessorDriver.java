@@ -19,35 +19,31 @@
  */
 package com.sun.xml.stream.buffer.japex;
 
-import com.sun.japex.JapexDriverBase;
 import com.sun.japex.TestCase;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
-import java.io.FileInputStream;
+import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
+import org.xml.sax.InputSource;
 
-public class SAXProcessorDriver extends JapexDriverBase {
-    XMLStreamBuffer _buffer;
-    SAXBufferProcessor _processor;
+public class SAXParserCreatorStAXProcessorDriver extends SAXParserCreatorDriver {
+    StreamReaderBufferProcessor _processor;
     
     public void initializeDriver() {
-        _processor = new SAXBufferProcessor();
+        super.initializeDriver();
+        _processor = new StreamReaderBufferProcessor();
     }   
-    
-    public void prepare(TestCase testCase) {
-        String xmlFile = TestCaseUtil.getXmlFile(testCase);
         
+    public void run(TestCase testCase){
         try {
-            _buffer = TestCaseUtil.createXMLStreamBufferFromStream(new FileInputStream(xmlFile));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public void run(TestCase testCase) {
-        try {
-            _processor.process(_buffer);
+            _in.reset();
+            _buffer.reset();            
+            _creator.setXMLStreamBuffer(_buffer);
+            _reader.parse(new InputSource(_in));
+            _processor.setXMLStreamBuffer(_buffer);
+            while(_processor.hasNext()) {
+                _processor.next();
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e);            
         }
-    }    
+    }
 }

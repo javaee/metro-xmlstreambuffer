@@ -21,7 +21,7 @@ package com.sun.xml.stream.buffer.japex;
 
 import com.sun.japex.Constants;
 import com.sun.japex.TestCase;
-import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
+import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import java.io.InputStream;
 import javax.xml.parsers.SAXParser;
@@ -41,7 +41,7 @@ public class TestCaseUtil {
         return xmlFile;
     }
     
-    public static MutableXMLStreamBuffer createXMLStreamBufferFromStream(InputStream in) throws Exception {
+    public static XMLStreamBuffer createXMLStreamBufferFromStream(InputStream in) throws Exception {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         SAXParser sp = spf.newSAXParser();        

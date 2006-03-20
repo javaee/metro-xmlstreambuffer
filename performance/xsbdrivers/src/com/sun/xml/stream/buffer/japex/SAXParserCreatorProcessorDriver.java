@@ -39,7 +39,7 @@ public class SAXParserCreatorProcessorDriver extends SAXParserCreatorDriver {
             _buffer.reset();            
             _creator.setXMLStreamBuffer(_buffer);
             _reader.parse(new InputSource(_in));
-            _processor.process(_creator.getXMLStreamBuffer());
+            _processor.process(_buffer);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);            
