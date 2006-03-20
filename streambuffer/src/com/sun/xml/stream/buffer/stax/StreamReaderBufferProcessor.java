@@ -168,8 +168,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             case STATE_ELEMENT_LN:
                 processElement(null, null, readStructureString());
                 return _eventType = START_ELEMENT;
-            case STATE_TEXT_AS_CHAR_ARRAY:
+            case STATE_TEXT_AS_CHAR_ARRAY_SMALL:
                 _textLen = readStructure();
+                _textOffset = readContentCharactersBuffer(_textLen);
+                _characters = _contentCharactersBuffer;
+
+                return _eventType = CHARACTERS;
+            case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM:
+                _textLen = (readStructure() << 8) | readStructure();
                 _textOffset = readContentCharactersBuffer(_textLen);
                 _characters = _contentCharactersBuffer;
 
@@ -190,8 +196,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 _charSequence = (CharSequence)readContentObject();
 
                 return _eventType = CHARACTERS;
-            case STATE_COMMENT_AS_CHAR_ARRAY:
+            case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
                 _textLen = readStructure();
+                _textOffset = readContentCharactersBuffer(_textLen);
+                _characters = _contentCharactersBuffer;
+
+                return _eventType = COMMENT;
+            case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
+                _textLen = (readStructure() << 8) | readStructure();
                 _textOffset = readContentCharactersBuffer(_textLen);
                 _characters = _contentCharactersBuffer;
 

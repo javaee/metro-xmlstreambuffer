@@ -80,9 +80,17 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                 case STATE_ELEMENT_LN:
                     writeFragment(writer);
                     break;
-                case STATE_COMMENT_AS_CHAR_ARRAY: {
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL: {
                     readStructure();
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    final String comment = new String(_contentCharactersBuffer, start, length);
+                    writer.writeComment(comment);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM: {
+                    readStructure();
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);
@@ -159,8 +167,14 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     writeAttributes(writer);
                     break;
                 }
-                case STATE_TEXT_AS_CHAR_ARRAY: {
+                case STATE_TEXT_AS_CHAR_ARRAY_SMALL: {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    writer.writeCharacters(_contentCharactersBuffer,start,length);
+                    break;
+                }
+                case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM: {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     writer.writeCharacters(_contentCharactersBuffer,start,length);
                     break;
@@ -180,8 +194,15 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     writer.writePCDATA(c);
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY: {
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL: {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    final String comment = new String(_contentCharactersBuffer, start, length);
+                    writer.writeComment(comment);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM: {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);
@@ -248,8 +269,14 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     writeAttributes(writer);
                     break;
                 }
-                case STATE_TEXT_AS_CHAR_ARRAY: {
+                case STATE_TEXT_AS_CHAR_ARRAY_SMALL: {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    writer.writeCharacters(_contentCharactersBuffer,start,length);
+                    break;
+                }
+                case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM: {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     writer.writeCharacters(_contentCharactersBuffer,start,length);
                     break;
@@ -269,8 +296,15 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     writer.writeCharacters(c.toString());
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY: {
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL: {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    final String comment = new String(_contentCharactersBuffer, start, length);
+                    writer.writeComment(comment);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM: {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);

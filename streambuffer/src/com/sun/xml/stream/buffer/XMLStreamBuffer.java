@@ -93,7 +93,7 @@ public abstract class XMLStreamBuffer {
     /**
      * Fragmented array to hold structural information
      */
-    protected FragmentedArray<int[]> _structure;
+    protected FragmentedArray<byte[]> _structure;
     protected int _structurePtr;
     
     /**
@@ -291,8 +291,39 @@ public abstract class XMLStreamBuffer {
         p.process();
     }    
     
+    /**
+     * Create a new buffer from a XMLStreamReader.
+     * 
+     * @param reader
+     * A XMLStreamReader to read from to create.
+     * @return XMLStreamBuffer the created buffer
+     * @see MutableXMLStreamBuffer#createFromXMLStreamReader(XMLStreamReader)
+     */
+    public static XMLStreamBuffer createNewBufferFromXMLStreamReader(XMLStreamReader reader)
+            throws XMLStreamException, XMLStreamBufferException {
+        MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
+        b.createFromXMLStreamReader(reader);
+        return b;
+    }
+
+    /**
+     * Create a new buffer from a {@link XMLReader} and {@link InputStream}.
+     * 
+     * @param reader
+     * The {@link XMLReader} to use for parsing.
+     * @param in
+     * The {@link InputStream} to be parsed.
+     * @return XMLStreamBuffer the created buffer
+     * @see MutableXMLStreamBuffer#createFromXMLStreamReader(XMLReader, InputStream)
+     */
+    public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in) throws XMLStreamBufferException, SAXException, IOException {
+        MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
+        b.createFromXMLReader(reader, in);
+        return b;
+    }
+
     
-    protected final FragmentedArray<int[]> getStructure() {
+    protected final FragmentedArray<byte[]> getStructure() {
         return _structure;
     }
     

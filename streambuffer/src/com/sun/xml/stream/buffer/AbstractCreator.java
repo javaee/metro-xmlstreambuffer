@@ -65,12 +65,7 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     }
     
     protected final void storeStructure(int b) {
-        // TODO: investigate the packing of information item identifiers
-        // and lengths of characters
-        // Could be an effective and efficient way to reduce the size of
-        // the structure array since four idenitifiers may be packed into 
-        // one integer
-        _structure[_structurePtr++] = b;
+        _structure[_structurePtr++] = (byte)b;
         if (_structurePtr == _structure.length) {
             resizeStructure();
         }
@@ -82,7 +77,7 @@ public class AbstractCreator extends AbstractCreatorProcessor {
             _currentStructureFragment = _currentStructureFragment.getNext();
             _structure = _currentStructureFragment.getArray();
         } else {
-            _structure = new int[_structure.length];
+            _structure = new byte[_structure.length];
             _currentStructureFragment = new FragmentedArray(_structure, _currentStructureFragment);
         }
     }
@@ -119,10 +114,21 @@ public class AbstractCreator extends AbstractCreatorProcessor {
             resizeContentCharacters();            
         }
 
-        storeStructure(type);
-        storeStructure(length);
-        System.arraycopy(ch, start, _contentCharactersBuffer, _contentCharactersBufferPtr, length);
-        _contentCharactersBufferPtr += length;        
+        if (length < CHAR_ARRAY_LENGTH_SMALL_SIZE) {
+            storeStructure(type | CHAR_ARRAY_LENGTH_SMALL);
+            storeStructure(length);
+            System.arraycopy(ch, start, _contentCharactersBuffer, _contentCharactersBufferPtr, length);
+            _contentCharactersBufferPtr += length;
+        } else if (length < CHAR_ARRAY_LENGTH_MEDIUM_SIZE) {
+            storeStructure(type | CHAR_ARRAY_LENGTH_MEDIUM);
+            storeStructure(length >> 8);
+            storeStructure(length & 255);
+            System.arraycopy(ch, start, _contentCharactersBuffer, _contentCharactersBufferPtr, length);
+            _contentCharactersBufferPtr += length;        
+        } else {
+            storeStructure(type | CONTENT_TYPE_CHAR_ARRAY_COPY);
+            storeContentCharactersCopy(ch, start, length);
+        }
     }
     
     protected final void resizeContentCharacters() {

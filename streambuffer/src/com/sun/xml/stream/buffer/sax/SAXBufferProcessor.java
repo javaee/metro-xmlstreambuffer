@@ -209,20 +209,20 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         process();
     }
             
-    public final void process(MutableXMLStreamBuffer buffer) throws SAXException {
+    public final void process(XMLStreamBuffer buffer) throws SAXException {
         setXMLStreamBuffer(buffer);
         process();
     }
 
     /**
-     * Resets the parser to read from the beginning of the given {@link MutableXMLStreamBuffer}.
+     * Resets the parser to read from the beginning of the given {@link XMLStreamBuffer}.
      */
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
 
     /**
-     * Parse the sub-tree (or a whole document) that {@link MutableXMLStreamBuffer}
+     * Parse the sub-tree (or a whole document) that {@link XMLStreamBuffer}
      * points to, and sends events to handlers.
      * 
      * <p>
@@ -320,9 +320,16 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processElement("", localName, localName);
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY:
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
                 {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    processComment(_contentCharactersBuffer, start, length);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
+                {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
@@ -349,9 +356,16 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         while(item != T_END) {
             item = readStructure();
             switch(_eiiStateTable[item]) {
-                case STATE_COMMENT_AS_CHAR_ARRAY:
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
                 {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    processComment(_contentCharactersBuffer, start, length);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
+                {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
@@ -422,9 +436,16 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processElement("", ln, ln);
                     break;
                 }
-                case STATE_TEXT_AS_CHAR_ARRAY:
+                case STATE_TEXT_AS_CHAR_ARRAY_SMALL:
                 {
                     final int length = readStructure();
+                    int start = readContentCharactersBuffer(length);
+                    _contentHandler.characters(_contentCharactersBuffer, start, length);
+                    break;
+                }
+                case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM:
+                {
+                    final int length = (readStructure() << 8) | readStructure();
                     int start = readContentCharactersBuffer(length);
                     _contentHandler.characters(_contentCharactersBuffer, start, length);
                     break;
@@ -449,9 +470,16 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     _contentHandler.characters(s.toCharArray(), 0, s.length());
                     break;
                 }
-                case STATE_COMMENT_AS_CHAR_ARRAY:
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
                 {
                     final int length = readStructure();
+                    final int start = readContentCharactersBuffer(length);
+                    processComment(_contentCharactersBuffer, start, length);
+                    break;
+                }
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
+                {
+                    final int length = (readStructure() << 8) | readStructure();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;

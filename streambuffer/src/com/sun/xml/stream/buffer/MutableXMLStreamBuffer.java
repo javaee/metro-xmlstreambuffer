@@ -83,7 +83,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * If the <code>size</code> argument is less than <code>0</code>.
      */
     public MutableXMLStreamBuffer(int size) {
-        _structure = new FragmentedArray(new int[size]);
+        _structure = new FragmentedArray(new byte[size]);
         _structureStrings = new FragmentedArray(new String[size]);
         _contentCharactersBuffer = new FragmentedArray(new char[4096]);
         _contentObjects = new FragmentedArray(new Object[size]);

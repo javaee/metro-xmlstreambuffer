@@ -32,15 +32,17 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected  static final int STATE_ELEMENT_P_U_LN                = 4;
     protected  static final int STATE_ELEMENT_U_LN                  = 5;
     protected  static final int STATE_ELEMENT_LN                    = 6;
-    protected  static final int STATE_TEXT_AS_CHAR_ARRAY            = 7;
-    protected  static final int STATE_TEXT_AS_CHAR_ARRAY_COPY       = 8;
-    protected  static final int STATE_TEXT_AS_STRING                = 9;
-    protected  static final int STATE_TEXT_AS_OBJECT                = 10;
-    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY         = 11;
-    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY_COPY    = 12;
-    protected  static final int STATE_COMMENT_AS_STRING             = 13;
-    protected  static final int STATE_PROCESSING_INSTRUCTION        = 14;
-    protected  static final int STATE_END                           = 15;
+    protected  static final int STATE_TEXT_AS_CHAR_ARRAY_SMALL      = 7;
+    protected  static final int STATE_TEXT_AS_CHAR_ARRAY_MEDIUM     = 8;
+    protected  static final int STATE_TEXT_AS_CHAR_ARRAY_COPY       = 9;
+    protected  static final int STATE_TEXT_AS_STRING                = 10;
+    protected  static final int STATE_TEXT_AS_OBJECT                = 11;
+    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY_SMALL   = 12;
+    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM  = 13;
+    protected  static final int STATE_COMMENT_AS_CHAR_ARRAY_COPY    = 14;
+    protected  static final int STATE_COMMENT_AS_STRING             = 15;
+    protected  static final int STATE_PROCESSING_INSTRUCTION        = 16;
+    protected  static final int STATE_END                           = 17;
     protected  static final int[] _eiiStateTable = new int[256];
     
     protected  static final int STATE_NAMESPACE_ATTRIBUTE           = 1;
@@ -72,11 +74,13 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _eiiStateTable[T_ELEMENT_P_U_LN] = STATE_ELEMENT_P_U_LN;
         _eiiStateTable[T_ELEMENT_U_LN] = STATE_ELEMENT_U_LN;
         _eiiStateTable[T_ELEMENT_LN] = STATE_ELEMENT_LN;
-        _eiiStateTable[T_TEXT_AS_CHAR_ARRAY] = STATE_TEXT_AS_CHAR_ARRAY;
+        _eiiStateTable[T_TEXT_AS_CHAR_ARRAY_SMALL] = STATE_TEXT_AS_CHAR_ARRAY_SMALL;
+        _eiiStateTable[T_TEXT_AS_CHAR_ARRAY_MEDIUM] = STATE_TEXT_AS_CHAR_ARRAY_MEDIUM;
         _eiiStateTable[T_TEXT_AS_CHAR_ARRAY_COPY] = STATE_TEXT_AS_CHAR_ARRAY_COPY;
         _eiiStateTable[T_TEXT_AS_STRING] = STATE_TEXT_AS_STRING;
         _eiiStateTable[T_TEXT_AS_OBJECT] = STATE_TEXT_AS_OBJECT;
-        _eiiStateTable[T_COMMENT_AS_CHAR_ARRAY] = STATE_COMMENT_AS_CHAR_ARRAY;
+        _eiiStateTable[T_COMMENT_AS_CHAR_ARRAY_SMALL] = STATE_COMMENT_AS_CHAR_ARRAY_SMALL;
+        _eiiStateTable[T_COMMENT_AS_CHAR_ARRAY_MEDIUM] = STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM;
         _eiiStateTable[T_COMMENT_AS_CHAR_ARRAY_COPY] = STATE_COMMENT_AS_CHAR_ARRAY_COPY;
         _eiiStateTable[T_COMMENT_AS_STRING] = STATE_COMMENT_AS_STRING;
         _eiiStateTable[T_PROCESSING_INSTRUCTION] = STATE_PROCESSING_INSTRUCTION;
@@ -125,7 +129,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     
     protected final int peakStructure() {
         if (_structurePtr < _structure.length) {
-            return _structure[_structurePtr];
+            return _structure[_structurePtr] & 255;
         }
         
         return readFromNextStructure(0);
@@ -133,7 +137,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     
     protected final int readStructure() {
         if (_structurePtr < _structure.length) {
-            return _structure[_structurePtr++];
+            return _structure[_structurePtr++] & 255;
         }
 
         return readFromNextStructure(1);
@@ -143,7 +147,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _structurePtr = v;
         _currentStructureFragment = _currentStructureFragment.getNext();
         _structure = _currentStructureFragment.getArray();
-        return _structure[0];
+        return _structure[0] & 255;
     }
     
     protected final String readStructureString() {
