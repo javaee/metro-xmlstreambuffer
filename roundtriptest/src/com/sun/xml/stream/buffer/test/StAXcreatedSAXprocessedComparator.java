@@ -20,22 +20,21 @@
 package com.sun.xml.stream.buffer.test;
 
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
-import com.sun.xml.stream.buffer.XMLStreamBufferSource;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 import nu.xom.Builder;
 import nu.xom.Document;
 
+/**
+ * Round trip from the creation of a buffer using {@link StreamReaderBufferCreator}
+ * and processing of the buffer using {@link SAXBufferProcessor}.
+ */
 public class StAXcreatedSAXprocessedComparator extends BaseComparator {
     
-    public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
+    protected Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
         StreamReaderBufferCreator bc = new StreamReaderBufferCreator();
         MutableXMLStreamBuffer buffer = bc.create(reader);
@@ -47,6 +46,6 @@ public class StAXcreatedSAXprocessedComparator extends BaseComparator {
 
     public static void main(String args[]) throws Exception {
         StAXcreatedSAXprocessedComparator c = new StAXcreatedSAXprocessedComparator();
-        c.compare(args[0]);
+        c.roundTripTest(args[0]);
     }    
 }

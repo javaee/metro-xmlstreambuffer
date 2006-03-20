@@ -30,12 +30,12 @@ import nu.xom.Builder;
 import nu.xom.Document;
 
 /**
- *
- * @author Paul.Sandoz@Sun.Com
+ * Round trip from the creation of a buffer using {@link StreamReaderBufferCreator}
+ * and processing of the buffer using {@link StreamReaderBufferProcessor}.
  */
 public class StAXcreatedStAXprocessedComparator extends BaseComparator {
     
-    public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
+    protected Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
         StreamReaderBufferCreator bc = new StreamReaderBufferCreator();
         MutableXMLStreamBuffer buffer = bc.create(reader);
@@ -49,6 +49,6 @@ public class StAXcreatedStAXprocessedComparator extends BaseComparator {
 
     public static void main(String args[]) throws Exception {
         StAXcreatedStAXprocessedComparator c = new StAXcreatedStAXprocessedComparator();
-        c.compare(args[0]);
+        c.roundTripTest(args[0]);
     }
 }

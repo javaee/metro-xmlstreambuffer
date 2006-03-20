@@ -22,21 +22,19 @@ package com.sun.xml.stream.buffer.test;
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import nu.xom.Builder;
 import nu.xom.Document;
-import nu.xom.canonical.Canonicalizer;
 
+/**
+ * Round trip from the creation of a buffer using {@link SAXBufferCreator}
+ * and processing of the buffer using {@link SAXBufferProcessor}.
+ */
 public class SAXcreatedSAXprocessedComparator extends BaseComparator {
     
-    public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
+    protected Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         SAXParser sp = spf.newSAXParser();        
@@ -50,6 +48,6 @@ public class SAXcreatedSAXprocessedComparator extends BaseComparator {
 
     public static void main(String args[]) throws Exception {
         SAXcreatedSAXprocessedComparator c = new SAXcreatedSAXprocessedComparator();
-        c.compare(args[0]);
+        c.roundTripTest(args[0]);
     }
 }

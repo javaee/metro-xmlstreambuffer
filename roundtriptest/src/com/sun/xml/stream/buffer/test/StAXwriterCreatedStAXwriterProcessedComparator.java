@@ -1,12 +1,22 @@
 /*
- * ABC.java
- *
- * Created on March 8, 2006, 12:58 PM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the "License").  You may not use this file except
+ * in compliance with the License.
+ * 
+ * You can obtain a copy of the license at
+ * https://jwsdp.dev.java.net/CDDLv1.0.html
+ * See the License for the specific language governing
+ * permissions and limitations under the License.
+ * 
+ * When distributing Covered Code, include this CDDL
+ * HEADER in each file and include the License file at
+ * https://jwsdp.dev.java.net/CDDLv1.0.html  If applicable,
+ * add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your
+ * own identifying information: Portions Copyright [yyyy]
+ * [name of copyright owner]
  */
-
 package com.sun.xml.stream.buffer.test;
 
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
@@ -22,12 +32,21 @@ import nu.xom.Builder;
 import nu.xom.Document;
 
 /**
+ * Round trip using {@link StreamWriterBufferCreator} and 
+ * {@link StreamWriterBufferProcessor}.
  *
- * @author Paul.Sandoz@Sun.Com
+ * Round tripping is performed in the following manner:
+ * <ul>
+ * <li>create a buffer (A, say) using {@link StreamReaderBufferCreator};</li>
+ * <li>processing buffer A using {@link StreamWriterBufferProcessor} where the
+ *     XMLStreamWriter implementation is {@link StreamWriterBufferCreator}
+ *     that is creating a buffer (B, say).
+ * <li>process buffer B using {@link StreamReaderBufferProcessor};</li>
+ * </ul>
  */
 public class StAXwriterCreatedStAXwriterProcessedComparator extends BaseComparator {
     
-    public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
+    protected Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
         StreamReaderBufferCreator srbc = new StreamReaderBufferCreator();
         MutableXMLStreamBuffer originalBuffer = srbc.create(reader);
@@ -48,6 +67,6 @@ public class StAXwriterCreatedStAXwriterProcessedComparator extends BaseComparat
 
     public static void main(String args[]) throws Exception {
         StAXwriterCreatedStAXwriterProcessedComparator c = new StAXwriterCreatedStAXwriterProcessedComparator();
-        c.compare(args[0]);
+        c.roundTripTest(args[0]);
     }
 }

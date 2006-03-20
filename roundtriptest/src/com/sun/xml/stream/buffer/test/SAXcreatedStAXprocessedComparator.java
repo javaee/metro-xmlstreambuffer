@@ -30,12 +30,12 @@ import nu.xom.Builder;
 import nu.xom.Document;
 
 /**
- *
- * @author Paul.Sandoz@Sun.Com
+ * Round trip from the creation of a buffer using {@link SAXBufferCreator}
+ * and processing of the buffer using {@link StreamReaderBufferProcessor}.
  */
 public class SAXcreatedStAXprocessedComparator extends BaseComparator {
     
-    public Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
+    protected Document createDocumentFromXMLStreamBufferFromStream(InputStream in) throws Exception {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         spf.setNamespaceAware(true);
         SAXParser sp = spf.newSAXParser();        
@@ -51,6 +51,6 @@ public class SAXcreatedStAXprocessedComparator extends BaseComparator {
     
     public static void main(String args[]) throws Exception {
         SAXcreatedStAXprocessedComparator c = new SAXcreatedStAXprocessedComparator();
-        c.compare(args[0]);
+        c.roundTripTest(args[0]);
     }
 }
