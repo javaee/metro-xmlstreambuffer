@@ -28,6 +28,9 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     protected MutableXMLStreamBuffer _buffer;
     
     public void setXMLStreamBuffer(MutableXMLStreamBuffer buffer) {
+        if (buffer == null) {
+            throw new NullPointerException("buffer cannot be null");
+        }
         setBuffer(buffer);
     }
     

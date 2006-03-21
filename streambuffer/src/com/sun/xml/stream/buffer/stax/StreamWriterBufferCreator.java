@@ -45,6 +45,7 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     private NamespaceContext namespaceContext = null;
 
     public StreamWriterBufferCreator() {
+        setXMLStreamBuffer(new MutableXMLStreamBuffer());
     }
 
     public StreamWriterBufferCreator(MutableXMLStreamBuffer buffer) {
