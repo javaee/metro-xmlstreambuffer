@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.canonical.Canonicalizer;
@@ -93,20 +95,7 @@ public abstract class BaseComparator {
     }
 
     private boolean compare(ByteArrayOutputStream o1, ByteArrayOutputStream o2) {
-        byte[] b1 = o1.toByteArray();
-        byte[] b2 = o2.toByteArray();
-        
-        if (b1.length == b2.length) {
-            for (int i = 0; i < b1.length; i++) {
-                if (b1[i] != b2[i]) {
-                    return false;
-                }
-            }
-        } else {    
-            return false;
-        }
-        
-        return true;
+        return Arrays.equals(o1.toByteArray(),o2.toByteArray());
     }
     
     private Document createDocumentFromStream(InputStream in) throws Exception {
