@@ -707,9 +707,15 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
         int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
-            // Skip the namespace declarations on the element
-            // they will have been added already
-            item = skipNamespaceAttributes(item);
+            // In-scope namespaces added above are for namespaces that are declared
+            // on ancestors, and doesn't include the namespaces declared
+            // on this element itself.
+            //
+            // so even if we fill in inscopeNamespaces above, we still
+            // need to take this into account, which is namespaces declared
+            // on the element.
+            // I appreciate a review from Paul - KK
+            item = processNamespaceAttributes(item);
         }
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             processAttributes(item);
