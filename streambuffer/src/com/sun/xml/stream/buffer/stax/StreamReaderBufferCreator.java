@@ -19,15 +19,15 @@
  */
 package com.sun.xml.stream.buffer.stax;
 
-import com.sun.xml.stream.buffer.AbstractCreator;
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBufferException;
-import java.util.HashMap;
-import java.util.Map;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import org.jvnet.staxex.Base64Data;
 import org.jvnet.staxex.XMLStreamReaderEx;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
  * TODO
@@ -78,7 +78,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         }
 
         if (_manageInScopeNamespaces) {
-            _inScopePrefixes = new HashMap();
+            _inScopePrefixes = new HashMap<String,Integer>();
         }
 
         storeElementAndChildren(reader);
@@ -238,7 +238,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         _eventType = reader.next();
     }
 
-    private void storeElementWithInScopeNamespaces(XMLStreamReader reader) throws XMLStreamException {
+    private void storeElementWithInScopeNamespaces(XMLStreamReader reader) {
         storeQualifiedName(T_ELEMENT_LN,
                 reader.getPrefix(), reader.getNamespaceURI(), reader.getLocalName());
 
@@ -251,7 +251,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         }
     }
 
-    private void storeElement(XMLStreamReader reader) throws XMLStreamException {
+    private void storeElement(XMLStreamReader reader) {
         storeQualifiedName(T_ELEMENT_LN,
                 reader.getPrefix(), reader.getNamespaceURI(), reader.getLocalName());
 
@@ -265,13 +265,15 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
     }
 
     private void storeNamespaceAttributes(XMLStreamReader reader) {
-        for (int i = 0; i < reader.getNamespaceCount(); i++) {
+        int count = reader.getNamespaceCount();
+        for (int i = 0; i < count; i++) {
             storeNamespaceAttribute(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
         }
     }
 
     private void storeAttributes(XMLStreamReader reader) {
-        for (int i = 0; i < reader.getAttributeCount(); i++) {
+        int count = reader.getAttributeCount();
+        for (int i = 0; i < count; i++) {
             storeAttribute(reader.getAttributePrefix(i), reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
                     reader.getAttributeType(i), reader.getAttributeValue(i));
         }
