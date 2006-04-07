@@ -1025,7 +1025,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             public String getNamespaceURI() {
                 return _namespaceURI;
             }
-        };
+        }
         
         public Iterator<NamespaceContextEx.Binding> iterator() {
             return new Iterator<NamespaceContextEx.Binding>() {
