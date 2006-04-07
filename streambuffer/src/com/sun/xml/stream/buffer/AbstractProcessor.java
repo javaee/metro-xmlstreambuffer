@@ -127,7 +127,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _stringInterningFeature = _buffer.hasInternedStrings();
     }
     
-    protected final int peakStructure() {
+    protected final int peekStructure() {
         if (_structurePtr < _structure.length) {
             return _structure[_structurePtr] & 255;
         }

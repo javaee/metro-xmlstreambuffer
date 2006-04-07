@@ -22,7 +22,6 @@ package com.sun.xml.stream.buffer.stax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import org.jvnet.staxex.NamespaceContextEx;
 import org.jvnet.staxex.XMLStreamReaderEx;
 
@@ -706,7 +705,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         // on the element.
         _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
 
-        int item = peakStructure();
+        int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             // Skip the namespace declarations on the element
             // they will have been added already
@@ -723,7 +722,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
         _attributeCache.clear();
 
-        int item = peakStructure();
+        int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             // Skip the namespace declarations on the element
             // they will have been added already
@@ -758,7 +757,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             }
             readStructure();
 
-            item = peakStructure();
+            item = peekStructure();
         } while((item & (TYPE_MASK)) == T_NAMESPACE_ATTRIBUTE);
         return item;
     }
@@ -795,7 +794,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             }
             readStructure();
 
-            item = peakStructure();
+            item = peekStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
 
         _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
@@ -827,7 +826,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             }
             readStructure();
 
-            item = peakStructure();
+            item = peekStructure();
         } while((item & TYPE_MASK) == T_ATTRIBUTE);
     }
 

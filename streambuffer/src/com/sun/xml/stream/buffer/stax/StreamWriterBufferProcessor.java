@@ -66,7 +66,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         int item = 0;
         while(item != STATE_END) {
             
-            item = _eiiStateTable[peakStructure()];
+            item = _eiiStateTable[peekStructure()];
             writer.flush();
             
             switch(item) {
@@ -330,7 +330,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     }
     
     private void writeAttributes(XMLStreamWriter writer) throws XMLStreamException {
-        int item = peakStructure();
+        int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             // Skip the namespace declarations on the element
             // they will have been added already
@@ -364,7 +364,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             }
             readStructure();
             
-            item = peakStructure();
+            item = peekStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
                 
         return item;
@@ -396,7 +396,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             
             readStructure();
             
-            item = peakStructure();
+            item = peekStructure();
         } while((item & TYPE_MASK) == T_ATTRIBUTE);
     }
 }

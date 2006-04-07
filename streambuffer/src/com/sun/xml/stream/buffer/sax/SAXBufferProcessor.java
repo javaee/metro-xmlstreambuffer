@@ -22,7 +22,6 @@ package com.sun.xml.stream.buffer.sax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.EntityResolver;
@@ -395,7 +394,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     private void processElement(String uri, String localName, String qName) throws SAXException {
         boolean hasAttributes = false;
         boolean hasNamespaceAttributes = false;
-        int item = peakStructure();
+        int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             hasNamespaceAttributes = true;
             item = processNamespaceAttributes(item);
@@ -544,7 +543,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             }
             readStructure();
             
-            item = peakStructure();
+            item = peekStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
         
         
@@ -583,7 +582,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             }
             readStructure();
             
-            item = peakStructure();
+            item = peekStructure();
         } while((item & TYPE_MASK) == T_ATTRIBUTE);
     }
 

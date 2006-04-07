@@ -216,6 +216,7 @@
   </component>
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../roundtriptest/roundtriptest.iml" filepath="$PROJECT_DIR$/../roundtriptest/roundtriptest.iml" />
       <module fileurl="file://$PROJECT_DIR$/xmlstreambuffer.iml" filepath="$PROJECT_DIR$/xmlstreambuffer.iml" />
     </modules>
   </component>
