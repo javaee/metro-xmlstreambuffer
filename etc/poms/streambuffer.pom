@@ -1,0 +1,17 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.sun.xml.stream.buffer</groupId>
+  <artifactId>streambuffer</artifactId>
+  <version>@VERSION@</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.jvnet.staxex</groupId>
+      <artifactId>stax-ex</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>activation</groupId>
+      <artifactId>activation</artifactId>
+    </dependency>
+  </dependencies>
+</project>
+
