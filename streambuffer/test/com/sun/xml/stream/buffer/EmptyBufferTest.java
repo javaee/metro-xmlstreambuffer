@@ -38,12 +38,6 @@ public class EmptyBufferTest extends BaseBufferTestCase {
         super(testName);
     }
     
-    public static Test suite() {
-        TestSuite suite = new TestSuite(EmptyBufferTest.class);
-        
-        return suite;
-    }    
-    
     public void testEmptyBufferUsingXMLStreamReader() throws Exception {    
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         XMLStreamReader r = b.readAsXMLStreamReader();

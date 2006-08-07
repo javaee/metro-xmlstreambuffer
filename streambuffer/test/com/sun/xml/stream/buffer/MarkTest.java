@@ -39,12 +39,6 @@ public class MarkTest extends BaseBufferTestCase {
         _soapMessageURL = this.getClass().getClassLoader().getResource(SOAP_MESSAGE);
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite(MarkTest.class);
-
-        return suite;
-    }
-
     public void testMark() throws Exception {
         XMLStreamReader reader = XMLInputFactory.newInstance().
                 createXMLStreamReader(_soapMessageURL.openStream());

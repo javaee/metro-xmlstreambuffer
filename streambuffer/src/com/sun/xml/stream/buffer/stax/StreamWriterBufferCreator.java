@@ -34,16 +34,12 @@ import org.jvnet.staxex.Base64Data;
 
 /**
  * {@link XMLStreamWriter} that fills {@link MutableXMLStreamBuffer}.
- * 
- * <pre>
- * TODO: keeping track of in-scope namespace bindings is required to implement some of the methods.
- * TODO: most likely we need to be able to insert additional namespace declarations to support
- * {@link #writeAttribute(String, String, String)} correctly
- * </pre>
+ *
  */
 public class StreamWriterBufferCreator extends StreamBufferCreator implements XMLStreamWriterEx {
-    private NamespaceContext namespaceContext = null;
-
+    private NamespaceContexHelper namespaceContext = 
+            new NamespaceContexHelper();
+    
     public StreamWriterBufferCreator() {
         setXMLStreamBuffer(new MutableXMLStreamBuffer());
     }
@@ -51,6 +47,8 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     public StreamWriterBufferCreator(MutableXMLStreamBuffer buffer) {
         setXMLStreamBuffer(buffer);
     }
+
+    // XMLStreamWriter
 
     public Object getProperty(String str) throws IllegalArgumentException {
         throw new UnsupportedOperationException();
@@ -63,41 +61,40 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public NamespaceContextEx getNamespaceContext() {
-        return (NamespaceContextEx)namespaceContext;
+        return namespaceContext;
     }
 
     public void setNamespaceContext(NamespaceContext namespaceContext) throws XMLStreamException {
-        this.namespaceContext = namespaceContext;
-    }
-
-    public void setDefaultNamespace(String str) throws XMLStreamException {
-        // TODO: implement this method later
+        /*
+         * It is really unclear from the JavaDoc how to implement this method.
+         */
         throw new UnsupportedOperationException();
     }
 
-    public void setPrefix(String str, String str1) throws XMLStreamException {
-        // TODO: implement this method later
-        throw new UnsupportedOperationException();
+    public void setDefaultNamespace(String namespaceURI) throws XMLStreamException {
+        setPrefix("", namespaceURI);
+    }
+
+    public void setPrefix(String prefix, String namespaceURI) throws XMLStreamException {
+        namespaceContext.declareNamespace(prefix, namespaceURI);
     }
 
     public String getPrefix(String namespaceURI) throws XMLStreamException {
-        String prefix = null;
-        if (this.namespaceContext != null) {
-            prefix = namespaceContext.getPrefix(namespaceURI);
-        }
-        return prefix;
+        return namespaceContext.getPrefix(namespaceURI);
     }
 
 
     public void writeStartDocument() throws XMLStreamException {
-        storeStructure(T_DOCUMENT);
+        writeStartDocument("", "");
     }
 
     public void writeStartDocument(String version) throws XMLStreamException {
-        storeStructure(T_DOCUMENT);
+        writeStartDocument("", "");
     }
 
     public void writeStartDocument(String encoding, String version) throws XMLStreamException {
+        namespaceContext.resetContexts();
+        
         storeStructure(T_DOCUMENT);
     }
 
@@ -106,14 +103,31 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writeStartElement(String localName) throws XMLStreamException {
-        storeQualifiedName(T_ELEMENT_LN, null, null, localName);
+        namespaceContext.pushContext();
+        
+        final String defaultNamespaceURI = namespaceContext.getNamespaceURI("");
+        
+        if (defaultNamespaceURI == null)
+            storeQualifiedName(T_ELEMENT_LN, null, null, localName);
+        else 
+            storeQualifiedName(T_ELEMENT_LN, null, defaultNamespaceURI, localName);
     }
 
     public void writeStartElement(String namespaceURI, String localName) throws XMLStreamException {
-        storeQualifiedName(T_ELEMENT_LN, null, namespaceURI, localName);
+        namespaceContext.pushContext();
+        
+        final String prefix = namespaceContext.getPrefix(namespaceURI);
+        if (prefix == null) {
+            throw new XMLStreamException();
+        }
+        
+        namespaceContext.pushContext();
+        storeQualifiedName(T_ELEMENT_LN, prefix, namespaceURI, localName);
     }
 
     public void writeStartElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
+        namespaceContext.pushContext();
+        
         storeQualifiedName(T_ELEMENT_LN, prefix, namespaceURI, localName);
     }
 
@@ -128,37 +142,43 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writeEmptyElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
-        writeStartElement(prefix,localName,namespaceURI);
+        writeStartElement(prefix, localName, namespaceURI);
         writeEndElement();
     }
 
     public void writeEndElement() throws XMLStreamException {
+        namespaceContext.popContext();
+        
         storeStructure(T_END);
     }
 
     public void writeDefaultNamespace(String namespaceURI) throws XMLStreamException {
-        storeNamespaceAttribute(null,namespaceURI);
+        storeNamespaceAttribute(null, namespaceURI);
     }
 
     public void writeNamespace(String prefix, String namespaceURI) throws XMLStreamException {
-        if("xmlns".equals(prefix))
+        if ("xmlns".equals(prefix))
             prefix = null;
-        storeNamespaceAttribute(prefix,namespaceURI);
+        storeNamespaceAttribute(prefix, namespaceURI);
     }
 
 
     public void writeAttribute(String localName, String value) throws XMLStreamException {
-        storeAttribute(null,null,localName,"CDATA",value);
+        storeAttribute(null, null, localName, "CDATA", value);
     }
 
     public void writeAttribute(String namespaceURI, String localName, String value) throws XMLStreamException {
-        // this can work only when we are fixing namespace?
-        // TODO: implement this method later
-        throw new UnsupportedOperationException();
+        final String prefix = namespaceContext.getPrefix(namespaceURI);
+        if (prefix == null) {
+            // TODO
+            throw new XMLStreamException();
+        }
+        
+        writeAttribute(prefix, namespaceURI, localName, value);
     }
 
     public void writeAttribute(String prefix, String namespaceURI, String localName, String value) throws XMLStreamException {
-        storeAttribute(prefix,namespaceURI,localName,"CDATA",value);
+        storeAttribute(prefix, namespaceURI, localName, "CDATA", value);
     }
 
     public void writeCData(String data) throws XMLStreamException {
@@ -172,7 +192,7 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writeCharacters(char[] buf, int start, int len) throws XMLStreamException {
-        storeContentCharacters(T_TEXT_AS_CHAR_ARRAY,buf,start,len);
+        storeContentCharacters(T_TEXT_AS_CHAR_ARRAY, buf, start, len);
     }
 
     public void writeComment(String str) throws XMLStreamException {
@@ -190,13 +210,15 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writeProcessingInstruction(String target) throws XMLStreamException {
-        writeProcessingInstruction(target,"");
+        writeProcessingInstruction(target, "");
     }
 
     public void writeProcessingInstruction(String target, String data) throws XMLStreamException {
         storeProcessingInstruction(target, data);
     }
 
+    // XMLStreamWriterEx
+    
     public void writePCDATA(CharSequence charSequence) throws XMLStreamException {
         if (charSequence instanceof Base64Data) {
             storeStructure(T_TEXT_AS_OBJECT);
@@ -224,5 +246,4 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
         // TODO
         throw new UnsupportedOperationException();
     }
-
 }

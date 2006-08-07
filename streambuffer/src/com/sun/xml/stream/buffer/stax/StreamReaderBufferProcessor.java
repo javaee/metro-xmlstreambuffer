@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * A processor of a {@link XMLStreamBuffer} that that reads the XML infoset as
+ * A processor of a {@link XMLStreamBuffer} that reads the XML infoset as
  * {@link XMLStreamReader}.
  * 
  * @author Paul.Sandoz@Sun.Com
@@ -53,7 +53,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     // Arrays to hold all namespace declarations
     protected String[] _namespaceAIIsPrefix = new String[CACHE_SIZE];
     protected String[] _namespaceAIIsNamespaceName = new String[CACHE_SIZE];
-    protected int _namespaceAIIsIndex;
+    protected int _namespaceAIIsStart;
+    protected int _namespaceAIIsEnd;
 
     // Internal namespace context implementation
     protected InternalNamespaceContext _nsCtx = new InternalNamespaceContext();
@@ -127,7 +128,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         setBuffer(buffer);
 
         _completionState = PARSING;
-        _namespaceAIIsIndex = 0;
+        _namespaceAIIsStart = 0;
         _characters = null;
         _charSequence = null;
 
@@ -143,6 +144,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             case COMPLETED:
                 throw new XMLStreamException("Invalid State");
             case PENDING_END_DOCUMENT:
+                _namespaceAIIsStart = _namespaceAIIsEnd = 0;
                 _completionState = COMPLETED;
                 return _eventType = END_DOCUMENT;
         }
@@ -233,6 +235,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     }
                     return _eventType = END_ELEMENT;
                 } else {
+                    _namespaceAIIsStart = _namespaceAIIsEnd = 0;
                     _completionState = COMPLETED;
                     return _eventType = END_DOCUMENT;
                 }
@@ -694,16 +697,16 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         // Add the current in-scope namespaces to the list
         // Including any namespace declarations on the element
         for (Map.Entry<String, String> e : inscopeNamespaces.entrySet()) {
-            if (_namespaceAIIsIndex == _namespaceAIIsPrefix.length) {
+            if (_namespaceAIIsStart == _namespaceAIIsPrefix.length) {
                 resizeNamespaceAttributes();
             }
 
-            _namespaceAIIsPrefix[_namespaceAIIsIndex] = e.getKey();
-            _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = e.getValue();
+            _namespaceAIIsPrefix[_namespaceAIIsStart] = e.getKey();
+            _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = e.getValue();
         }
         // Ensure that the in-scope namespace deleclarations are declared
         // on the element.
-        _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
+        _stackEntry.namespaceAIIsEnd = _namespaceAIIsStart;
 
         int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
@@ -740,12 +743,12 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private void resizeNamespaceAttributes() {
-        final String[] namespaceAIIsPrefix = new String[_namespaceAIIsIndex * 2];
-        System.arraycopy(_namespaceAIIsPrefix, 0, namespaceAIIsPrefix, 0, _namespaceAIIsIndex);
+        final String[] namespaceAIIsPrefix = new String[_namespaceAIIsStart * 2];
+        System.arraycopy(_namespaceAIIsPrefix, 0, namespaceAIIsPrefix, 0, _namespaceAIIsStart);
         _namespaceAIIsPrefix = namespaceAIIsPrefix;
 
-        final String[] namespaceAIIsNamespaceName = new String[_namespaceAIIsIndex * 2];
-        System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsIndex);
+        final String[] namespaceAIIsNamespaceName = new String[_namespaceAIIsStart * 2];
+        System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsStart);
         _namespaceAIIsNamespaceName = namespaceAIIsNamespaceName;
     }
 
@@ -769,33 +772,33 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private int processNamespaceAttributes(int item){
-        _stackEntry.namespaceAIIsStart = _namespaceAIIsIndex;
+        _stackEntry.namespaceAIIsStart = _namespaceAIIsStart;
 
         do {
-            if (_namespaceAIIsIndex == _namespaceAIIsPrefix.length) {
+            if (_namespaceAIIsStart == _namespaceAIIsPrefix.length) {
                 resizeNamespaceAttributes();
             }
 
             switch(_niiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
-                    _namespaceAIIsPrefix[_namespaceAIIsIndex] =
-                    _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = "";
+                    _namespaceAIIsPrefix[_namespaceAIIsStart] =
+                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = "";
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
-                    _namespaceAIIsPrefix[_namespaceAIIsIndex] = readStructureString();
-                    _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = "";
+                    _namespaceAIIsPrefix[_namespaceAIIsStart] = readStructureString();
+                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = "";
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
-                    _namespaceAIIsPrefix[_namespaceAIIsIndex] = readStructureString();
-                    _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = readStructureString();
+                    _namespaceAIIsPrefix[_namespaceAIIsStart] = readStructureString();
+                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = readStructureString();
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
-                    _namespaceAIIsPrefix[_namespaceAIIsIndex] = "";
-                    _namespaceAIIsNamespaceName[_namespaceAIIsIndex++] = readStructureString();
+                    _namespaceAIIsPrefix[_namespaceAIIsStart] = "";
+                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = readStructureString();
                     break;
             }
             readStructure();
@@ -803,7 +806,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             item = peekStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
 
-        _stackEntry.namespaceAIIsEnd = _namespaceAIIsIndex;
+        _stackEntry.namespaceAIIsEnd = _namespaceAIIsEnd = _namespaceAIIsStart;
 
         return item;
     }
@@ -858,7 +861,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _stackEntry = _stack[--_depth];
         if (_stackEntry.namespaceAIIsEnd > 0) {
             // Move back the position of the namespace index
-            _namespaceAIIsIndex = _stackEntry.namespaceAIIsStart;
+            _namespaceAIIsStart = _stackEntry.namespaceAIIsStart;
+            _namespaceAIIsEnd = _stackEntry.namespaceAIIsEnd;
         }
     }
 
@@ -917,14 +921,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 prefix = prefix.intern();
 
                 // Find the most recently declared prefix
-                for (int i = _namespaceAIIsIndex - 1; i >=0; i--) {
+                for (int i = _namespaceAIIsEnd - 1; i >=0; i--) {
                     if (prefix == _namespaceAIIsPrefix[i]) {
                         return _namespaceAIIsNamespaceName[i];
                     }
                 }
             } else {
                 // Find the most recently declared prefix
-                for (int i = _namespaceAIIsIndex - 1; i >=0; i--) {
+                for (int i = _namespaceAIIsEnd - 1; i >=0; i--) {
                     if (prefix.equals(_namespaceAIIsPrefix[i])) {
                         return _namespaceAIIsNamespaceName[i];
                     }
@@ -962,7 +966,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             }
 
             return new Iterator() {
-                private int i = _namespaceAIIsIndex - 1;
+                private int i = _namespaceAIIsEnd - 1;
                 private boolean requireFindNext = true;
                 private String p;
 
@@ -1029,7 +1033,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         
         public Iterator<NamespaceContextEx.Binding> iterator() {
             return new Iterator<NamespaceContextEx.Binding>() {
-                private final int end = _namespaceAIIsIndex - 1;
+                private final int end = _namespaceAIIsEnd - 1;
                 private int current = end;
                 private boolean requireFindNext = true;
                 private NamespaceContextEx.Binding namespace;
