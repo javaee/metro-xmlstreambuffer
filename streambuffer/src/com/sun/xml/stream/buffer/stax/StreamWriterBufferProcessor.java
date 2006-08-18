@@ -156,7 +156,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     index ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    writer.writeStartElement(uri,localName);
+                    writer.writeStartElement("",uri,localName);
                     writeAttributes(writer);
                     break;
                 }
@@ -258,7 +258,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     index ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    writer.writeStartElement(uri,localName);
+                    writer.writeStartElement("",uri,localName);
                     writeAttributes(writer);
                     break;
                 }
