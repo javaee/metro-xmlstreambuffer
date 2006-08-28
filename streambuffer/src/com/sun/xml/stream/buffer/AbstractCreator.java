@@ -152,6 +152,10 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         storeContentObject(copyOfCh);
     }
 
+    protected final Object peekAtContentObject() {
+        return _contentObjects[_contentObjectsPtr];
+    }
+    
     protected final void storeContentObject(Object s) {
         _contentObjects[_contentObjectsPtr++] = s;
         if (_contentObjectsPtr == _contentObjects.length) {
