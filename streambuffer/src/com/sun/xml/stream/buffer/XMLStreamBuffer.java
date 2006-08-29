@@ -322,6 +322,24 @@ public abstract class XMLStreamBuffer {
         return b;
     }
 
+    /**
+     * Create a new buffer from a {@link XMLReader} and {@link InputStream}.
+     * 
+     * @param reader
+     * The {@link XMLReader} to use for parsing.
+     * @param in
+     * The {@link InputStream} to be parsed.
+     * @param systemId
+     * The system ID of the input stream.
+     * @return XMLStreamBuffer the created buffer
+     * @see MutableXMLStreamBuffer#createFromXMLStreamReader(XMLReader, InputStream)
+     */
+    public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in, 
+            String systemId) throws XMLStreamBufferException, SAXException, IOException {
+        MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
+        b.createFromXMLReader(reader, in, systemId);
+        return b;
+    }
     
     protected final FragmentedArray<byte[]> getStructure() {
         return _structure;

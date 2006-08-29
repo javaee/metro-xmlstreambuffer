@@ -162,6 +162,27 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * The {@link InputStream} to be parsed.
      */
     public void createFromXMLReader(XMLReader reader, InputStream in) throws XMLStreamBufferException, SAXException, IOException {
+        createFromXMLReader(reader, in, null);
+    }
+
+    /**
+     * Create contents of a buffer from a {@link XMLReader} and {@link InputStream}.
+     * 
+     * <p>
+     * The MutableXMLStreamBuffer is reset (see {@link #reset}) before creation.
+     * 
+     * <p>
+     * The MutableXMLStreamBuffer is created by using an instance of {@link SAXBufferCreator}
+     * and registering associated handlers on the {@link XMLReader}.
+     * 
+     * @param reader
+     * The {@link XMLReader} to use for parsing.
+     * @param in
+     * The {@link InputStream} to be parsed.
+     * @param systemId
+     * The system ID of the input stream.
+     */
+    public void createFromXMLReader(XMLReader reader, InputStream in, String systemId) throws XMLStreamBufferException, SAXException, IOException {
         reset();
         SAXBufferCreator c = new SAXBufferCreator(this);
 
@@ -169,9 +190,9 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
         reader.setDTDHandler(c);
         reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, c);
 
-        c.create(reader, in);
+        c.create(reader, in, systemId);
     }
-
+    
     /**
      * Reset the MutableXMLStreamBuffer.
      * 

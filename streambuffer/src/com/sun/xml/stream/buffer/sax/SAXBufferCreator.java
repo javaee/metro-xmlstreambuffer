@@ -56,6 +56,10 @@ public class SAXBufferCreator extends AbstractCreator
     }
     
     public MutableXMLStreamBuffer create(XMLReader reader, InputStream in) throws IOException, SAXException {
+        return create(reader, in, null);
+    }
+    
+    public MutableXMLStreamBuffer create(XMLReader reader, InputStream in, String systemId) throws IOException, SAXException {
         if (_buffer == null) {
             createBuffer();
         }
@@ -68,8 +72,15 @@ public class SAXBufferCreator extends AbstractCreator
         } catch (SAXException e) {
         }
         
-        reader.parse(new InputSource(in));
         
+        if (systemId != null) {
+            InputSource s = new InputSource(systemId);
+            s.setByteStream(in);
+            reader.parse(s);
+        } else {
+            reader.parse(new InputSource(in));
+        }
+                
         return getXMLStreamBuffer();
     }
     
