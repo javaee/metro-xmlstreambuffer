@@ -391,7 +391,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _contentHandler.endDocument();
     }
 
-    private void processElement(String uri, String localName, String qName) throws SAXException {
+    protected void processElement(String uri, String localName, String qName) throws SAXException {
         boolean hasAttributes = false;
         boolean hasNamespaceAttributes = false;
         int item = peekStructure();
