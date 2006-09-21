@@ -37,7 +37,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 
 /**
- * 
  * An immutable stream-based buffer of an XML infoset.
  * 
  * <p>
@@ -54,7 +53,7 @@ import org.xml.sax.ext.LexicalHandler;
  * 
  * <p>
  * There are two concrete implementations of XMLStreamBuffer.
- * The first, {@link XMLStreamBuffer}, can be instantiated for the creation 
+ * The first, {@link MutableXMLStreamBuffer}, can be instantiated for the creation
  * of a buffer using SAX and StAX-based creators, and from which may be 
  * processed as an XMLStreamBuffer. The second,
  * {@link XMLStreamBufferMark}, can be instantiated to mark into an existing
@@ -64,8 +63,8 @@ import org.xml.sax.ext.LexicalHandler;
  * such instances.
  * 
  * <p>
- * A XMLStreamBuffer can represent a complete XML infoset or a fragment 
- * of an XML infoset. For example, a fragment of an XML infoset may be 
+ * A XMLStreamBuffer can represent a complete XML infoset or a subtree
+ * of an XML infoset. For example, a subtree of an XML infoset may be
  * represented as a mark into an buffer that is being created or processed, see 
  * {@link XMLStreamBufferMark}.
  */
@@ -325,7 +324,7 @@ public abstract class XMLStreamBuffer {
      * @param systemId
      * The system ID of the input stream.
      * @return XMLStreamBuffer the created buffer
-     * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream, String) 
+     * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream, String)
      */
     public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in,
             String systemId) throws XMLStreamBufferException, SAXException, IOException {

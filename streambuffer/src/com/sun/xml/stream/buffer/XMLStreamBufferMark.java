@@ -48,54 +48,23 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
      * The in-scope namespaces on the fragment of XML infoset that is
      * to be marked.
      *
-     * @param creator
-     * The AbstractCreator from which the current position of creation of
-     * the XMLStreamBuffer will be taken as the mark.
+     * @param src
+     * The {@link AbstractCreator} or {@link AbstractProcessor} from which the current
+     * position of creation of the XMLStreamBuffer will be taken as the mark.
      */
-    public XMLStreamBufferMark(Map<String,String> inscopeNamespaces, AbstractCreator creator) {
+    public XMLStreamBufferMark(Map<String,String> inscopeNamespaces, AbstractCreatorProcessor src) {
         _inscopeNamespaces = inscopeNamespaces;
         
-        _structure = creator._currentStructureFragment;
-        _structurePtr = creator._structurePtr;
+        _structure = src._currentStructureFragment;
+        _structurePtr = src._structurePtr;
         
-        _structureStrings = creator._currentStructureStringFragment;
-        _structureStringsPtr = creator._structureStringsPtr;
+        _structureStrings = src._currentStructureStringFragment;
+        _structureStringsPtr = src._structureStringsPtr;
         
-        _contentCharactersBuffer = creator._currentContentCharactersBufferFragment;
-        _contentCharactersBufferPtr = creator._contentCharactersBufferPtr;
+        _contentCharactersBuffer = src._currentContentCharactersBufferFragment;
+        _contentCharactersBufferPtr = src._contentCharactersBufferPtr;
         
-        _contentObjects = creator._currentContentObjectFragment;
-        _contentObjectsPtr = creator._contentObjectsPtr;
-    }
-    
-    /**
-     * Create a mark from the buffer that is being processed.
-     * 
-     * <p>
-     * A mark will be created from the current position of processing of the 
-     * {@link XMLStreamBuffer} that is being processed by a
-     * {@link AbstractProcessor}.
-     * 
-     * @param inscopeNamespaces
-     * The in-scope namespaces on the fragment of XML infoset that is
-     * to be marked.
-     * @param processor
-     * The AbstractProcessor from which the current position of processing of
-     * the XMLStreamBuffer will be taken as the mark.
-     */
-    public XMLStreamBufferMark(Map<String,String> inscopeNamespaces, AbstractProcessor processor) {
-        _inscopeNamespaces = inscopeNamespaces;
-        
-        _structure = processor._currentStructureFragment;
-        _structurePtr = processor._structurePtr;
-        
-        _structureStrings = processor._currentStructureStringFragment;
-        _structureStringsPtr = processor._structureStringsPtr;
-        
-        _contentCharactersBuffer = processor._currentContentCharactersBufferFragment;
-        _contentCharactersBufferPtr = processor._contentCharactersBufferPtr;
-        
-        _contentObjects = processor._currentContentObjectFragment;
-        _contentObjectsPtr = processor._contentObjectsPtr;        
+        _contentObjects = src._currentContentObjectFragment;
+        _contentObjectsPtr = src._contentObjectsPtr;
     }
 }
