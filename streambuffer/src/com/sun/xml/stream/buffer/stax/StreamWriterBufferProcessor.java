@@ -126,12 +126,11 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     }
     
     public void writeFragmentEx(XMLStreamWriterEx writer) throws XMLStreamException {
-        int item = 0;
         int index = 0;
         
         do {
             
-            item = _eiiStateTable[readStructure()];
+            int item = _eiiStateTable[readStructure()];
             
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN: {
@@ -224,17 +223,16 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     throw new XMLStreamException("Invalid State "+item);
             }
         } while(index > 0);
-        
+
     }
-    
+
     public void writeFragmentNoEx(XMLStreamWriter writer) throws XMLStreamException {
-        int item = 0;
         int index = 0;
-        
+
         do {
-            
-            item = _eiiStateTable[readStructure()];
-            
+
+            int item = _eiiStateTable[readStructure()];
+
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN: {
                     index ++;
