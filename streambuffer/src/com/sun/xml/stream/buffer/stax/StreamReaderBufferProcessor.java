@@ -22,6 +22,7 @@ package com.sun.xml.stream.buffer.stax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.AttributesHolder;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.XMLStreamBufferMark;
 import org.jvnet.staxex.NamespaceContextEx;
 import org.jvnet.staxex.XMLStreamReaderEx;
 
@@ -34,11 +35,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.HashMap;
 
 /**
  * A processor of a {@link XMLStreamBuffer} that reads the XML infoset as
  * {@link XMLStreamReader}.
- * 
+ *
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
  */
@@ -51,6 +53,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     protected int _depth;
 
     // Arrays to hold all namespace declarations
+    /**
+     * Namespace prefixes. Can be empty but not null.
+     */
     protected String[] _namespaceAIIsPrefix = new String[CACHE_SIZE];
     protected String[] _namespaceAIIsNamespaceName = new String[CACHE_SIZE];
     protected int _namespaceAIIsStart;
@@ -135,7 +140,23 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         processFirstEvent();
     }
 
-    public Object getProperty(java.lang.String name) {
+    /**
+     * Creates a {@link XMLStreamBufferMark} that captures the infoset starting
+     * from the current element.
+     *
+     * This creates a new {@link XMLStreamBufferMark} that shares the underlying
+     * data storage, thus it's fairly efficient.
+     */
+    public XMLStreamBufferMark createMark() {
+        Map<String,String> inscope = new HashMap<String, String>(_namespaceAIIsEnd);
+
+        for (int i=0 ; i<_namespaceAIIsEnd; i++)
+            inscope.put(_namespaceAIIsPrefix[i],_namespaceAIIsNamespaceName[i]);
+
+        return new XMLStreamBufferMark(inscope,this);
+    }
+
+    public Object getProperty(String name) {
         return null;
     }
 
@@ -516,7 +537,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     public final int getTextCharacters(int sourceStart, char[] target,
-            int targetStart, int length) throws XMLStreamException {
+                                       int targetStart, int length) throws XMLStreamException {
         if (_characters != null) {
         } else if (_charSequence != null) {
             _characters = _charSequence.toString().toCharArray();
@@ -688,7 +709,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private void processElementFragment(Map<String, String> inscopeNamespaces,
-            String prefix, String uri, String localName) {
+                                        String prefix, String uri, String localName) {
         _eventType = START_ELEMENT;
 
         pushElementStack();
@@ -1021,7 +1042,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 _prefix = prefix;
                 _namespaceURI = namespaceURI;
             }
-            
+
             public String getPrefix() {
                 return _prefix;
             }
@@ -1030,7 +1051,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 return _namespaceURI;
             }
         }
-        
+
         public Iterator<NamespaceContextEx.Binding> iterator() {
             return new Iterator<NamespaceContextEx.Binding>() {
                 private final int end = _namespaceAIIsEnd - 1;
@@ -1041,7 +1062,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 private NamespaceContextEx.Binding findNext() {
                     while(current >= 0) {
                         final String prefix = _namespaceAIIsPrefix[current];
-                        
+
                         // Find if the current prefix occurs more recently
                         // If so then it is not in scope
                         int i = end;

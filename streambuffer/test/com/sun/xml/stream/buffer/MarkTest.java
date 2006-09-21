@@ -75,7 +75,7 @@ public class MarkTest extends BaseBufferTestCase {
             // If SOAP header blocks are present (i.e. not <soap:Header/>)
             if (reader.getEventType() == XMLStreamReader.START_ELEMENT) {
                 while(reader.getEventType() == XMLStreamReader.START_ELEMENT) {
-                    Map<String, String> headerBlockNamespaces = namespaces;
+                    Map<String,String> headerBlockNamespaces = namespaces;
 
                     // Collect namespaces on SOAP header block
                     if (reader.getNamespaceCount() > 0) {

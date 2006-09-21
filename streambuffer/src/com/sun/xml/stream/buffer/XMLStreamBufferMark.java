@@ -19,15 +19,7 @@
  */
 package com.sun.xml.stream.buffer;
 
-import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
 
 /**
  * A mark into a buffer.
@@ -60,7 +52,7 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
      * The AbstractCreator from which the current position of creation of
      * the XMLStreamBuffer will be taken as the mark.
      */
-    public XMLStreamBufferMark(Map inscopeNamespaces, AbstractCreator creator) {
+    public XMLStreamBufferMark(Map<String,String> inscopeNamespaces, AbstractCreator creator) {
         _inscopeNamespaces = inscopeNamespaces;
         
         _structure = creator._currentStructureFragment;
@@ -91,7 +83,7 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
      * The AbstractProcessor from which the current position of processing of
      * the XMLStreamBuffer will be taken as the mark.
      */
-    public XMLStreamBufferMark(Map inscopeNamespaces, AbstractProcessor processor) {
+    public XMLStreamBufferMark(Map<String,String> inscopeNamespaces, AbstractProcessor processor) {
         _inscopeNamespaces = inscopeNamespaces;
         
         _structure = processor._currentStructureFragment;

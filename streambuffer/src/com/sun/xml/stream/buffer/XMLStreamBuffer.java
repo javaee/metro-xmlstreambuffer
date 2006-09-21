@@ -19,12 +19,8 @@
  */
 package com.sun.xml.stream.buffer;
 
-import com.sun.xml.stream.buffer.sax.Properties;
-import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
 import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
-import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
-import com.sun.xml.stream.buffer.stax.StreamWriterBufferCreator;
 import com.sun.xml.stream.buffer.stax.StreamWriterBufferProcessor;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,15 +70,11 @@ import org.xml.sax.ext.LexicalHandler;
  * {@link XMLStreamBufferMark}.
  */
 public abstract class XMLStreamBuffer {
-    /**
-     * Empty map for the default in scope namespaces on a fragment
-     */
-    protected static final Map<String, String> EMTPY_MAP = Collections.emptyMap();
-    
+
     /**
      * In scope namespaces on a fragment
      */
-    protected Map<String, String> _inscopeNamespaces = EMTPY_MAP;
+    protected Map<String,String> _inscopeNamespaces = Collections.emptyMap();
     
     /**
      * True if the buffer was created from a parser that interns Strings
@@ -165,9 +157,10 @@ public abstract class XMLStreamBuffer {
      * of an element ({@link #isElementFragment} returns <code>false</code>).
      *
      * @return
-     * The in-scope namespaces of the XMLStreamBuffer.
+     *      The in-scope namespaces of the XMLStreamBuffer.
+     *      Prefix to namespace URI.
      */
-    public final Map<String, String> getInscopeNamespaces() {
+    public final Map<String,String> getInscopeNamespaces() {
         return _inscopeNamespaces;
     }
 
@@ -314,7 +307,7 @@ public abstract class XMLStreamBuffer {
      * @param in
      * The {@link InputStream} to be parsed.
      * @return XMLStreamBuffer the created buffer
-     * @see MutableXMLStreamBuffer#createFromXMLStreamReader(XMLReader, InputStream)
+     * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream)
      */
     public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in) throws XMLStreamBufferException, SAXException, IOException {
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
@@ -324,7 +317,7 @@ public abstract class XMLStreamBuffer {
 
     /**
      * Create a new buffer from a {@link XMLReader} and {@link InputStream}.
-     * 
+     *
      * @param reader
      * The {@link XMLReader} to use for parsing.
      * @param in
@@ -332,15 +325,15 @@ public abstract class XMLStreamBuffer {
      * @param systemId
      * The system ID of the input stream.
      * @return XMLStreamBuffer the created buffer
-     * @see MutableXMLStreamBuffer#createFromXMLStreamReader(XMLReader, InputStream)
+     * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream, String) 
      */
-    public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in, 
+    public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in,
             String systemId) throws XMLStreamBufferException, SAXException, IOException {
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         b.createFromXMLReader(reader, in, systemId);
         return b;
     }
-    
+
     protected final FragmentedArray<byte[]> getStructure() {
         return _structure;
     }
