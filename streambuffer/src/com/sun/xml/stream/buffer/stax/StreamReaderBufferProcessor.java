@@ -49,7 +49,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     // Stack to hold element and namespace declaration information
     protected ElementStackEntry[] _stack = new ElementStackEntry[CACHE_SIZE];
-    protected ElementStackEntry _stackEntry;
+    /** The top-most active entry of the {@link #_stack}. */
+    protected ElementStackEntry _stackTop;
     protected int _depth;
 
     // Arrays to hold all namespace declarations
@@ -471,7 +472,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     public final int getNamespaceCount() {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return _stackEntry.namespaceAIIsEnd - _stackEntry.namespaceAIIsStart;
+            return _stackTop.namespaceAIIsEnd - _stackTop.namespaceAIIsStart;
         }
 
         throw new IllegalStateException("");
@@ -479,7 +480,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     public final String getNamespacePrefix(int index) {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return _namespaceAIIsPrefix[_stackEntry.namespaceAIIsStart + index];
+            return _namespaceAIIsPrefix[_stackTop.namespaceAIIsStart + index];
         }
 
         throw new IllegalStateException("");
@@ -487,7 +488,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     public final String getNamespaceURI(int index) {
         if (_eventType == START_ELEMENT || _eventType == END_ELEMENT) {
-            return _namespaceAIIsNamespaceName[_stackEntry.namespaceAIIsStart + index];
+            return _namespaceAIIsNamespaceName[_stackTop.namespaceAIIsStart + index];
         }
 
         throw new IllegalStateException("");
@@ -634,19 +635,19 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     public final QName getName() {
-        return _stackEntry.getQName();
+        return _stackTop.getQName();
     }
 
     public final String getLocalName() {
-        return _stackEntry.localName;
+        return _stackTop.localName;
     }
 
     public final String getNamespaceURI() {
-        return _stackEntry.uri;
+        return _stackTop.uri;
     }
 
     public final String getPrefix() {
-        return _stackEntry.prefix;
+        return _stackTop.prefix;
 
     }
 
@@ -729,7 +730,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _eventType = START_ELEMENT;
 
         pushElementStack();
-        _stackEntry.set(prefix, uri, localName);
+        _stackTop.set(prefix, uri, localName);
 
         // Add the current in-scope namespaces to the list
         // Including any namespace declarations on the element
@@ -743,7 +744,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
         // Ensure that the in-scope namespace deleclarations are declared
         // on the element.
-        _stackEntry.namespaceAIIsEnd = _namespaceAIIsStart;
+        _stackTop.namespaceAIIsEnd = _namespaceAIIsStart;
 
         int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
@@ -762,9 +763,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
     }
 
-    private void processElement(String prefix, String uri, String localName) {
+    protected void processElement(String prefix, String uri, String localName) {
         pushElementStack();
-        _stackEntry.set(prefix, uri, localName);
+        _stackTop.set(prefix, uri, localName);
 
         _attributeCache.clear();
 
@@ -809,7 +810,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private int processNamespaceAttributes(int item){
-        _stackEntry.namespaceAIIsStart = _namespaceAIIsStart;
+        _stackTop.namespaceAIIsStart = _namespaceAIIsStart;
 
         do {
             if (_namespaceAIIsStart == _namespaceAIIsPrefix.length) {
@@ -843,7 +844,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             item = peekStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
 
-        _stackEntry.namespaceAIIsEnd = _namespaceAIIsEnd = _namespaceAIIsStart;
+        _stackTop.namespaceAIIsEnd = _namespaceAIIsEnd = _namespaceAIIsStart;
 
         return item;
     }
@@ -878,7 +879,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     private void pushElementStack() {
         if (_depth < _stack.length) {
-            _stackEntry = _stack[_depth++];
+            _stackTop = _stack[_depth++];
             return;
         }
 
@@ -890,16 +891,16 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             _stack[i] = new ElementStackEntry();
         }
 
-        _stackEntry = _stack[_depth++];
+        _stackTop = _stack[_depth++];
     }
 
     private void popElementStack() {
         // _depth is checked outside this method
-        _stackEntry = _stack[--_depth];
-        if (_stackEntry.namespaceAIIsEnd > 0) {
+        _stackTop = _stack[--_depth];
+        if (_stackTop.namespaceAIIsEnd > 0) {
             // Move back the position of the namespace index
-            _namespaceAIIsStart = _stackEntry.namespaceAIIsStart;
-            _namespaceAIIsEnd = _stackEntry.namespaceAIIsEnd;
+            _namespaceAIIsStart = _stackTop.namespaceAIIsStart;
+            _namespaceAIIsEnd = _stackTop.namespaceAIIsEnd;
         }
     }
 
