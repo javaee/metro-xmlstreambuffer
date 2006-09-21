@@ -155,7 +155,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     public XMLStreamBuffer nextTagAndMark() throws XMLStreamException {
         while (true) {
             int s = peekStructure();
-            if((s &T_ELEMENT)!=0) {
+            if((s &TYPE_MASK)==T_ELEMENT) {
                 // next is start element.
                 Map<String,String> inscope = new HashMap<String, String>(_namespaceAIIsEnd);
 
