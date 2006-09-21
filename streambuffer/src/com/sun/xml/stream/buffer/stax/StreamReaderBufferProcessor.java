@@ -141,19 +141,35 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     /**
-     * Creates a {@link XMLStreamBufferMark} that captures the infoset starting
-     * from the current element.
+     * Does {@link #nextTag()} and if the parser moved to a new start tag,
+     * returns a {@link XMLStreamBufferMark} that captures the infoset starting
+     * from the newly discovered element.
+     *
+     * <p>
+     * (Ideally we should have a method that works against the current position,
+     * but the way the data structure is read makes this somewhat difficult.)
      *
      * This creates a new {@link XMLStreamBufferMark} that shares the underlying
      * data storage, thus it's fairly efficient.
      */
-    public XMLStreamBufferMark createMark() {
-        Map<String,String> inscope = new HashMap<String, String>(_namespaceAIIsEnd);
+    public XMLStreamBuffer nextTagAndMark() throws XMLStreamException {
+        while (true) {
+            int s = peekStructure();
+            if((s &T_ELEMENT)!=0) {
+                // next is start element.
+                Map<String,String> inscope = new HashMap<String, String>(_namespaceAIIsEnd);
 
-        for (int i=0 ; i<_namespaceAIIsEnd; i++)
-            inscope.put(_namespaceAIIsPrefix[i],_namespaceAIIsNamespaceName[i]);
+                for (int i=0 ; i<_namespaceAIIsEnd; i++)
+                    inscope.put(_namespaceAIIsPrefix[i],_namespaceAIIsNamespaceName[i]);
 
-        return new XMLStreamBufferMark(inscope,this);
+                XMLStreamBufferMark mark = new XMLStreamBufferMark(inscope, this);
+                next();
+                return mark;
+            }
+
+            if(next()==END_ELEMENT)
+                return null;
+        }
     }
 
     public Object getProperty(String name) {
@@ -332,8 +348,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         while((eventType == CHARACTERS && isWhiteSpace()) // skip whitespace
         || (eventType == CDATA && isWhiteSpace())
         || eventType == SPACE
-                || eventType == PROCESSING_INSTRUCTION
-                || eventType == COMMENT) {
+        || eventType == PROCESSING_INSTRUCTION
+        || eventType == COMMENT) {
             eventType = next();
         }
         if (eventType != START_ELEMENT && eventType != END_ELEMENT) {
