@@ -295,11 +295,15 @@ public abstract class XMLStreamBuffer {
      * Writes out the contents of this buffer as DOM node and append that to the given node.
      *
      * Faster implementation would be desirable.
+     *
+     * @return
+     *      The newly added child node.
      */
-    public final void writeTo(Node n) throws XMLStreamBufferException {
+    public final Node writeTo(Node n) throws XMLStreamBufferException {
         try {
             Transformer t = trnsformerFactory.newTransformer();
             t.transform(new XMLStreamBufferSource(this), new DOMResult(n));
+            return n.getLastChild();
         } catch (TransformerException e) {
             throw new XMLStreamBufferException(e);
         }
