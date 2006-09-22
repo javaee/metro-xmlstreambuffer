@@ -29,12 +29,18 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMResult;
+
 import org.xml.sax.ContentHandler;
 import org.xml.sax.DTDHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
+import org.w3c.dom.Node;
 
 /**
  * An immutable stream-based buffer of an XML infoset.
@@ -74,7 +80,7 @@ public abstract class XMLStreamBuffer {
      * In scope namespaces on a fragment
      */
     protected Map<String,String> _inscopeNamespaces = Collections.emptyMap();
-    
+
     /**
      * True if the buffer was created from a parser that interns Strings
      * as specified by the SAX interning features
@@ -86,13 +92,13 @@ public abstract class XMLStreamBuffer {
      */
     protected FragmentedArray<byte[]> _structure;
     protected int _structurePtr;
-    
+
     /**
      * Fragmented array to hold structural information as strings
      */
     protected FragmentedArray<String[]> _structureStrings;
     protected int _structureStringsPtr;
-    
+
     /**
      * Fragmented array to hold content information in a shared char[]
      */
@@ -105,7 +111,7 @@ public abstract class XMLStreamBuffer {
     protected FragmentedArray<Object[]> _contentObjects;
     protected int _contentObjectsPtr;
 
-    
+
     /**
      * Is the buffer created by creator.
      *
@@ -281,8 +287,24 @@ public abstract class XMLStreamBuffer {
         p.setErrorHandler(errorHandler);
 
         p.process();
-    }    
-    
+    }
+
+    private static final TransformerFactory trnsformerFactory = TransformerFactory.newInstance();
+
+    /**
+     * Writes out the contents of this buffer as DOM node and append that to the given node.
+     *
+     * Faster implementation would be desirable.
+     */
+    public final void writeTo(Node n) throws XMLStreamBufferException {
+        try {
+            Transformer t = trnsformerFactory.newTransformer();
+            t.transform(new XMLStreamBufferSource(this), new DOMResult(n));
+        } catch (TransformerException e) {
+            throw new XMLStreamBufferException(e);
+        }
+    }
+
     /**
      * Create a new buffer from a XMLStreamReader.
      * 
@@ -327,7 +349,7 @@ public abstract class XMLStreamBuffer {
      * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream, String)
      */
     public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in,
-            String systemId) throws XMLStreamBufferException, SAXException, IOException {
+                                                               String systemId) throws XMLStreamBufferException, SAXException, IOException {
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         b.createFromXMLReader(reader, in, systemId);
         return b;
@@ -336,31 +358,31 @@ public abstract class XMLStreamBuffer {
     protected final FragmentedArray<byte[]> getStructure() {
         return _structure;
     }
-    
+
     protected final int getStructurePtr() {
         return _structurePtr;
     }
-    
+
     protected final FragmentedArray<String[]> getStructureStrings() {
         return _structureStrings;
     }
-    
+
     protected final int getStructureStringsPtr() {
         return _structureStringsPtr;
     }
-        
+
     protected final FragmentedArray<char[]> getContentCharactersBuffer() {
         return _contentCharactersBuffer;
     }
-    
+
     protected final int getContentCharactersBufferPtr() {
         return _contentCharactersBufferPtr;
     }
-    
+
     protected final FragmentedArray<Object[]> getContentObjects() {
         return _contentObjects;
     }
-    
+
     protected final int getContentObjectsPtr() {
         return _contentObjectsPtr;
     }
