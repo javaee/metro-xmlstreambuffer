@@ -212,7 +212,7 @@ public abstract class XMLStreamBuffer {
      * @param writer
      * A XMLStreamWriter to write to.
      */
-    public final void writeToXMLStreamWriter(XMLStreamWriter writer) throws XMLStreamException, XMLStreamBufferException {
+    public final void writeToXMLStreamWriter(XMLStreamWriter writer) throws XMLStreamException {
         StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this);
         p.process(writer);
     }
@@ -318,7 +318,7 @@ public abstract class XMLStreamBuffer {
      * @see MutableXMLStreamBuffer#createFromXMLStreamReader(XMLStreamReader)
      */
     public static XMLStreamBuffer createNewBufferFromXMLStreamReader(XMLStreamReader reader)
-            throws XMLStreamException, XMLStreamBufferException {
+            throws XMLStreamException {
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         b.createFromXMLStreamReader(reader);
         return b;
@@ -334,7 +334,7 @@ public abstract class XMLStreamBuffer {
      * @return XMLStreamBuffer the created buffer
      * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream)
      */
-    public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in) throws XMLStreamBufferException, SAXException, IOException {
+    public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in) throws SAXException, IOException {
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         b.createFromXMLReader(reader, in);
         return b;
@@ -353,7 +353,7 @@ public abstract class XMLStreamBuffer {
      * @see MutableXMLStreamBuffer#createFromXMLReader(XMLReader, InputStream, String)
      */
     public static XMLStreamBuffer createNewBufferFromXMLReader(XMLReader reader, InputStream in,
-                                                               String systemId) throws XMLStreamBufferException, SAXException, IOException {
+                                                               String systemId) throws SAXException, IOException {
         MutableXMLStreamBuffer b = new MutableXMLStreamBuffer();
         b.createFromXMLReader(reader, in, systemId);
         return b;

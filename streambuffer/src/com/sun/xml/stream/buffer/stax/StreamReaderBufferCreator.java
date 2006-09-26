@@ -20,7 +20,6 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
-import com.sun.xml.stream.buffer.XMLStreamBufferException;
 import org.jvnet.staxex.Base64Data;
 import org.jvnet.staxex.XMLStreamReaderEx;
 
@@ -49,7 +48,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         setBuffer(buffer);
     }
 
-    public MutableXMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
+    public MutableXMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException {
         if (_buffer == null) {
             createBuffer();
         }
@@ -59,7 +58,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
     }
 
     public MutableXMLStreamBuffer createElementFragment(XMLStreamReader reader,
-            boolean storeInScopeNamespaces) throws XMLStreamException, XMLStreamBufferException {
+            boolean storeInScopeNamespaces) throws XMLStreamException {
         if (_buffer == null) {
             createBuffer();
         }
@@ -86,7 +85,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         return getXMLStreamBuffer();
     }
 
-    private void store(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
+    private void store(XMLStreamReader reader) throws XMLStreamException {
         if (!reader.hasNext()) {
             return;
         }
@@ -100,7 +99,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
                 storeElementAndChildren(reader);
                 break;
             default:
-                throw new XMLStreamBufferException("");
+                throw new XMLStreamException("XMLStreamReader not positioned at a document or element");
         }
     }
 

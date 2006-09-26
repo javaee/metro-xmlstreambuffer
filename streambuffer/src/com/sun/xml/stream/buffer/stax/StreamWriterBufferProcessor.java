@@ -22,7 +22,6 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
-import com.sun.xml.stream.buffer.XMLStreamBufferException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import org.jvnet.staxex.XMLStreamWriterEx;
@@ -45,12 +44,12 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         setXMLStreamBuffer(buffer);
     }
     
-    public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
+    public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamException {
         setXMLStreamBuffer(buffer);
         process(writer);
     }
     
-    public void process(XMLStreamWriter writer) throws XMLStreamBufferException, XMLStreamException {
+    public void process(XMLStreamWriter writer) throws XMLStreamException {
         if(_buffer.isFragment()){
             writeFragment(writer);
         }else{

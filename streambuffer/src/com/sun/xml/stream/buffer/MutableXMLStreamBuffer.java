@@ -106,7 +106,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * @param reader
      * A XMLStreamReader to read from to create.
      */
-    public void createFromXMLStreamReader(XMLStreamReader reader) throws XMLStreamException, XMLStreamBufferException {
+    public void createFromXMLStreamReader(XMLStreamReader reader) throws XMLStreamException {
         reset();
         StreamReaderBufferCreator c = new StreamReaderBufferCreator(this);
         c.create(reader);
@@ -122,7 +122,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * The MutableXMLStreamBuffer is created by consuming events on a XMLStreamWriter using
      * an instance of {@link StreamWriterBufferCreator}.
      */
-    public XMLStreamWriter createFromXMLStreamWriter() throws XMLStreamBufferException {
+    public XMLStreamWriter createFromXMLStreamWriter() {
         reset();
         return new StreamWriterBufferCreator(this);
     }
@@ -139,7 +139,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * 
      * @return The {@link SAXBufferCreator} to create from.
      */
-    public SAXBufferCreator createFromSAXBufferCreator() throws XMLStreamBufferException {
+    public SAXBufferCreator createFromSAXBufferCreator() {
         reset();
         SAXBufferCreator c = new SAXBufferCreator();
         c.setBuffer(this);
@@ -161,7 +161,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * @param in
      * The {@link InputStream} to be parsed.
      */
-    public void createFromXMLReader(XMLReader reader, InputStream in) throws XMLStreamBufferException, SAXException, IOException {
+    public void createFromXMLReader(XMLReader reader, InputStream in) throws SAXException, IOException {
         createFromXMLReader(reader, in, null);
     }
 
@@ -182,7 +182,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
      * @param systemId
      * The system ID of the input stream.
      */
-    public void createFromXMLReader(XMLReader reader, InputStream in, String systemId) throws XMLStreamBufferException, SAXException, IOException {
+    public void createFromXMLReader(XMLReader reader, InputStream in, String systemId) throws SAXException, IOException {
         reset();
         SAXBufferCreator c = new SAXBufferCreator(this);
 
