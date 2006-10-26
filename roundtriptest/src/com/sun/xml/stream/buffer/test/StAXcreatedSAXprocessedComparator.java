@@ -39,7 +39,7 @@ public class StAXcreatedSAXprocessedComparator extends BaseComparator {
         StreamReaderBufferCreator bc = new StreamReaderBufferCreator();
         MutableXMLStreamBuffer buffer = bc.create(reader);
         
-        SAXBufferProcessor bp = new SAXBufferProcessor(buffer);
+        SAXBufferProcessor bp = new SAXBufferProcessor(buffer,false);
         Builder b = new Builder(bp);
         return b.build(in);
     }

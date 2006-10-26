@@ -41,7 +41,7 @@ public class SAXcreatedSAXprocessedComparator extends BaseComparator {
         SAXBufferCreator bc = new SAXBufferCreator();
         MutableXMLStreamBuffer buffer = bc.create(sp.getXMLReader(), in);
         
-        SAXBufferProcessor bp = new SAXBufferProcessor(buffer);
+        SAXBufferProcessor bp = new SAXBufferProcessor(buffer,false);
         Builder b = new Builder(bp);
         return b.build(in);
     }
