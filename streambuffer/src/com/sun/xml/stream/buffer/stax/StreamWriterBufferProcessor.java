@@ -22,9 +22,10 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import org.jvnet.staxex.XMLStreamWriterEx;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import org.jvnet.staxex.XMLStreamWriterEx;
 
 
 /**
@@ -39,11 +40,24 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     
     public StreamWriterBufferProcessor() {
     }
-    
+
+    /**
+     * @deprecated
+     *      Use {@link #StreamWriterBufferProcessor(XMLStreamBuffer, boolean)}
+     */
     public StreamWriterBufferProcessor(XMLStreamBuffer buffer) {
         setXMLStreamBuffer(buffer);
     }
-    
+
+    /**
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
+     */
+    public StreamWriterBufferProcessor(XMLStreamBuffer buffer,boolean produceFragmentEvent) {
+        setXMLStreamBuffer(buffer,produceFragmentEvent);
+    }
+
     public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamException {
         setXMLStreamBuffer(buffer);
         process(writer);
@@ -57,21 +71,38 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         }
     }
 
+    /**
+     * @deprecated
+     *      Use {@link #setXMLStreamBuffer(XMLStreamBuffer, boolean)}
+     */
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
-    
+
+    /**
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
+     */
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer, boolean produceFragmentEvent) {
+        setBuffer(buffer,produceFragmentEvent);
+    }
+
     public void write(XMLStreamWriter writer) throws XMLStreamException{
-        int item = 0;
-        while(item != STATE_END) {
-            
-            item = _eiiStateTable[peekStructure()];
+
+        if(!_fragmentMode)
+            writer.writeStartDocument();
+
+        // TODO: if we are writing a fragment XMLStreamBuffer as a full document,
+        // we need to put in-scope namespaces as top-level ns decls.
+
+        while(true) {
+            int item = _eiiStateTable[peekStructure()];
             writer.flush();
             
             switch(item) {
                 case STATE_DOCUMENT:
-                    readStructure();
-                    writer.writeStartDocument();
+                    readStructure(); //skip
                     break;
                 case STATE_ELEMENT_U_LN_QN:
                 case STATE_ELEMENT_P_U_LN:
@@ -105,10 +136,10 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     readStructure();
                     writer.writeProcessingInstruction(readStructureString(), readStructureString());
                     break;
-                case STATE_END:
+                case STATE_END: // done
                     readStructure();
                     writer.writeEndDocument();
-                    break;
+                    return;
                 default:
                     throw new XMLStreamException("Invalid State "+item);
             }

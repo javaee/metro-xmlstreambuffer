@@ -33,9 +33,10 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
+import org.xml.sax.helpers.LocatorImpl;
 
-import java.io.IOException;
 import javax.xml.XMLConstants;
+import java.io.IOException;
 
 /**
  * A processor of a {@link XMLStreamBuffer} that that reads the XML infoset as
@@ -45,34 +46,34 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     /**
      * Reference to entity resolver.
      */
-    protected EntityResolver _entityResolver;
+    protected EntityResolver _entityResolver = DEFAULT_LEXICAL_HANDLER;
     
     /**
      * Reference to dtd handler.
      */
-    protected DTDHandler _dtdHandler;
+    protected DTDHandler _dtdHandler = DEFAULT_LEXICAL_HANDLER;
     
     /**
      * Reference to content handler.
      */
-    protected ContentHandler _contentHandler;
+    protected ContentHandler _contentHandler = DEFAULT_LEXICAL_HANDLER;
     
     /**
      * Reference to error handler.
      */
-    protected ErrorHandler _errorHandler;
+    protected ErrorHandler _errorHandler = DEFAULT_LEXICAL_HANDLER;
     
     /**
      * Reference to lexical handler.
      */
-    protected LexicalHandler _lexicalHandler;
+    protected LexicalHandler _lexicalHandler = DEFAULT_LEXICAL_HANDLER;
 
     /**
      * SAX Namespace attributes features
      */
     protected boolean _namespacePrefixesFeature = false;
     
-    protected AttributesHolder _attributes;
+    protected AttributesHolder _attributes = new AttributesHolder();
     
     protected String[] _namespacePrefixes = new String[16];
     protected int _namespacePrefixesIndex;
@@ -81,21 +82,25 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     protected int _namespaceAttributesStackIndex;
 
     public SAXBufferProcessor() {
-        DefaultWithLexicalHandler handler = new DefaultWithLexicalHandler();        
-        _entityResolver = handler;
-        _dtdHandler = handler;
-        _contentHandler = handler;
-        _errorHandler = handler;
-        _lexicalHandler = handler;
-        
-        _attributes = new AttributesHolder();
     }
 
+    /**
+     * @deprecated
+     *      Use {@link #SAXBufferProcessor(XMLStreamBuffer, boolean)}
+     */
     public SAXBufferProcessor(XMLStreamBuffer buffer) {
-        this();
         setXMLStreamBuffer(buffer);
     }
-    
+
+    /**
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
+     */
+    public SAXBufferProcessor(XMLStreamBuffer buffer, boolean produceFragmentEvent) {
+        setXMLStreamBuffer(buffer,produceFragmentEvent);
+    }
+
     public boolean getFeature(String name)
             throws SAXNotRecognizedException, SAXNotSupportedException {
         if (name.equals(Features.NAMESPACES_FEATURE)) {
@@ -207,17 +212,49 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         // systemId is ignored
         process();
     }
-            
+
+    /**
+     * Short-hand for {@link #setXMLStreamBuffer(XMLStreamBuffer)} then {@link #process()}.
+     *
+     * @deprecated
+     *      Use {@link #process(XMLStreamBuffer, boolean)}
+     */
     public final void process(XMLStreamBuffer buffer) throws SAXException {
         setXMLStreamBuffer(buffer);
         process();
     }
 
     /**
+     * Short-hand for {@link #setXMLStreamBuffer(XMLStreamBuffer,boolean)} then {@link #process()}.
+     *
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
+     */
+    public final void process(XMLStreamBuffer buffer, boolean produceFragmentEvent) throws SAXException {
+        setXMLStreamBuffer(buffer);
+        process();
+    }
+
+    /**
      * Resets the parser to read from the beginning of the given {@link XMLStreamBuffer}.
+     *
+     * @deprecated
+     *      Use {@link #setXMLStreamBuffer(XMLStreamBuffer, boolean)}.
      */
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) {
         setBuffer(buffer);
+    }
+
+    /**
+     * Resets the parser to read from the beginning of the given {@link XMLStreamBuffer}.
+     *
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
+     */
+    public void setXMLStreamBuffer(XMLStreamBuffer buffer, boolean produceFragmentEvent) {
+        setBuffer(buffer,produceFragmentEvent);
     }
 
     /**
@@ -236,6 +273,13 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      *      Follow the same semantics as {@link XMLReader#parse(InputSource)}.
      */
     public final void process() throws SAXException {
+        if(!_fragmentMode) {
+            _contentHandler.setDocumentLocator(NULL_LOCATOR);
+            _contentHandler.startDocument();
+            // TODO: if we are writing a fragment stream buffer as a full XML document,
+            // we need to declare in-scope namespaces as if they are on the root element.
+        }
+
         final int item = readStructure();
         switch(_eiiStateTable[item]) {
             case STATE_DOCUMENT:
@@ -270,6 +314,9 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             default:
                 throw reportFatalError("Illegal state for DIIs: "+item);
         }
+
+        if(!_fragmentMode)
+            _contentHandler.endDocument();
     }
 
     /**
@@ -285,20 +332,14 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     }
 
     private void processDocument() throws SAXException {
-        _contentHandler.startDocument();
-
-        boolean firstElementHasOccured = false;
-        int item;
-        do {
-            item = readStructure();
+        while(true) {
+            int item = readStructure();
             switch(_eiiStateTable[item]) {
                 case STATE_ELEMENT_U_LN_QN:
-                    firstElementHasOccured = true;
                     processElement(readStructureString(), readStructureString(), readStructureString());
                     break;
                 case STATE_ELEMENT_P_U_LN:
                 {
-                    firstElementHasOccured = true;
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
@@ -306,7 +347,6 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
-                    firstElementHasOccured = true;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     processElement(uri, localName, localName);
@@ -314,7 +354,6 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 }
                 case STATE_ELEMENT_LN:
                 {
-                    firstElementHasOccured = true;
                     final String localName = readStructureString();
                     processElement("", localName, localName);
                     break;
@@ -346,49 +385,11 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processProcessingInstruction(readStructureString(), readStructureString());
                     break;
                 case STATE_END:
-                    break;
-                default:
-                    throw reportFatalError("Illegal state for child of DII: "+item);
-            }
-        } while(item != T_END || !firstElementHasOccured);
-
-        while(item != T_END) {
-            item = readStructure();
-            switch(_eiiStateTable[item]) {
-                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
-                {
-                    final int length = readStructure();
-                    final int start = readContentCharactersBuffer(length);
-                    processComment(_contentCharactersBuffer, start, length);
-                    break;
-                }
-                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
-                {
-                    final int length = (readStructure() << 8) | readStructure();
-                    final int start = readContentCharactersBuffer(length);
-                    processComment(_contentCharactersBuffer, start, length);
-                    break;
-                }
-                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
-                {
-                    final char[] ch = readContentCharactersCopy();
-                    processComment(ch, 0, ch.length);
-                    break;
-                }
-                case STATE_COMMENT_AS_STRING:
-                    processComment(readContentString());
-                    break;
-                case STATE_PROCESSING_INSTRUCTION:
-                    processProcessingInstruction(readStructureString(), readStructureString());
-                    break;
-                case STATE_END:
-                    break;
+                    return;
                 default:
                     throw reportFatalError("Illegal state for child of DII: "+item);
             }
         }
-
-        _contentHandler.endDocument();
     }
 
     protected void processElement(String uri, String localName, String qName) throws SAXException {
@@ -635,5 +636,14 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
 
     private void processProcessingInstruction(String target, String data) throws SAXException {
         _contentHandler.processingInstruction(target, data);
+    }
+
+    private static final DefaultWithLexicalHandler DEFAULT_LEXICAL_HANDLER = new DefaultWithLexicalHandler();
+
+    private static final LocatorImpl NULL_LOCATOR = new LocatorImpl();
+
+    static {
+        NULL_LOCATOR.setLineNumber(-1);
+        NULL_LOCATOR.setColumnNumber(-1);
     }
 }

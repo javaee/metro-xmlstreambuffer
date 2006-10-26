@@ -32,14 +32,18 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.HashMap;
 
 /**
  * A processor of a {@link XMLStreamBuffer} that reads the XML infoset as
  * {@link XMLStreamReader}.
+ *
+ * <p>
+ * Because of {@link XMLStreamReader} design, this processor always produce
+ * a full document infoset, even if the buffer just contains a fragment.
  *
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
@@ -86,11 +90,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     protected String _piTarget;
     protected String _piData;
 
-    /**
-     * True if processing a document, otherwise an element fragment.
-     */
-    private boolean _isDocument;
-
     //
     // Represents the parser state wrt the end of parsing.
     //
@@ -100,13 +99,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
      */
     private static final int PARSING = 1;
     /**
-     * The parser has already reported the {@link END_ELEMENT},
-     * and we are parsing a fragment. We'll report {@link END_DOCUMENT}
+     * The parser has already reported the {@link #END_ELEMENT},
+     * and we are parsing a fragment. We'll report {@link #END_DOCUMENT}
      * next and be done.
      */
     private static final int PENDING_END_DOCUMENT = 2;
     /**
-     * The parser has reported the {@link END_DOCUMENT} event,
+     * The parser has reported the {@link #END_DOCUMENT} event,
      * so we are really done parsing.
      */
     private static final int COMPLETED = 3;
@@ -126,19 +125,17 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     public StreamReaderBufferProcessor(XMLStreamBuffer buffer) throws XMLStreamException {
         this();
-
         setXMLStreamBuffer(buffer);
     }
 
     public void setXMLStreamBuffer(XMLStreamBuffer buffer) throws XMLStreamException {
-        setBuffer(buffer);
+        setBuffer(buffer,buffer.isFragment());
 
         _completionState = PARSING;
         _namespaceAIIsStart = 0;
         _characters = null;
         _charSequence = null;
-
-        processFirstEvent();
+        _eventType = START_DOCUMENT;
     }
 
     /**
@@ -189,96 +186,103 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
         _characters = null;
         _charSequence = null;
-        switch(_eiiStateTable[readStructure()]) {
-            case STATE_ELEMENT_U_LN_QN: {
-                final String uri = readStructureString();
-                final String localName = readStructureString();
-                final String prefix = getPrefixFromQName(readStructureString());
+        while(true) {// loop only if we read STATE_DOCUMENT
+            switch(_eiiStateTable[readStructure()]) {
+                case STATE_DOCUMENT:
+                    // we'll always produce a full document, and we've already report START_DOCUMENT event.
+                    // so simply skil this
+                    continue;
+                case STATE_ELEMENT_U_LN_QN: {
+                    final String uri = readStructureString();
+                    final String localName = readStructureString();
+                    final String prefix = getPrefixFromQName(readStructureString());
 
-                processElement(prefix, uri, localName);
-                return _eventType = START_ELEMENT;
-            }
-            case STATE_ELEMENT_P_U_LN:
-                processElement(readStructureString(), readStructureString(), readStructureString());
-                return _eventType = START_ELEMENT;
-            case STATE_ELEMENT_U_LN:
-                processElement(null, readStructureString(), readStructureString());
-                return _eventType = START_ELEMENT;
-            case STATE_ELEMENT_LN:
-                processElement(null, null, readStructureString());
-                return _eventType = START_ELEMENT;
-            case STATE_TEXT_AS_CHAR_ARRAY_SMALL:
-                _textLen = readStructure();
-                _textOffset = readContentCharactersBuffer(_textLen);
-                _characters = _contentCharactersBuffer;
-
-                return _eventType = CHARACTERS;
-            case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM:
-                _textLen = (readStructure() << 8) | readStructure();
-                _textOffset = readContentCharactersBuffer(_textLen);
-                _characters = _contentCharactersBuffer;
-
-                return _eventType = CHARACTERS;
-            case STATE_TEXT_AS_CHAR_ARRAY_COPY:
-                _characters = readContentCharactersCopy();
-                _textLen = _characters.length;
-                _textOffset = 0;
-
-                return _eventType = CHARACTERS;
-            case STATE_TEXT_AS_STRING:
-                _eventType = CHARACTERS;
-                _charSequence = readContentString();
-
-                return _eventType = CHARACTERS;
-            case STATE_TEXT_AS_OBJECT:
-                _eventType = CHARACTERS;
-                _charSequence = (CharSequence)readContentObject();
-
-                return _eventType = CHARACTERS;
-            case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
-                _textLen = readStructure();
-                _textOffset = readContentCharactersBuffer(_textLen);
-                _characters = _contentCharactersBuffer;
-
-                return _eventType = COMMENT;
-            case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
-                _textLen = (readStructure() << 8) | readStructure();
-                _textOffset = readContentCharactersBuffer(_textLen);
-                _characters = _contentCharactersBuffer;
-
-                return _eventType = COMMENT;
-            case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
-                _characters = readContentCharactersCopy();
-                _textLen = _characters.length;
-                _textOffset = 0;
-
-                return _eventType = COMMENT;
-            case STATE_COMMENT_AS_STRING:
-                _charSequence = readContentString();
-
-                return _eventType = COMMENT;
-            case STATE_PROCESSING_INSTRUCTION:
-                _piTarget = readStructureString();
-                _piData = readStructureString();
-
-                return _eventType = PROCESSING_INSTRUCTION;
-            case STATE_END:
-                if (_depth > 1) {
-                    popElementStack();
-                    return _eventType = END_ELEMENT;
-                } else if (_depth == 1) {
-                    popElementStack();
-                    if (!_isDocument) {
-                        _completionState = PENDING_END_DOCUMENT;
-                    }
-                    return _eventType = END_ELEMENT;
-                } else {
-                    _namespaceAIIsStart = _namespaceAIIsEnd = 0;
-                    _completionState = COMPLETED;
-                    return _eventType = END_DOCUMENT;
+                    processElement(prefix, uri, localName);
+                    return _eventType = START_ELEMENT;
                 }
-            default:
-                throw new XMLStreamException("Invalid State");
+                case STATE_ELEMENT_P_U_LN:
+                    processElement(readStructureString(), readStructureString(), readStructureString());
+                    return _eventType = START_ELEMENT;
+                case STATE_ELEMENT_U_LN:
+                    processElement(null, readStructureString(), readStructureString());
+                    return _eventType = START_ELEMENT;
+                case STATE_ELEMENT_LN:
+                    processElement(null, null, readStructureString());
+                    return _eventType = START_ELEMENT;
+                case STATE_TEXT_AS_CHAR_ARRAY_SMALL:
+                    _textLen = readStructure();
+                    _textOffset = readContentCharactersBuffer(_textLen);
+                    _characters = _contentCharactersBuffer;
+
+                    return _eventType = CHARACTERS;
+                case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM:
+                    _textLen = (readStructure() << 8) | readStructure();
+                    _textOffset = readContentCharactersBuffer(_textLen);
+                    _characters = _contentCharactersBuffer;
+
+                    return _eventType = CHARACTERS;
+                case STATE_TEXT_AS_CHAR_ARRAY_COPY:
+                    _characters = readContentCharactersCopy();
+                    _textLen = _characters.length;
+                    _textOffset = 0;
+
+                    return _eventType = CHARACTERS;
+                case STATE_TEXT_AS_STRING:
+                    _eventType = CHARACTERS;
+                    _charSequence = readContentString();
+
+                    return _eventType = CHARACTERS;
+                case STATE_TEXT_AS_OBJECT:
+                    _eventType = CHARACTERS;
+                    _charSequence = (CharSequence)readContentObject();
+
+                    return _eventType = CHARACTERS;
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
+                    _textLen = readStructure();
+                    _textOffset = readContentCharactersBuffer(_textLen);
+                    _characters = _contentCharactersBuffer;
+
+                    return _eventType = COMMENT;
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
+                    _textLen = (readStructure() << 8) | readStructure();
+                    _textOffset = readContentCharactersBuffer(_textLen);
+                    _characters = _contentCharactersBuffer;
+
+                    return _eventType = COMMENT;
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
+                    _characters = readContentCharactersCopy();
+                    _textLen = _characters.length;
+                    _textOffset = 0;
+
+                    return _eventType = COMMENT;
+                case STATE_COMMENT_AS_STRING:
+                    _charSequence = readContentString();
+
+                    return _eventType = COMMENT;
+                case STATE_PROCESSING_INSTRUCTION:
+                    _piTarget = readStructureString();
+                    _piData = readStructureString();
+
+                    return _eventType = PROCESSING_INSTRUCTION;
+                case STATE_END:
+                    if (_depth > 1) {
+                        popElementStack();
+                        return _eventType = END_ELEMENT;
+                    } else if (_depth == 1) {
+                        popElementStack();
+                        if (_fragmentMode) {
+                            _completionState = PENDING_END_DOCUMENT;
+                        }
+                        return _eventType = END_ELEMENT;
+                    } else {
+                        _namespaceAIIsStart = _namespaceAIIsEnd = 0;
+                        _completionState = COMPLETED;
+                        return _eventType = END_DOCUMENT;
+                    }
+                default:
+                    throw new XMLStreamException("Invalid State");
+            }
+            // this should be unreachable
         }
     }
 
@@ -681,49 +685,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         throw new IllegalStateException("");
     }
 
-
-
-    private void processFirstEvent() throws XMLStreamException {
-        final int s = readStructure();
-        if (s == T_END) {
-            // This is an empty buffer
-            // Ensure that start and end document events are produced
-            // TODO not sure this is correct behaviour as this is not a
-            // well formed infoset as there is no element present
-            _eventType = START_DOCUMENT;
-            _completionState = PENDING_END_DOCUMENT;
-            return;
-        }
-
-        switch(_eiiStateTable[s]) {
-            case STATE_DOCUMENT:
-                _eventType = START_DOCUMENT;
-                _isDocument = true;
-                break;
-            case STATE_ELEMENT_U_LN_QN: {
-                final String uri = readStructureString();
-                final String localName = readStructureString();
-                final String prefix = getPrefixFromQName(readStructureString());
-
-                processElementFragment(_buffer.getInscopeNamespaces(), prefix, uri, localName);
-                break;
-            }
-            case STATE_ELEMENT_P_U_LN: {
-                processElementFragment(_buffer.getInscopeNamespaces(), readStructureString(), readStructureString(), readStructureString());
-                break;
-            }
-            case STATE_ELEMENT_U_LN: {
-                processElementFragment(_buffer.getInscopeNamespaces(), "", readStructureString(), readStructureString());
-                break;
-            }
-            case STATE_ELEMENT_LN: {
-                processElementFragment(_buffer.getInscopeNamespaces(), "", "", readStructureString());
-                break;
-            }
-            default:
-                throw new XMLStreamException("Invalid State");
-        }
-    }
 
     private void processElementFragment(Map<String, String> inscopeNamespaces,
                                         String prefix, String uri, String localName) {

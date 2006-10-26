@@ -210,11 +210,19 @@ public abstract class XMLStreamBuffer {
      * an instance of {@link StreamWriterBufferProcessor}.
      *
      * @param writer
-     * A XMLStreamWriter to write to.
+     *      A XMLStreamWriter to write to.
+     */
+    public final void writeToXMLStreamWriter(XMLStreamWriter writer, boolean writeAsFragment) throws XMLStreamException {
+        StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this,writeAsFragment);
+        p.process(writer);
+    }
+
+    /**
+     * @deprecated
+     *      Use {@link #writeToXMLStreamWriter(XMLStreamWriter, boolean)}
      */
     public final void writeToXMLStreamWriter(XMLStreamWriter writer) throws XMLStreamException {
-        StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this);
-        p.process(writer);
+        writeToXMLStreamWriter(writer, this.isFragment());
     }
 
     /**
@@ -222,9 +230,24 @@ public abstract class XMLStreamBuffer {
      *
      * @return
      * A an instance of a {@link SAXBufferProcessor}.
+     * @deprecated
+     *      Use {@link #readAsXMLReader(boolean)} 
      */
     public final SAXBufferProcessor readAsXMLReader() {
-        return new SAXBufferProcessor(this);
+        return new SAXBufferProcessor(this,isFragment());
+    }
+
+    /**
+     * Reads the contents of the buffer from a {@link XMLReader}.
+     *
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
+     * @return
+     *      A an instance of a {@link SAXBufferProcessor}.
+     */
+    public final SAXBufferProcessor readAsXMLReader(boolean produceFragmentEvent) {
+        return new SAXBufferProcessor(this,produceFragmentEvent);
     }
 
     /**
@@ -237,12 +260,15 @@ public abstract class XMLStreamBuffer {
      *
      * @param handler
      *      The ContentHandler to receive SAX events.
+     * @param produceFragmentEvent
+     *      True to generate fragment SAX events without start/endDocument.
+     *      False to generate a full document SAX events.
      *
      * @throws SAXException
      *      if a parsing fails, or if {@link ContentHandler} throws a {@link SAXException}.
      */
-    public final void writeTo(ContentHandler handler) throws SAXException {
-        SAXBufferProcessor p = readAsXMLReader();
+    public final void writeTo(ContentHandler handler, boolean produceFragmentEvent) throws SAXException {
+        SAXBufferProcessor p = readAsXMLReader(produceFragmentEvent);
         p.setContentHandler(handler);
         if (p instanceof LexicalHandler) {
             p.setLexicalHandler((LexicalHandler)handler);
@@ -254,6 +280,14 @@ public abstract class XMLStreamBuffer {
             p.setErrorHandler((ErrorHandler)handler);
         }
         p.process();
+    }
+
+    /**
+     * @deprecated
+     *      Use {@link #writeTo(ContentHandler,boolean)}
+     */
+    public final void writeTo(ContentHandler handler) throws SAXException {
+        writeTo(handler,isFragment());
     }
 
     /**
@@ -274,8 +308,8 @@ public abstract class XMLStreamBuffer {
      *      if a parsing fails and {@link ErrorHandler} throws a {@link SAXException},
      *      or if {@link ContentHandler} throws a {@link SAXException}.
      */
-    public final void writeTo(ContentHandler handler, ErrorHandler errorHandler) throws SAXException {
-        SAXBufferProcessor p = readAsXMLReader();
+    public final void writeTo(ContentHandler handler, ErrorHandler errorHandler, boolean produceFragmentEvent) throws SAXException {
+        SAXBufferProcessor p = readAsXMLReader(produceFragmentEvent);
         p.setContentHandler(handler);
         if (p instanceof LexicalHandler) {
             p.setLexicalHandler((LexicalHandler)handler);
@@ -287,6 +321,10 @@ public abstract class XMLStreamBuffer {
         p.setErrorHandler(errorHandler);
 
         p.process();
+    }
+
+    public final void writeTo(ContentHandler handler, ErrorHandler errorHandler) throws SAXException {
+        writeTo(handler, errorHandler, isFragment());        
     }
 
     private static final TransformerFactory trnsformerFactory = TransformerFactory.newInstance();

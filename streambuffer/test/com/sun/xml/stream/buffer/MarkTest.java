@@ -1,8 +1,7 @@
 package com.sun.xml.stream.buffer;
 
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import org.xml.sax.helpers.AttributesImpl;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -16,8 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.xml.sax.helpers.AttributesImpl;
 
 /**
  *
@@ -49,7 +46,7 @@ public class MarkTest extends BaseBufferTestCase {
         verifyTag(reader, SOAP_NAMESPACE_URI, SOAP_ENVELOPE);
 
         // Collect namespaces on soap:Envelope
-        Map<String, String> namespaces = new HashMap();
+        Map<String,String> namespaces = new HashMap<String,String>();
         for (int i = 0; i < reader.getNamespaceCount(); i++) {
             namespaces.put(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
         }
@@ -59,7 +56,7 @@ public class MarkTest extends BaseBufferTestCase {
         verifyReaderState(reader,
                 XMLStreamReader.START_ELEMENT);
 
-        List<XMLStreamBufferMark> marks = new ArrayList();
+        List<XMLStreamBufferMark> marks = new ArrayList<XMLStreamBufferMark>();
         StreamReaderBufferCreator creator = new StreamReaderBufferCreator(new MutableXMLStreamBuffer());
 
         if (reader.getLocalName() == SOAP_HEADER
@@ -79,7 +76,7 @@ public class MarkTest extends BaseBufferTestCase {
 
                     // Collect namespaces on SOAP header block
                     if (reader.getNamespaceCount() > 0) {
-                        headerBlockNamespaces = new HashMap();
+                        headerBlockNamespaces = new HashMap<String,String>();
                         headerBlockNamespaces.putAll(namespaces);
                         for (int i = 0; i < reader.getNamespaceCount(); i++) {
                             headerBlockNamespaces.put(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
@@ -115,7 +112,7 @@ public class MarkTest extends BaseBufferTestCase {
 
             // test subtree->SAX.
             // TODO: think about the way to test the infoset correctness.
-            mark.writeTo(t);
+            mark.writeTo(t,true);
         }
 
         t.endElement("","root","root");
@@ -123,6 +120,10 @@ public class MarkTest extends BaseBufferTestCase {
     }
 
     public void processFragment(XMLStreamReader reader) throws XMLStreamException {
+        verifyReaderState(reader,
+                XMLStreamReader.START_DOCUMENT);
+
+        reader.next();
         verifyReaderState(reader,
                 XMLStreamReader.START_ELEMENT);
 

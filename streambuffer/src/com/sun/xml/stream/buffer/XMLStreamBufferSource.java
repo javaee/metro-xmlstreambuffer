@@ -80,13 +80,13 @@ public class XMLStreamBufferSource extends SAXSource {
         _buffer = buffer;
         
         if (_bufferProcessor != null) {
-            _bufferProcessor.setBuffer(_buffer);
+            _bufferProcessor.setBuffer(_buffer,false);
         }
     }
     
     public XMLReader getXMLReader() {
         if (_bufferProcessor == null) {
-            _bufferProcessor = new SAXBufferProcessor(_buffer);
+            _bufferProcessor = new SAXBufferProcessor(_buffer,false);
             setXMLReader(_bufferProcessor);
         } else if (super.getXMLReader() == null) {
             setXMLReader(_bufferProcessor);

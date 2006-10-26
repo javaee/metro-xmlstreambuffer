@@ -20,13 +20,12 @@
 
 package com.sun.xml.stream.buffer;
 
-import javax.xml.stream.XMLStreamReader;
-import junit.framework.Test;
-import junit.framework.TestSuite;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
+
+import javax.xml.stream.XMLStreamReader;
 
 /**
  *
@@ -94,6 +93,6 @@ public class EmptyBufferTest extends BaseBufferTestCase {
             public void skippedEntity(String name) throws SAXException {
                 assertEquals(false, _startDocument);
             }
-        });        
+        },false);
     }
 }

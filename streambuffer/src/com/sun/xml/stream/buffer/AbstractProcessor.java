@@ -102,11 +102,24 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     }
     
     protected XMLStreamBuffer _buffer;
+
+    /**
+     * True if this processor should create a fragment of XML, without the start/end document markers.
+     */
+    protected boolean _fragmentMode;
         
     protected boolean _stringInterningFeature = false;
-    
+
+    /**
+     * @deprecated
+     *      Use {@link #setBuffer(XMLStreamBuffer, boolean)}
+     */
     protected final void setBuffer(XMLStreamBuffer buffer) {
+        setBuffer(buffer,buffer.isFragment());
+    }
+    protected final void setBuffer(XMLStreamBuffer buffer, boolean fragmentMode) {
         _buffer = buffer;
+        _fragmentMode = fragmentMode;
         
         _currentStructureFragment = _buffer.getStructure();
         _structure = _currentStructureFragment.getArray();
