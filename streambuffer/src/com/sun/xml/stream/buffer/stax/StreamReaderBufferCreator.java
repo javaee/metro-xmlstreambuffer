@@ -28,9 +28,10 @@ import javax.xml.stream.XMLStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-/*
- * TODO
- * Implement the marking the stream on the element when an ID
+/**
+ * Create a buffer using an {@link XMLStreamReader}.
+ * <p>
+ * TODO: Implement the marking the stream on the element when an ID
  * attribute on the element is defined
  */
 public class StreamReaderBufferCreator extends StreamBufferCreator {
@@ -41,13 +42,43 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
     private boolean _storeInScopeNamespacesOnMarkedElements;
     private Map<String, Integer> _inScopePrefixes;
 
+    /**
+     * Create a stream reader buffer creator.
+     * <p>
+     * A stream buffer will be created for storing the infoset
+     * from a stream reader.
+     */
     public StreamReaderBufferCreator() {
     }
 
+    /**
+     * Create a stream reader buffer creator using a mutable stream buffer.
+     * <p>
+     * @param buffer the mutable stream buffer.
+     */
     public StreamReaderBufferCreator(MutableXMLStreamBuffer buffer) {
         setBuffer(buffer);
     }
 
+    /**
+     * Create the buffer from a stream reader.
+     * <p>
+     * The stream reader must be positioned at the start of the document
+     * or the start of an element.
+     * <p>
+     * If the stream is positioned at the start of the document then the 
+     * whole document is stored and after storing the stream will be positioned 
+     * at the end of the document.
+     * <p>
+     * If the stream is positioned at the start of an element then the 
+     * element and all its children will be stored and after storing the stream 
+     * will be positioned at the next event after the end of the element.
+     * <p>
+     * @param buffer the mutable stream buffer.
+     * @return the mutable stream buffer.
+     * @throws XMLStreamException if the stream reader is not positioned at
+     *         the start of the document or at an element.
+     */
     public MutableXMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException {
         if (_buffer == null) {
             createBuffer();
@@ -57,6 +88,23 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         return getXMLStreamBuffer();
     }
 
+    /**
+     * Creates the buffer from a stream reader that is an element fragment.
+     * <p>
+     * The stream reader will be moved to the position of the next start of
+     * an element if the stream reader is not already positioned at the start 
+     * of an element.
+     * <p>
+     * The element and all its children will be stored and after storing the stream 
+     * will be positioned at the next event after the end of the element.
+     * <p>
+     * @param buffer the mutable stream buffer.
+     * @param storeInScopeNamespaces true if in-scope namespaces of the element 
+     *        fragment should be stored.
+     * @return the mutable stream buffer.
+     * @throws XMLStreamException if the stream reader cannot be positioned at
+     *         the start of an element.
+     */
     public MutableXMLStreamBuffer createElementFragment(XMLStreamReader reader,
             boolean storeInScopeNamespaces) throws XMLStreamException {
         if (_buffer == null) {
