@@ -34,6 +34,11 @@ import org.jvnet.staxex.Base64Data;
 
 /**
  * {@link XMLStreamWriter} that fills {@link MutableXMLStreamBuffer}.
+ * <p>
+ * TODO: need to retain all attributes/namespaces and then store all namespaces
+ * before the attributes. Currently it is necessary for the caller to ensure
+ * all namespaces are written before attributes and the caller must not intermix
+ * calls to the writeNamespace and writeAttribute methods.
  *
  */
 public class StreamWriterBufferCreator extends StreamBufferCreator implements XMLStreamWriterEx {
