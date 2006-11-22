@@ -29,18 +29,10 @@ import javax.xml.stream.XMLStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-<<<<<<< StreamReaderBufferCreator.java
-/**
- * Fills in {@link MutableXMLStreamBuffer} from {@link XMLStreamReader}.
- * 
- * TODO
- * Implement the marking the stream on the element when an ID
-=======
 /**
  * Create a buffer using an {@link XMLStreamReader}.
  * <p>
  * TODO: Implement the marking the stream on the element when an ID
->>>>>>> 1.14
  * attribute on the element is defined
  */
 public class StreamReaderBufferCreator extends StreamBufferCreator {
@@ -69,14 +61,6 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         setBuffer(buffer);
     }
 
-<<<<<<< StreamReaderBufferCreator.java
-    /**
-     * Reads the whole document or the current element and returns the
-     * {@link XMLStreamBuffer} that contains it.
-     *
-     * @see XMLStreamBuffer#createNewBufferFromXMLStreamReader(XMLStreamReader)
-     */
-=======
     /**
      * Create the buffer from a stream reader.
      * <p>
@@ -96,7 +80,6 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
      * @throws XMLStreamException if the stream reader is not positioned at
      *         the start of the document or at an element.
      */
->>>>>>> 1.14
     public MutableXMLStreamBuffer create(XMLStreamReader reader) throws XMLStreamException {
         if (_buffer == null) {
             createBuffer();
