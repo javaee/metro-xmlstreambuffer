@@ -254,6 +254,8 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      *      False to generate a full document SAX events.
      */
     public void setXMLStreamBuffer(XMLStreamBuffer buffer, boolean produceFragmentEvent) {
+        if(!produceFragmentEvent && _treeCount>1)
+            throw new IllegalStateException("Can't write a forest to a full XML infoset");
         setBuffer(buffer,produceFragmentEvent);
     }
 
@@ -280,39 +282,41 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             // we need to declare in-scope namespaces as if they are on the root element.
         }
 
-        final int item = readStructure();
-        switch(_eiiStateTable[item]) {
-            case STATE_DOCUMENT:
-                processDocument();
-                break;
-            case STATE_END:
-                // Empty buffer
-                return;
-            case STATE_ELEMENT_U_LN_QN:
-                processElement(readStructureString(), readStructureString(), readStructureString());
-                break;
-            case STATE_ELEMENT_P_U_LN:
-            {
-                final String prefix = readStructureString();
-                final String uri = readStructureString();
-                final String localName = readStructureString();
-                processElement(uri, localName, getQName(prefix, localName));
-                break;
+        while (_treeCount-->0) {
+            final int item = readStructure();
+            switch(_eiiStateTable[item]) {
+                case STATE_DOCUMENT:
+                    processDocument();
+                    break;
+                case STATE_END:
+                    // Empty buffer
+                    return;
+                case STATE_ELEMENT_U_LN_QN:
+                    processElement(readStructureString(), readStructureString(), readStructureString());
+                    break;
+                case STATE_ELEMENT_P_U_LN:
+                {
+                    final String prefix = readStructureString();
+                    final String uri = readStructureString();
+                    final String localName = readStructureString();
+                    processElement(uri, localName, getQName(prefix, localName));
+                    break;
+                }
+                case STATE_ELEMENT_U_LN: {
+                    final String uri = readStructureString();
+                    final String localName = readStructureString();
+                    processElement(uri, localName, localName);
+                    break;
+                }
+                case STATE_ELEMENT_LN:
+                {
+                    final String localName = readStructureString();
+                    processElement("", localName, localName);
+                    break;
+                }
+                default:
+                    throw reportFatalError("Illegal state for DIIs: "+item);
             }
-            case STATE_ELEMENT_U_LN: {
-                final String uri = readStructureString();
-                final String localName = readStructureString();
-                processElement(uri, localName, localName);
-                break;
-            }
-            case STATE_ELEMENT_LN:
-            {
-                final String localName = readStructureString();
-                processElement("", localName, localName);
-                break;
-            }
-            default:
-                throw reportFatalError("Illegal state for DIIs: "+item);
         }
 
         if(!_fragmentMode)
