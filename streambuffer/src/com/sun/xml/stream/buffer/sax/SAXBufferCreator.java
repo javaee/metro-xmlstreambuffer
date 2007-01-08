@@ -80,7 +80,8 @@ public class SAXBufferCreator extends AbstractCreator
         } else {
             reader.parse(new InputSource(in));
         }
-                
+        increaseTreeCount();
+
         return getXMLStreamBuffer();
     }
     

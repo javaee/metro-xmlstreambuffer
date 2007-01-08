@@ -68,9 +68,10 @@ import org.w3c.dom.Node;
  * 
  * <p>
  * A XMLStreamBuffer can represent a complete XML infoset or a subtree
- * of an XML infoset. For example, a subtree of an XML infoset may be
- * represented as a mark into an buffer that is being created or processed, see 
- * {@link XMLStreamBufferMark}.
+ * of an XML infoset. It is also capable of representing a "forest",
+ * where the buffer represents multiple adjacent XML elements, although
+ * in this mode there are restrictions about how you can consume such
+ * forest, because not all XML APIs handle forests very well.
  */
 public abstract class XMLStreamBuffer {
 
@@ -109,6 +110,19 @@ public abstract class XMLStreamBuffer {
     protected FragmentedArray<Object[]> _contentObjects;
     protected int _contentObjectsPtr;
 
+    /**
+     * Number of trees in this stream buffer.
+     * <p>
+     * 1 if there's only one, which is the normal case. When the buffer
+     * holds a forest, this value is greater than 1.
+     *
+     * <p>
+     * Notice that we cannot infer this value by looking at the {@link FragmentedArray}s,
+     * because this {@link XMLStreamBuffer} maybe a view of a portion of another bigger
+     * {@link XMLStreamBuffer}.
+     */
+    protected int treeCount;
+
 
     /**
      * Is the buffer created by creator.
@@ -143,6 +157,14 @@ public abstract class XMLStreamBuffer {
     public final boolean isElementFragment() {
         return (isCreated() && (_structure.getArray()[_structurePtr] & AbstractCreatorProcessor.TYPE_MASK)
                 == AbstractCreatorProcessor.T_ELEMENT);
+    }
+
+    /**
+     * Returns ture if this buffer represents a forest, which is
+     * are more than one adjacent XML elements.
+     */
+    public final boolean isForest() {
+        return isCreated() && treeCount>1;
     }
 
     /**

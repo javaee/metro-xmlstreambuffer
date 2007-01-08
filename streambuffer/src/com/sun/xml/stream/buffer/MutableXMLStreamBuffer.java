@@ -217,6 +217,8 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
                 break;
             }
         }
+
+        treeCount = 0;
         
         /*
          * TODO consider truncating the size of _structureStrings and

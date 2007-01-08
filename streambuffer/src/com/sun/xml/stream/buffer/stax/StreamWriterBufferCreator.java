@@ -20,17 +20,15 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
+import org.jvnet.staxex.Base64Data;
+import org.jvnet.staxex.NamespaceContextEx;
+import org.jvnet.staxex.XMLStreamWriterEx;
 
 import javax.activation.DataHandler;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-
-import org.jvnet.staxex.NamespaceContextEx;
-import org.jvnet.staxex.XMLStreamWriterEx;
-
 import java.io.OutputStream;
-import org.jvnet.staxex.Base64Data;
 
 /**
  * {@link XMLStreamWriter} that fills {@link MutableXMLStreamBuffer}.
@@ -42,9 +40,15 @@ import org.jvnet.staxex.Base64Data;
  *
  */
 public class StreamWriterBufferCreator extends StreamBufferCreator implements XMLStreamWriterEx {
-    private NamespaceContexHelper namespaceContext = 
-            new NamespaceContexHelper();
-    
+    private final NamespaceContexHelper namespaceContext = new NamespaceContexHelper();
+
+    /**
+     * Nesting depth of the element.
+     * This field is ultimately used to keep track of the # of trees we created in
+     * the buffer.
+     */
+    private int depth=0;
+
     public StreamWriterBufferCreator() {
         setXMLStreamBuffer(new MutableXMLStreamBuffer());
     }
@@ -109,6 +113,7 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
 
     public void writeStartElement(String localName) throws XMLStreamException {
         namespaceContext.pushContext();
+        depth++;
         
         final String defaultNamespaceURI = namespaceContext.getNamespaceURI("");
         
@@ -120,7 +125,8 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
 
     public void writeStartElement(String namespaceURI, String localName) throws XMLStreamException {
         namespaceContext.pushContext();
-        
+        depth++;
+
         final String prefix = namespaceContext.getPrefix(namespaceURI);
         if (prefix == null) {
             throw new XMLStreamException();
@@ -132,7 +138,8 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
 
     public void writeStartElement(String prefix, String localName, String namespaceURI) throws XMLStreamException {
         namespaceContext.pushContext();
-        
+        depth++;
+
         storeQualifiedName(T_ELEMENT_LN, prefix, namespaceURI, localName);
     }
 
@@ -155,6 +162,8 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
         namespaceContext.popContext();
         
         storeStructure(T_END);
+        if(--depth==0)
+            increaseTreeCount();
     }
 
     public void writeDefaultNamespace(String namespaceURI) throws XMLStreamException {

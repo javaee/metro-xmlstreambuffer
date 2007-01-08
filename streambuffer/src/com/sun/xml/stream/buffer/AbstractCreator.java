@@ -42,7 +42,14 @@ public class AbstractCreator extends AbstractCreatorProcessor {
     protected final void createBuffer() {
         setBuffer(new MutableXMLStreamBuffer());
     }
-    
+
+    /**
+     * Should be called whenever a new tree is stored on the buffer.
+     */
+    protected final void increaseTreeCount() {
+        _buffer.treeCount++;
+    }
+
     protected final void setBuffer(MutableXMLStreamBuffer buffer) {
         _buffer = buffer;
         

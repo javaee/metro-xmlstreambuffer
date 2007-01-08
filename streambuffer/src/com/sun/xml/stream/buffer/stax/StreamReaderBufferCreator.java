@@ -20,7 +20,6 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
-import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import org.jvnet.staxex.Base64Data;
 import org.jvnet.staxex.XMLStreamReaderEx;
 
@@ -37,10 +36,7 @@ import java.util.Map;
  */
 public class StreamReaderBufferCreator extends StreamBufferCreator {
     private int _eventType;
-    private boolean _manageInScopeNamespaces;
     private boolean _storeInScopeNamespacesOnElementFragment;
-    private boolean _markElementsWithIDs;
-    private boolean _storeInScopeNamespacesOnMarkedElements;
     private Map<String, Integer> _inScopePrefixes;
 
     /**
@@ -75,7 +71,6 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
      * element and all its children will be stored and after storing the stream 
      * will be positioned at the next event after the end of the element.
      * <p>
-     * @param buffer the mutable stream buffer.
      * @return the mutable stream buffer.
      * @throws XMLStreamException if the stream reader is not positioned at
      *         the start of the document or at an element.
@@ -99,8 +94,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
      * The element and all its children will be stored and after storing the stream 
      * will be positioned at the next event after the end of the element.
      * <p>
-     * @param buffer the mutable stream buffer.
-     * @param storeInScopeNamespaces true if in-scope namespaces of the element 
+     * @param storeInScopeNamespaces true if in-scope namespaces of the element
      *        fragment should be stored.
      * @return the mutable stream buffer.
      * @throws XMLStreamException if the stream reader cannot be positioned at
@@ -116,7 +110,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
             return _buffer;
         }
 
-        _manageInScopeNamespaces = _storeInScopeNamespacesOnElementFragment = storeInScopeNamespaces;
+        _storeInScopeNamespacesOnElementFragment = storeInScopeNamespaces;
 
         _eventType = reader.getEventType();
         if (_eventType != XMLStreamReader.START_ELEMENT) {
@@ -125,7 +119,7 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
             } while(_eventType != XMLStreamReader.START_ELEMENT && _eventType != XMLStreamReader.END_DOCUMENT);
         }
 
-        if (_manageInScopeNamespaces) {
+        if (storeInScopeNamespaces) {
             _inScopePrefixes = new HashMap<String,Integer>();
         }
 
@@ -150,6 +144,8 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
             default:
                 throw new XMLStreamException("XMLStreamReader not positioned at a document or element");
         }
+        
+        increaseTreeCount();
     }
 
     private void storeDocumentAndChildren(XMLStreamReader reader) throws XMLStreamException {
