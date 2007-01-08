@@ -63,10 +63,8 @@ import org.w3c.dom.Node;
  * of a buffer using SAX and StAX-based creators, and from which may be 
  * processed as an XMLStreamBuffer. The second,
  * {@link XMLStreamBufferMark}, can be instantiated to mark into an existing
- * buffer that is being created or processed. Thus one or more 
- * XMLStreamBuffer instances may make reference to other buffers. It
- * is the responsibility of the application to manage the relationship between
- * such instances.
+ * buffer that is being created or processed. This allows a subtree of
+ * {@link XMLStreamBuffer} to be treated as its own {@link XMLStreamBuffer}.
  * 
  * <p>
  * A XMLStreamBuffer can represent a complete XML infoset or a subtree
