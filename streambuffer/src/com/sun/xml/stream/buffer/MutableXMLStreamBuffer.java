@@ -21,24 +21,17 @@ package com.sun.xml.stream.buffer;
 
 import com.sun.xml.stream.buffer.sax.Properties;
 import com.sun.xml.stream.buffer.sax.SAXBufferCreator;
-import com.sun.xml.stream.buffer.sax.SAXBufferProcessor;
 import com.sun.xml.stream.buffer.stax.StreamReaderBufferCreator;
-import com.sun.xml.stream.buffer.stax.StreamReaderBufferProcessor;
 import com.sun.xml.stream.buffer.stax.StreamWriterBufferCreator;
-import com.sun.xml.stream.buffer.stax.StreamWriterBufferProcessor;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Map;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.DTDHandler;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.ext.LexicalHandler;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * 
