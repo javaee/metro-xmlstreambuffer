@@ -45,6 +45,12 @@ import java.util.NoSuchElementException;
  * Because of {@link XMLStreamReader} design, this processor always produce
  * a full document infoset, even if the buffer just contains a fragment.
  *
+ * <p>
+ * When {@link XMLStreamBuffer} contains a multiple tree (AKA "forest"),
+ * {@link XMLStreamReader} will behave as if there are multiple root elements
+ * (so you'll see {@link #START_ELEMENT} event where you'd normally expect
+ * {@link #END_DOCUMENT}.) 
+ *
  * @author Paul.Sandoz@Sun.Com
  * @author K.Venugopal@sun.com
  */
