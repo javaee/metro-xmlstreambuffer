@@ -35,7 +35,9 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 
-/*
+/**
+ * Writes into {@link MutableXMLStreamBuffer} from SAX.
+ * 
  * TODO
  * Implement the marking the stream on the element when an ID
  * attribute on the element is defined
