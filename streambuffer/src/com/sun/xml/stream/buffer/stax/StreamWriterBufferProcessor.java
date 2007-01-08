@@ -157,6 +157,9 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     /**
      * Writes the buffer as a fragment, meaning
      * the writer will not receive start/endDocument events.
+     *
+     * <p>
+     * If {@link XMLStreamBuffer} has a forest, this method will write all the forests.
      */
     public void writeFragment(XMLStreamWriter writer) throws XMLStreamException {
         if (writer instanceof XMLStreamWriterEx) {
