@@ -46,7 +46,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
      *      Use {@link #StreamWriterBufferProcessor(XMLStreamBuffer, boolean)}
      */
     public StreamWriterBufferProcessor(XMLStreamBuffer buffer) {
-        setXMLStreamBuffer(buffer);
+        setXMLStreamBuffer(buffer,buffer.isFragment());
     }
 
     /**
@@ -59,12 +59,12 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     }
 
     public final void process(XMLStreamBuffer buffer, XMLStreamWriter writer) throws XMLStreamException {
-        setXMLStreamBuffer(buffer);
+        setXMLStreamBuffer(buffer,buffer.isFragment());
         process(writer);
     }
     
     public void process(XMLStreamWriter writer) throws XMLStreamException {
-        if(_buffer.isFragment()){
+        if(_fragmentMode){
             writeFragment(writer);
         }else{
             write(writer);
