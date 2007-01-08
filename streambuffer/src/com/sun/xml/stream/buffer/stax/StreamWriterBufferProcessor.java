@@ -88,10 +88,17 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         setBuffer(buffer,produceFragmentEvent);
     }
 
+    /**
+     * Writes a full XML infoset event to the given writer,
+     * including start/end document.
+     */
     public void write(XMLStreamWriter writer) throws XMLStreamException{
 
-        if(!_fragmentMode)
+        if(!_fragmentMode) {
+            if(_treeCount>1)
+                throw new IllegalStateException("forest cannot be written as a full infoset");
             writer.writeStartDocument();
+        }
 
         // TODO: if we are writing a fragment XMLStreamBuffer as a full document,
         // we need to put in-scope namespaces as top-level ns decls.
@@ -146,7 +153,11 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         }
         
     }
-    
+
+    /**
+     * Writes the buffer as a fragment, meaning
+     * the writer will not receive start/endDocument events.
+     */
     public void writeFragment(XMLStreamWriter writer) throws XMLStreamException {
         if (writer instanceof XMLStreamWriterEx) {
             writeFragmentEx((XMLStreamWriterEx)writer);
@@ -156,7 +167,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     }
     
     public void writeFragmentEx(XMLStreamWriterEx writer) throws XMLStreamException {
-        int index = 0;
+        int depth = 0;  // used to determine when we are done with a tree.
         
         do {
             
@@ -164,7 +175,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN: {
-                    index ++;
+                    depth ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
@@ -173,7 +184,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_P_U_LN: {
-                    index ++;
+                    depth ++;
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
@@ -182,7 +193,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
-                    index ++;
+                    depth ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
@@ -190,7 +201,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_LN: {
-                    index ++;
+                    depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
                     writeAttributes(writer);
@@ -247,17 +258,19 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 case STATE_END:
                     writer.writeEndElement();
-                    index --;
+                    depth --;
+                    if(depth==0)
+                        _treeCount--;
                     break;
                 default:
                     throw new XMLStreamException("Invalid State "+item);
             }
-        } while(index > 0);
+        } while(depth>0 || _treeCount>0);
 
     }
 
     public void writeFragmentNoEx(XMLStreamWriter writer) throws XMLStreamException {
-        int index = 0;
+        int depth = 0;
 
         do {
 
@@ -265,7 +278,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
 
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN: {
-                    index ++;
+                    depth ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
@@ -274,7 +287,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_P_U_LN: {
-                    index ++;
+                    depth ++;
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
@@ -283,7 +296,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
-                    index ++;
+                    depth ++;
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
@@ -291,7 +304,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_ELEMENT_LN: {
-                    index ++;
+                    depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
                     writeAttributes(writer);
@@ -348,12 +361,14 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 case STATE_END:
                     writer.writeEndElement();
-                    index --;
+                    depth --;
+                    if(depth==0)
+                        _treeCount--;
                     break;
                 default:
                     throw new XMLStreamException("Invalid State "+item);
             }
-        } while(index > 0);
+        } while(depth > 0 && _treeCount>0);
         
     }
     

@@ -111,6 +111,12 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected boolean _stringInterningFeature = false;
 
     /**
+     * Number of remaining XML element trees that should be visible
+     * through this {@link AbstractProcessor}.
+     */
+    protected int _treeCount;
+
+    /**
      * @deprecated
      *      Use {@link #setBuffer(XMLStreamBuffer, boolean)}
      */
@@ -138,6 +144,7 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
         _contentObjectsPtr = _buffer.getContentObjectsPtr();
         
         _stringInterningFeature = _buffer.hasInternedStrings();
+        _treeCount = _buffer.treeCount;
     }
     
     protected final int peekStructure() {

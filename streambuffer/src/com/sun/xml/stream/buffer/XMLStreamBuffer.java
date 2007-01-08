@@ -112,9 +112,10 @@ public abstract class XMLStreamBuffer {
 
     /**
      * Number of trees in this stream buffer.
+     *
      * <p>
      * 1 if there's only one, which is the normal case. When the buffer
-     * holds a forest, this value is greater than 1.
+     * holds a forest, this value is greater than 1. If the buffer is empty, then 0.
      *
      * <p>
      * Notice that we cannot infer this value by looking at the {@link FragmentedArray}s,
@@ -231,6 +232,10 @@ public abstract class XMLStreamBuffer {
      *
      * @param writer
      *      A XMLStreamWriter to write to.
+     * @param writeAsFragment
+     *      If true, {@link XMLStreamWriter} will not receive {@link XMLStreamWriter#writeStartDocument()}
+     *      nor {@link XMLStreamWriter#writeEndDocument()}. This is desirable behavior when
+     *      you are writing the contents of a buffer into a bigger document. 
      */
     public final void writeToXMLStreamWriter(XMLStreamWriter writer, boolean writeAsFragment) throws XMLStreamException {
         StreamWriterBufferProcessor p = new StreamWriterBufferProcessor(this,writeAsFragment);
