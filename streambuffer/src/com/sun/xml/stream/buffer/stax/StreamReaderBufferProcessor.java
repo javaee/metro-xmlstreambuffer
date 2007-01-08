@@ -694,45 +694,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         throw new IllegalStateException("");
     }
 
-
-    private void processElementFragment(Map<String, String> inscopeNamespaces,
-                                        String prefix, String uri, String localName) {
-        _eventType = START_ELEMENT;
-
-        pushElementStack();
-        _stackTop.set(prefix, uri, localName);
-
-        // Add the current in-scope namespaces to the list
-        // Including any namespace declarations on the element
-        for (Map.Entry<String, String> e : inscopeNamespaces.entrySet()) {
-            if (_namespaceAIIsStart == _namespaceAIIsPrefix.length) {
-                resizeNamespaceAttributes();
-            }
-
-            _namespaceAIIsPrefix[_namespaceAIIsStart] = e.getKey();
-            _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = e.getValue();
-        }
-        // Ensure that the in-scope namespace deleclarations are declared
-        // on the element.
-        _stackTop.namespaceAIIsEnd = _namespaceAIIsStart;
-
-        int item = peekStructure();
-        if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
-            // In-scope namespaces added above are for namespaces that are declared
-            // on ancestors, and doesn't include the namespaces declared
-            // on this element itself.
-            //
-            // so even if we fill in inscopeNamespaces above, we still
-            // need to take this into account, which is namespaces declared
-            // on the element.
-            // I appreciate a review from Paul - KK
-            item = processNamespaceAttributes(item);
-        }
-        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
-            processAttributes(item);
-        }
-    }
-
     protected void processElement(String prefix, String uri, String localName) {
         pushElementStack();
         _stackTop.set(prefix, uri, localName);
@@ -758,25 +719,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         final String[] namespaceAIIsNamespaceName = new String[_namespaceAIIsStart * 2];
         System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsStart);
         _namespaceAIIsNamespaceName = namespaceAIIsNamespaceName;
-    }
-
-    private int skipNamespaceAttributes(int item){
-        do {
-            switch(_niiStateTable[item]){
-                case STATE_NAMESPACE_ATTRIBUTE_P:
-                case STATE_NAMESPACE_ATTRIBUTE_U:
-                    readStructureString();
-                    break;
-                case STATE_NAMESPACE_ATTRIBUTE_P_U:
-                    readStructureString();
-                    readStructureString();
-                    break;
-            }
-            readStructure();
-
-            item = peekStructure();
-        } while((item & (TYPE_MASK)) == T_NAMESPACE_ATTRIBUTE);
-        return item;
     }
 
     private int processNamespaceAttributes(int item){
@@ -912,6 +854,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private final class InternalNamespaceContext implements NamespaceContextEx {
+        @SuppressWarnings({"StringEquality"})
         public String getNamespaceURI(String prefix) {
             if (prefix == null) {
                 throw new IllegalArgumentException("Prefix cannot be null");
