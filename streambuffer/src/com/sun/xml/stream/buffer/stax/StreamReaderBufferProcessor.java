@@ -55,6 +55,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     protected ElementStackEntry[] _stack = new ElementStackEntry[CACHE_SIZE];
     /** The top-most active entry of the {@link #_stack}. */
     protected ElementStackEntry _stackTop;
+    /** The element depth that we are in. Used to determine when we are done with a tree. */
     protected int _depth;
 
     // Arrays to hold all namespace declarations
@@ -266,15 +267,20 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     return _eventType = PROCESSING_INSTRUCTION;
                 case STATE_END:
                     if (_depth > 1) {
+                        // normal case
                         popElementStack();
                         return _eventType = END_ELEMENT;
                     } else if (_depth == 1) {
+                        // this is the last end element for the current tree.
                         popElementStack();
                         if (_fragmentMode) {
-                            _completionState = PENDING_END_DOCUMENT;
+                            if(--_treeCount==0) // is this the last tree in the forest?
+                                _completionState = PENDING_END_DOCUMENT;
                         }
                         return _eventType = END_ELEMENT;
                     } else {
+                        // this only happens when we are processing a full document
+                        // and we hit the "end of document" marker
                         _namespaceAIIsStart = _namespaceAIIsEnd = 0;
                         _completionState = COMPLETED;
                         return _eventType = END_DOCUMENT;
@@ -389,11 +395,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             int length = this.getTextLength();
             for (int i = start; i < length; i++){
                 final char c = ch[i];
-                if (c == 0x20 || c == 0x9 || c == 0xD | c == 0xA) {
-                    continue;
-                } else {
+                if (!(c == 0x20 || c == 0x9 || c == 0xD || c == 0xA))
                     return false;
-                }
             }
             return true;
         }
@@ -839,17 +842,14 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private void pushElementStack() {
-        if (_depth < _stack.length) {
-            _stackTop = _stack[_depth++];
-            return;
-        }
-
-        // resize stack
-        ElementStackEntry [] tmp = _stack;
-        _stack = new ElementStackEntry[_stack.length * 3 /2 + 1];
-        System.arraycopy(tmp, 0, _stack, 0, tmp.length);
-        for (int i = tmp.length; i < _stack.length; i++){
-            _stack[i] = new ElementStackEntry();
+        if (_depth == _stack.length) {
+            // resize stack
+            ElementStackEntry [] tmp = _stack;
+            _stack = new ElementStackEntry[_stack.length * 3 /2 + 1];
+            System.arraycopy(tmp, 0, _stack, 0, tmp.length);
+            for (int i = tmp.length; i < _stack.length; i++){
+                _stack[i] = new ElementStackEntry();
+            }
         }
 
         _stackTop = _stack[_depth++];
