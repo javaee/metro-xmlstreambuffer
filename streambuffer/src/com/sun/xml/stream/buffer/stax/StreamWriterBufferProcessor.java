@@ -171,12 +171,15 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     
     public void writeFragmentEx(XMLStreamWriterEx writer) throws XMLStreamException {
         int depth = 0;  // used to determine when we are done with a tree.
-        
+
+        OUTER:
         do {
             
             int item = _eiiStateTable[readStructure()];
             
             switch(item) {
+                case STATE_DOCUMENT:
+                    continue OUTER; // skip
                 case STATE_ELEMENT_U_LN_QN: {
                     depth ++;
                     final String uri = readStructureString();
@@ -275,11 +278,14 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void writeFragmentNoEx(XMLStreamWriter writer) throws XMLStreamException {
         int depth = 0;
 
+        OUTER:
         do {
 
             int item = _eiiStateTable[readStructure()];
 
             switch(item) {
+                case STATE_DOCUMENT:
+                    continue OUTER; // skip
                 case STATE_ELEMENT_U_LN_QN: {
                     depth ++;
                     final String uri = readStructureString();
