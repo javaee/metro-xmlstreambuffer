@@ -88,6 +88,7 @@ public class XMLStreamBufferResult extends SAXResult {
             throw new NullPointerException("buffer cannot be null");
         }
         _buffer = buffer;
+        setSystemId(_buffer.getSystemId());
         
         if (_bufferCreator != null) {
             _bufferCreator.setXMLStreamBuffer(_buffer);

@@ -67,6 +67,14 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
     }
     
     /**
+     * Set the system identifier for this buffer.
+     * @param systemId The system identifier.
+     */
+    public void setSystemId(String systemId) {
+        this.systemId = systemId;
+    }
+    
+    /**
      * Create a new MutableXMLStreamBuffer.
      * 
      * @param size

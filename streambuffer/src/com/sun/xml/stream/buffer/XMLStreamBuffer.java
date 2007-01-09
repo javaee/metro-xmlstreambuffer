@@ -124,7 +124,11 @@ public abstract class XMLStreamBuffer {
      */
     protected int treeCount;
 
-
+    /**
+     * The system identifier associated with the buffer
+     */
+    protected String systemId;
+    
     /**
      * Is the buffer created by creator.
      *
@@ -168,6 +172,14 @@ public abstract class XMLStreamBuffer {
         return isCreated() && treeCount>1;
     }
 
+    /**
+     * Get the system identifier associated with the buffer.
+     * @return The system identifier.
+     */
+    public final String getSystemId() {
+        return systemId;
+    }
+    
     /**
      * Get the in-scope namespaces.
      *

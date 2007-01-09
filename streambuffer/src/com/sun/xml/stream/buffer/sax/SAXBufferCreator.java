@@ -65,7 +65,7 @@ public class SAXBufferCreator extends AbstractCreator
         if (_buffer == null) {
             createBuffer();
         }
-        
+        _buffer.setSystemId(systemId);
         reader.setContentHandler(this);
         reader.setProperty(Properties.LEXICAL_HANDLER_PROPERTY, this);
         

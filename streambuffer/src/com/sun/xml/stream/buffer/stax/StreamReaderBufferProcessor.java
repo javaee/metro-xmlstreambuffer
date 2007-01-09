@@ -640,7 +640,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     public final Location getLocation() {
-        return DUMMY_LOCATION;
+        return new DummyLocation();
     }
 
     public final boolean hasName() {
@@ -1034,7 +1034,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
     }
 
-    private static final Location DUMMY_LOCATION = new Location() {
+    private class DummyLocation  implements Location {
         public int getLineNumber() {
             return -1;
         }
@@ -1052,10 +1052,10 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
 
         public String getSystemId() {
-            return null;
+            return _buffer.getSystemId();
         }
     };
-
+    
     private static String fixEmptyString(String s) {
         // s must not be null, so no need to check for that. that would be bug.
         if(s.length()==0)   return null;

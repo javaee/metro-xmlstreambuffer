@@ -276,7 +276,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
      */
     public final void process() throws SAXException {
         if(!_fragmentMode) {
-            _contentHandler.setDocumentLocator(NULL_LOCATOR);
+            LocatorImpl nullLocator = new LocatorImpl();
+            nullLocator.setSystemId(_buffer.getSystemId());
+            nullLocator.setLineNumber(-1);
+            nullLocator.setColumnNumber(-1);
+            _contentHandler.setDocumentLocator(nullLocator);
+            
             _contentHandler.startDocument();
             // TODO: if we are writing a fragment stream buffer as a full XML document,
             // we need to declare in-scope namespaces as if they are on the root element.
@@ -643,11 +648,4 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     }
 
     private static final DefaultWithLexicalHandler DEFAULT_LEXICAL_HANDLER = new DefaultWithLexicalHandler();
-
-    private static final LocatorImpl NULL_LOCATOR = new LocatorImpl();
-
-    static {
-        NULL_LOCATOR.setLineNumber(-1);
-        NULL_LOCATOR.setColumnNumber(-1);
-    }
 }
