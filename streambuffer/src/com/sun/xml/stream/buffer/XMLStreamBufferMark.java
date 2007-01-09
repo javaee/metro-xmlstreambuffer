@@ -66,5 +66,6 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
         
         _contentObjects = src._currentContentObjectFragment;
         _contentObjectsPtr = src._contentObjectsPtr;
+        treeCount = 1; // TODO: define a way to create a mark over a forest
     }
 }
