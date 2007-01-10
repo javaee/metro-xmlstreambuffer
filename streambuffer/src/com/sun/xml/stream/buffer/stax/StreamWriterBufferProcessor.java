@@ -179,7 +179,10 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             
             switch(item) {
                 case STATE_DOCUMENT:
-                    continue OUTER; // skip
+                    //call it again to read the next state
+                    //TODO:verify if it causes infinite loop
+                    writeFragmentEx(writer);
+                    break;
                 case STATE_ELEMENT_U_LN_QN: {
                     depth ++;
                     final String uri = readStructureString();
@@ -278,14 +281,15 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void writeFragmentNoEx(XMLStreamWriter writer) throws XMLStreamException {
         int depth = 0;
 
-        OUTER:
         do {
-
             int item = _eiiStateTable[readStructure()];
 
             switch(item) {
                 case STATE_DOCUMENT:
-                    continue OUTER; // skip
+                    //call it again to read the next state
+                    //TODO:verify if it causes infinite loop
+                    writeFragmentNoEx(writer);
+                    break;
                 case STATE_ELEMENT_U_LN_QN: {
                     depth ++;
                     final String uri = readStructureString();
