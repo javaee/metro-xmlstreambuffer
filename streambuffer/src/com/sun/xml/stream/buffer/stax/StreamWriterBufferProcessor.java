@@ -172,17 +172,17 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void writeFragmentEx(XMLStreamWriterEx writer) throws XMLStreamException {
         int depth = 0;  // used to determine when we are done with a tree.
 
-        OUTER:
+        int item = _eiiStateTable[peekStructure()];
+        if(item==STATE_DOCUMENT)
+            readStructure();    // skip STATE_DOCUMENT
+
         do {
             
-            int item = _eiiStateTable[readStructure()];
+            item = _eiiStateTable[readStructure()];
             
             switch(item) {
                 case STATE_DOCUMENT:
-                    //call it again to read the next state
-                    //TODO:verify if it causes infinite loop
-                    writeFragmentEx(writer);
-                    break;
+                    throw new AssertionError();
                 case STATE_ELEMENT_U_LN_QN: {
                     depth ++;
                     final String uri = readStructureString();
@@ -281,15 +281,16 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void writeFragmentNoEx(XMLStreamWriter writer) throws XMLStreamException {
         int depth = 0;
 
+        int item = _eiiStateTable[peekStructure()];
+        if(item==STATE_DOCUMENT)
+            readStructure();    // skip STATE_DOCUMENT
+
         do {
-            int item = _eiiStateTable[readStructure()];
+            item = _eiiStateTable[readStructure()];
 
             switch(item) {
                 case STATE_DOCUMENT:
-                    //call it again to read the next state
-                    //TODO:verify if it causes infinite loop
-                    writeFragmentNoEx(writer);
-                    break;
+                    throw new AssertionError();
                 case STATE_ELEMENT_U_LN_QN: {
                     depth ++;
                     final String uri = readStructureString();
