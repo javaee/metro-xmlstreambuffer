@@ -223,7 +223,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
                     return _eventType = CHARACTERS;
                 case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM:
-                    _textLen = (readStructure() << 8) | readStructure();
+                    _textLen = readStructure16();
                     _textOffset = readContentCharactersBuffer(_textLen);
                     _characters = _contentCharactersBuffer;
 
@@ -251,7 +251,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
                     return _eventType = COMMENT;
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
-                    _textLen = (readStructure() << 8) | readStructure();
+                    _textLen = readStructure16();
                     _textOffset = readContentCharactersBuffer(_textLen);
                     _characters = _contentCharactersBuffer;
 

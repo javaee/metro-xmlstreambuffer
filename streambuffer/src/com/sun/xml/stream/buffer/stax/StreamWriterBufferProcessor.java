@@ -127,7 +127,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM: {
                     readStructure();
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);
@@ -223,7 +223,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM: {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     writer.writeCharacters(_contentCharactersBuffer,start,length);
                     break;
@@ -251,7 +251,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM: {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);
@@ -331,7 +331,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM: {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     writer.writeCharacters(_contentCharactersBuffer,start,length);
                     break;
@@ -359,7 +359,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM: {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     final String comment = new String(_contentCharactersBuffer, start, length);
                     writer.writeComment(comment);

@@ -166,6 +166,10 @@ public abstract class AbstractProcessor extends AbstractCreatorProcessor {
     protected final int readEiiState() {
         return _eiiStateTable[readStructure()];
     }
+
+    protected final int readStructure16() {
+        return (readStructure() << 8) | readStructure();
+    }
     
     private int readFromNextStructure(int v) {
         _structurePtr = v;

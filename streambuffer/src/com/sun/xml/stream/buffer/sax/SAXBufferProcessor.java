@@ -376,7 +376,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
                 {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
@@ -454,7 +454,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_MEDIUM:
                 {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     int start = readContentCharactersBuffer(length);
                     _contentHandler.characters(_contentCharactersBuffer, start, length);
                     break;
@@ -488,7 +488,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
                 {
-                    final int length = (readStructure() << 8) | readStructure();
+                    final int length = readStructure16();
                     final int start = readContentCharactersBuffer(length);
                     processComment(_contentCharactersBuffer, start, length);
                     break;
