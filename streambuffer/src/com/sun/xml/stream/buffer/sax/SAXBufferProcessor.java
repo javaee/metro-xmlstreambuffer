@@ -288,8 +288,8 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         }
 
         while (_treeCount-->0) {
-            final int item = readStructure();
-            switch(_eiiStateTable[item]) {
+            final int item = readEiiState();
+            switch(item) {
                 case STATE_DOCUMENT:
                     processDocument();
                     break;
@@ -342,8 +342,8 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
 
     private void processDocument() throws SAXException {
         while(true) {
-            int item = readStructure();
-            switch(_eiiStateTable[item]) {
+            int item = readEiiState();
+            switch(item) {
                 case STATE_ELEMENT_U_LN_QN:
                     processElement(readStructureString(), readStructureString(), readStructureString());
                     break;
@@ -421,7 +421,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         }
 
         do {
-            item = _eiiStateTable[readStructure()];
+            item = readEiiState();
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN:
                     processElement(readStructureString(), readStructureString(), readStructureString());

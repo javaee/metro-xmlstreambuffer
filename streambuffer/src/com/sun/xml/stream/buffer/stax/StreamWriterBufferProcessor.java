@@ -178,7 +178,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
 
         do {
             
-            item = _eiiStateTable[readStructure()];
+            item = readEiiState();
             
             switch(item) {
                 case STATE_DOCUMENT:
@@ -286,7 +286,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             readStructure();    // skip STATE_DOCUMENT
 
         do {
-            item = _eiiStateTable[readStructure()];
+            item = readEiiState();
 
             switch(item) {
                 case STATE_DOCUMENT:
