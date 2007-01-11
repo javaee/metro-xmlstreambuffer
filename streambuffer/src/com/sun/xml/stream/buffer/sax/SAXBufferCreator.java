@@ -82,7 +82,6 @@ public class SAXBufferCreator extends AbstractCreator
         } else {
             reader.parse(new InputSource(in));
         }
-        increaseTreeCount();
 
         return getXMLStreamBuffer();
     }
@@ -98,6 +97,7 @@ public class SAXBufferCreator extends AbstractCreator
     
     public void endDocument() throws SAXException {
         storeStructure(T_END);
+        increaseTreeCount();
     }
         
     public void startPrefixMapping(String prefix, String uri) throws SAXException {
