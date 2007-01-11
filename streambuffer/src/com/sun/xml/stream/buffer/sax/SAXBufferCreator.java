@@ -47,6 +47,8 @@ public class SAXBufferCreator extends AbstractCreator
     protected String[] _namespaceAttributes;
     
     protected int _namespaceAttributesPtr;
+
+    private int depth = 0;
     
     public SAXBufferCreator() {
         _namespaceAttributes = new String[16 * 2];        
@@ -89,6 +91,7 @@ public class SAXBufferCreator extends AbstractCreator
     public void reset() {
         _buffer = null;
         _namespaceAttributesPtr = 0;
+        depth=0;
     }
     
     public void startDocument() throws SAXException {
@@ -97,7 +100,6 @@ public class SAXBufferCreator extends AbstractCreator
     
     public void endDocument() throws SAXException {
         storeStructure(T_END);
-        increaseTreeCount();
     }
         
     public void startPrefixMapping(String prefix, String uri) throws SAXException {
@@ -117,10 +119,13 @@ public class SAXBufferCreator extends AbstractCreator
         if (attributes.getLength() > 0) {
             storeAttributes(attributes);
         }
+        depth++;
     }
         
     public void endElement(String uri, String localName, String qName) throws SAXException {
         storeStructure(T_END);
+        if(--depth==0)
+            increaseTreeCount();    // one tree processed
     }
     
     public void characters(char ch[], int start, int length) throws SAXException {
