@@ -66,7 +66,7 @@
     <target name="package" depends="source-package, dist-package">
     </target>
     
-    <target name="push-to-maven-prepare" depends="dist"
+    <target name="push-to-maven-prepare" depends="package"
         description="prepare a repository iamge for the push-to-maven target">
         <taskdef resource="maven-repository-importer.properties">
             <classpath>
@@ -79,8 +79,9 @@
         <maven-repository-importer
             destdir="build/maven-repo" version="${release.impl.version}">
             <artifact
-            jar="${streambuffer.dir}/dist/streambuffer.jar"
-            pom="etc/poms/streambuffer.pom" />
+                jar="${streambuffer.dir}/dist/streambuffer.jar"
+                srczip="package/streambuffer.src.zip"
+                pom="etc/poms/streambuffer.pom" />
         </maven-repository-importer>
     </target>
 
