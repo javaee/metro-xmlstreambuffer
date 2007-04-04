@@ -60,7 +60,8 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     // XMLStreamWriter
 
     public Object getProperty(String str) throws IllegalArgumentException {
-        throw new UnsupportedOperationException();
+        return null; //return  null for all the property names instead of
+                    //throwing unsupported operation exception.
     }
 
     public void close() throws XMLStreamException {
