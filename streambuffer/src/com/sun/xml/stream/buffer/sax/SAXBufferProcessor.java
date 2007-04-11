@@ -319,6 +319,21 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     processElement("", localName, localName);
                     break;
                 }
+                case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
+                    processCommentAsCharArraySmall();
+                    break;
+                case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
+                    processCommentAsCharArrayMedium();
+                    break;
+                case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
+                    processCommentAsCharArrayCopy();
+                    break;
+                case STATE_COMMENT_AS_STRING:
+                    processComment(readContentString());
+                    break;
+                case STATE_PROCESSING_INSTRUCTION:
+                    processProcessingInstruction(readStructureString(), readStructureString());
+                    break;
                 default:
                     throw reportFatalError("Illegal state for DIIs: "+item);
             }
@@ -326,6 +341,12 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
 
         if(!_fragmentMode)
             _contentHandler.endDocument();
+    }
+
+    private void processCommentAsCharArraySmall() throws SAXException {
+        final int length = readStructure();
+        final int start = readContentCharactersBuffer(length);
+        processComment(_contentCharactersBuffer, start, length);
     }
 
     /**
@@ -368,25 +389,14 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
-                {
-                    final int length = readStructure();
-                    final int start = readContentCharactersBuffer(length);
-                    processComment(_contentCharactersBuffer, start, length);
+                    processCommentAsCharArraySmall();
                     break;
-                }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
-                {
-                    final int length = readStructure16();
-                    final int start = readContentCharactersBuffer(length);
-                    processComment(_contentCharactersBuffer, start, length);
+                    processCommentAsCharArrayMedium();
                     break;
-                }
                 case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
-                {
-                    final char[] ch = readContentCharactersCopy();
-                    processComment(ch, 0, ch.length);
+                    processCommentAsCharArrayCopy();
                     break;
-                }
                 case STATE_COMMENT_AS_STRING:
                     processComment(readContentString());
                     break;
@@ -480,25 +490,14 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
-                {
-                    final int length = readStructure();
-                    final int start = readContentCharactersBuffer(length);
-                    processComment(_contentCharactersBuffer, start, length);
+                    processCommentAsCharArraySmall();
                     break;
-                }
                 case STATE_COMMENT_AS_CHAR_ARRAY_MEDIUM:
-                {
-                    final int length = readStructure16();
-                    final int start = readContentCharactersBuffer(length);
-                    processComment(_contentCharactersBuffer, start, length);
+                    processCommentAsCharArrayMedium();
                     break;
-                }
                 case STATE_COMMENT_AS_CHAR_ARRAY_COPY:
-                {
-                    final char[] ch = readContentCharactersCopy();
-                    processComment(ch, 0, ch.length);
+                    processCommentAsCharArrayCopy();
                     break;
-                }
                 case T_COMMENT_AS_STRING:
                     processComment(readContentString());
                     break;
@@ -518,7 +517,18 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             processEndPrefixMapping();
         }
     }
-    
+
+    private void processCommentAsCharArrayCopy() throws SAXException {
+        final char[] ch = readContentCharactersCopy();
+        processComment(ch, 0, ch.length);
+    }
+
+    private void processCommentAsCharArrayMedium() throws SAXException {
+        final int length = readStructure16();
+        final int start = readContentCharactersBuffer(length);
+        processComment(_contentCharactersBuffer, start, length);
+    }
+
     private void processEndPrefixMapping() throws SAXException {
         final int end = _namespaceAttributesStack[--_namespaceAttributesStackIndex];
         final int start = (_namespaceAttributesStackIndex > 0) ? _namespaceAttributesStack[_namespaceAttributesStackIndex] : 0;
