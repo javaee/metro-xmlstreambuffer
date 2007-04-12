@@ -287,17 +287,19 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             // we need to declare in-scope namespaces as if they are on the root element.
         }
 
-        while (_treeCount-->0) {
+        while (_treeCount>0) {
             final int item = readEiiState();
             switch(item) {
                 case STATE_DOCUMENT:
                     processDocument();
+                    _treeCount--;
                     break;
                 case STATE_END:
                     // Empty buffer
                     return;
                 case STATE_ELEMENT_U_LN_QN:
                     processElement(readStructureString(), readStructureString(), readStructureString());
+                    _treeCount--;
                     break;
                 case STATE_ELEMENT_P_U_LN:
                 {
@@ -305,18 +307,21 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     processElement(uri, localName, getQName(prefix, localName));
+                    _treeCount--;
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     processElement(uri, localName, localName);
+                    _treeCount--;
                     break;
                 }
                 case STATE_ELEMENT_LN:
                 {
                     final String localName = readStructureString();
                     processElement("", localName, localName);
+                    _treeCount--;
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
