@@ -450,7 +450,7 @@
               </prename>
             </sequential>
           </macrodef>
-        <package-rename srcdir="src" destdir="j2se-integration/streambuffer/src" />
+        <package-rename srcdir="src" destdir="j2se-integration" />
   </target>
 
 </project>
