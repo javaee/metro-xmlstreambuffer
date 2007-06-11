@@ -191,23 +191,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 return _eventType = END_DOCUMENT;
         }
 
-        // Pop the stack of elements
-        // This is a post-processing operation
-        // The stack of the element should be poppoed after
-        // the END_ELEMENT event is returned so that the correct element name
-        // and namespace scope is returned
-        switch(_eventType) {
-            case END_ELEMENT:
-                if (_depth > 1) {
-                    _depth--;
-                    // _depth index is always set to the next free stack entry
-                    // to push
-                    popElementStack(_depth - 1);
-                } else if (_depth == 1) {
-                    _depth--;                    
-                }
-        }
-        
         _characters = null;
         _charSequence = null;
         while(true) {// loop only if we read STATE_DOCUMENT
@@ -291,9 +274,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 case STATE_END:
                     if (_depth > 1) {
                         // normal case
+                        popElementStack();
                         return _eventType = END_ELEMENT;
                     } else if (_depth == 1) {
                         // this is the last end element for the current tree.
+                        popElementStack();
                         if (_fragmentMode) {
                             if(--_treeCount==0) // is this the last tree in the forest?
                                 _completionState = PENDING_END_DOCUMENT;
@@ -818,16 +803,16 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _stackTop = _stack[_depth++];
     }
 
-    private void popElementStack(int depth) {
+    private void popElementStack() {
         // _depth is checked outside this method
-        _stackTop = _stack[depth];
+        _stackTop = _stack[--_depth];
         if (_stackTop.namespaceAIIsEnd > 0) {
             // Move back the position of the namespace index
             _namespaceAIIsStart = _stackTop.namespaceAIIsStart;
             _namespaceAIIsEnd = _stackTop.namespaceAIIsEnd;
         }
     }
-    
+
     private final class ElementStackEntry {
         /**
          * Prefix.
