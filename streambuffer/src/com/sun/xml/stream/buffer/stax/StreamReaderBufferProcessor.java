@@ -70,7 +70,6 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
      */
     protected String[] _namespaceAIIsPrefix = new String[CACHE_SIZE];
     protected String[] _namespaceAIIsNamespaceName = new String[CACHE_SIZE];
-    protected int _namespaceAIIsStart;
     protected int _namespaceAIIsEnd;
 
     // Internal namespace context implementation
@@ -139,7 +138,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         setBuffer(buffer,buffer.isFragment());
 
         _completionState = PARSING;
-        _namespaceAIIsStart = 0;
+        _namespaceAIIsEnd = 0;
         _characters = null;
         _charSequence = null;
         _eventType = START_DOCUMENT;
@@ -186,11 +185,28 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             case COMPLETED:
                 throw new XMLStreamException("Invalid State");
             case PENDING_END_DOCUMENT:
-                _namespaceAIIsStart = _namespaceAIIsEnd = 0;
+                _namespaceAIIsEnd = 0;
                 _completionState = COMPLETED;
                 return _eventType = END_DOCUMENT;
         }
 
+        // Pop the stack of elements
+        // This is a post-processing operation
+        // The stack of the element should be poppoed after
+        // the END_ELEMENT event is returned so that the correct element name
+        // and namespace scope is returned
+        switch(_eventType) {
+            case END_ELEMENT:
+                if (_depth > 1) {
+                    _depth--;
+                    // _depth index is always set to the next free stack entry
+                    // to push
+                    popElementStack(_depth);
+                } else if (_depth == 1) {
+                    _depth--;                    
+                }
+        }
+        
         _characters = null;
         _charSequence = null;
         while(true) {// loop only if we read STATE_DOCUMENT
@@ -274,11 +290,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 case STATE_END:
                     if (_depth > 1) {
                         // normal case
-                        popElementStack();
                         return _eventType = END_ELEMENT;
                     } else if (_depth == 1) {
                         // this is the last end element for the current tree.
-                        popElementStack();
                         if (_fragmentMode) {
                             if(--_treeCount==0) // is this the last tree in the forest?
                                 _completionState = PENDING_END_DOCUMENT;
@@ -287,7 +301,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     } else {
                         // this only happens when we are processing a full document
                         // and we hit the "end of document" marker
-                        _namespaceAIIsStart = _namespaceAIIsEnd = 0;
+                        _namespaceAIIsEnd = 0;
                         _completionState = COMPLETED;
                         return _eventType = END_DOCUMENT;
                     }
@@ -712,43 +726,43 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
     }
 
     private void resizeNamespaceAttributes() {
-        final String[] namespaceAIIsPrefix = new String[_namespaceAIIsStart * 2];
-        System.arraycopy(_namespaceAIIsPrefix, 0, namespaceAIIsPrefix, 0, _namespaceAIIsStart);
+        final String[] namespaceAIIsPrefix = new String[_namespaceAIIsEnd * 2];
+        System.arraycopy(_namespaceAIIsPrefix, 0, namespaceAIIsPrefix, 0, _namespaceAIIsEnd);
         _namespaceAIIsPrefix = namespaceAIIsPrefix;
 
-        final String[] namespaceAIIsNamespaceName = new String[_namespaceAIIsStart * 2];
-        System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsStart);
+        final String[] namespaceAIIsNamespaceName = new String[_namespaceAIIsEnd * 2];
+        System.arraycopy(_namespaceAIIsNamespaceName, 0, namespaceAIIsNamespaceName, 0, _namespaceAIIsEnd);
         _namespaceAIIsNamespaceName = namespaceAIIsNamespaceName;
     }
 
     private int processNamespaceAttributes(int item){
-        _stackTop.namespaceAIIsStart = _namespaceAIIsStart;
+        _stackTop.namespaceAIIsStart = _namespaceAIIsEnd;
 
         do {
-            if (_namespaceAIIsStart == _namespaceAIIsPrefix.length) {
+            if (_namespaceAIIsEnd == _namespaceAIIsPrefix.length) {
                 resizeNamespaceAttributes();
             }
 
             switch(_niiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
-                    _namespaceAIIsPrefix[_namespaceAIIsStart] =
-                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = "";
+                    _namespaceAIIsPrefix[_namespaceAIIsEnd] =
+                    _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = "";
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
-                    _namespaceAIIsPrefix[_namespaceAIIsStart] = readStructureString();
-                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = "";
+                    _namespaceAIIsPrefix[_namespaceAIIsEnd] = readStructureString();
+                    _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = "";
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
-                    _namespaceAIIsPrefix[_namespaceAIIsStart] = readStructureString();
-                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = readStructureString();
+                    _namespaceAIIsPrefix[_namespaceAIIsEnd] = readStructureString();
+                    _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = readStructureString();
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
-                    _namespaceAIIsPrefix[_namespaceAIIsStart] = "";
-                    _namespaceAIIsNamespaceName[_namespaceAIIsStart++] = readStructureString();
+                    _namespaceAIIsPrefix[_namespaceAIIsEnd] = "";
+                    _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = readStructureString();
                     break;
             }
             readStructure();
@@ -756,7 +770,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             item = peekStructure();
         } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
 
-        _stackTop.namespaceAIIsEnd = _namespaceAIIsEnd = _namespaceAIIsStart;
+        _stackTop.namespaceAIIsEnd = _namespaceAIIsEnd;
 
         return item;
     }
@@ -803,16 +817,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _stackTop = _stack[_depth++];
     }
 
-    private void popElementStack() {
+    private void popElementStack(int depth) {
         // _depth is checked outside this method
-        _stackTop = _stack[--_depth];
-        if (_stackTop.namespaceAIIsEnd > 0) {
-            // Move back the position of the namespace index
-            _namespaceAIIsStart = _stackTop.namespaceAIIsStart;
-            _namespaceAIIsEnd = _stackTop.namespaceAIIsEnd;
-        }
+        _stackTop = _stack[depth - 1];
+        // Move back the position of the namespace index
+        _namespaceAIIsEnd = _stack[depth].namespaceAIIsStart;
     }
-
+    
     private final class ElementStackEntry {
         /**
          * Prefix.
@@ -838,7 +849,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
             this.localName = localName;
             this.qname = null;
 
-            this.namespaceAIIsStart = this.namespaceAIIsEnd = 0;
+            this.namespaceAIIsStart = this.namespaceAIIsEnd = StreamReaderBufferProcessor.this._namespaceAIIsEnd;
         }
 
         public QName getQName() {
@@ -1054,7 +1065,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         public String getSystemId() {
             return _buffer.getSystemId();
         }
-    };
+    }
     
     private static String fixEmptyString(String s) {
         // s must not be null, so no need to check for that. that would be bug.
