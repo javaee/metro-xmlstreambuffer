@@ -44,7 +44,7 @@ public class OverrideNamespaceTest extends TestCase {
     }
 
     public void testOverrideNamespace1() throws Exception {
-        Map<String, String> ns = new LinkedHashMap();
+        Map<String, String> ns = new LinkedHashMap<String, String>();
         ns.put("definitions", "http://wsdl");
         ns.put("types", "http://types");
         ns.put("binding", "http://wsdl");
@@ -60,7 +60,7 @@ public class OverrideNamespaceTest extends TestCase {
         while(xsbrdr.hasNext()) {
             int event = xsbrdr.next();
             if (event == XMLStreamReader.START_ELEMENT) {
-		assertEquals("Wrong Start of Element", nsItr.next(), xsbrdr.getLocalName());
+		        assertEquals("Wrong Start of Element", nsItr.next(), xsbrdr.getLocalName());
                 assertEquals("Start of Element " + xsbrdr.getName() + " has wrong namespace", 
                         ns.get(xsbrdr.getLocalName()), xsbrdr.getNamespaceURI("tns"));
             } else if (event == XMLStreamReader.END_ELEMENT) {
@@ -68,5 +68,83 @@ public class OverrideNamespaceTest extends TestCase {
                         ns.get(xsbrdr.getLocalName()), xsbrdr.getNamespaceURI("tns"));
             }
         }
+    }
+
+    public void testNamespaceScope1() throws Exception {
+        String str = "<html:html xmlns:html='http://www.w3.org/1999/xhtml'>" +
+                "<html:head><html:title>Frobnostication</html:title></html:head>" +
+                "<html:body>" +
+                "<html:p><html:a href='http://frob.example.com'>here.</html:a></html:p>" +
+                "</html:body>" +
+                "</html:html>";
+
+        useReaderForTesting(str, "html");
+    }
+
+    public void testNamespaceScope2() throws Exception {
+        String str =
+            "<book xmlns='urn:loc.gov:books' xmlns:isbn='urn:ISBN:0-395-36341-6'>"+
+            "<title>Cheaper by the Dozen</title>"+
+            "<isbn:number>1568491379</isbn:number>"+
+            "<notes>"+
+              "<!-- make HTML the default namespace for some commentary -->"+
+              "<p xmlns='http://www.w3.org/1999/xhtml'>"+
+                  "This is a <i>funny</i> book!"+
+              "</p>"+
+            "</notes>"+
+            "</book>";
+
+        useReaderForTesting(str, "", "isbn");
+    }
+
+    public void testNamespaceScope3() throws Exception {
+        String str =
+            "<Beers>"+
+              "<!-- the default namespace inside tables is that of HTML -->"+
+              "<table xmlns='http://www.w3.org/1999/xhtml'>"+
+               "<th><td>Name</td><td>Origin</td><td>Description</td></th>"+
+               "<tr>"+
+                 "<!-- no default namespace inside table cells -->"+
+                 "<td><brandName xmlns=''>Huntsman</brandName></td>"+
+                 "<td><origin xmlns=''>Bath, UK</origin></td>"+
+                 "<td>"+
+                   "<details xmlns=''><class>Bitter</class><hop>Fuggles</hop>"+
+                     "<pro>Wonderful hop, light alcohol, good summer beer</pro>"+
+                     "<con>Fragile; excessive variance pub to pub</con>"+
+                     "</details>"+
+                    "</td>"+
+                  "</tr>"+
+                "</table>"+
+              "</Beers>";
+
+        useReaderForTesting(str, "");
+    }
+
+
+    private void useReaderForTesting(String str, String ... prefixes) throws Exception {
+
+        XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
+        XMLStreamBuffer xsb = XMLStreamBuffer.createNewBufferFromXMLStreamReader(rdr);
+        XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
+        rdr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
+
+        while(rdr.hasNext()) {
+            assertTrue(xsbrdr.hasNext());
+            int expected = rdr.next();
+            int actual = xsbrdr.next();
+            assertEquals(expected, actual);
+            if (expected == XMLStreamReader.START_ELEMENT || expected == XMLStreamReader.END_ELEMENT) {
+                assertEquals(rdr.getName(), xsbrdr.getName());
+                for(String prefix : prefixes) {
+                    //System.out.println("|"+rdr.getNamespaceURI(prefix)+"|"+xsbrdr.getNamespaceURI(prefix)+"|");
+                    assertEquals(fixNull(rdr.getNamespaceURI(prefix)), fixNull(xsbrdr.getNamespaceURI(prefix)));
+                }
+            }
+        }
+    }
+
+    private static String fixNull(String s) {
+        if (s == null) return "";
+        else return s;
     }
 }
