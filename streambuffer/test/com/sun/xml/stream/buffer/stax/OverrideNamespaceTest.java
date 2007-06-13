@@ -120,6 +120,23 @@ public class OverrideNamespaceTest extends TestCase {
         useReaderForTesting(str, "");
     }
 
+    public void testNamespaceScope4() throws Exception {
+        String str =
+            "<Beers>"+
+              "<table xmlns:A='A' xmlns:B='B' xmlns='http://www.w3.org/1999/xhtml'>"+
+               "<th xmlns:A='A1' xmlns:P='P' xmlns:Q='Q'></th>"+
+               "<tr>"+
+                 "<td><brandName xmlns:P='P1' xmlns:R='R'>Huntsman</brandName></td>"+
+                 "<td><origin xmlns:R='R1'>Bath, UK</origin></td>"+
+                 "<td/>"+
+               "</tr>"+
+               "<th xmlns:B='B1' xmlns:P='P2' xmlns:Q='Q1'></th>"+
+              "</table>"+
+            "</Beers>";
+
+        useReaderForTesting(str, "", "A", "B", "P", "Q", "R");
+    }
+
 
     private void useReaderForTesting(String str, String ... prefixes) throws Exception {
 
