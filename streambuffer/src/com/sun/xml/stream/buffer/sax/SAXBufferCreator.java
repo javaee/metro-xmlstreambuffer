@@ -153,7 +153,7 @@ public class SAXBufferCreator extends AbstractCreator
         _namespaceAttributes[_namespaceAttributesPtr++] = uri;
         
         if (_namespaceAttributesPtr == _namespaceAttributes.length) {
-            final String[] namespaceAttributes = new String[_namespaceAttributesPtr * 3 / 2 + 1];
+            final String[] namespaceAttributes = new String[_namespaceAttributesPtr * 2];
             System.arraycopy(_namespaceAttributes, 0, namespaceAttributes, 0, _namespaceAttributesPtr);
             _namespaceAttributes = namespaceAttributes;
         }
