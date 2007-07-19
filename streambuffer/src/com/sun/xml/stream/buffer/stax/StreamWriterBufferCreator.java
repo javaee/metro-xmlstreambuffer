@@ -29,6 +29,8 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.IOException;
 
 /**
  * {@link XMLStreamWriter} that fills {@link MutableXMLStreamBuffer}.
@@ -253,8 +255,16 @@ public class StreamWriterBufferCreator extends StreamBufferCreator implements XM
     }
 
     public void writeBinary(DataHandler dataHandler) throws XMLStreamException {
+        // TODO need to fix inefficiency of copy rather directly using DataHandler
+        // copy because JAXB is passing the same DataHandler
         Base64Data d = new Base64Data();
-        d.set(dataHandler);
+        ByteArrayBuffer buf = new ByteArrayBuffer();
+        try {
+            buf.write(dataHandler.getInputStream());
+        } catch (IOException e) {
+            throw new XMLStreamException(e);
+        }
+        d.set(buf.buf,buf.size(), dataHandler.getContentType(), true);
         storeStructure(T_TEXT_AS_OBJECT);
         storeContentObject(d);
     }
