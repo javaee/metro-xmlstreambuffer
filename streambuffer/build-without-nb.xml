@@ -422,9 +422,6 @@
 
 
  <target name="j2se-integration">
-        <get src="http://kohsuke.sfbay/hudson/job/package-rename-task/lastSuccessfulBuild/artifact/target/package-rename-task-1.0.jar"
-         dest="lib/package-rename-task.jar"/>
-
         <!-- package rename task -->
           <taskdef name="prename" classname="com.sun.wts.tools.ant.PackageRenameTask">
             <classpath>
