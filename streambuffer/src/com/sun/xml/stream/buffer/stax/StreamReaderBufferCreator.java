@@ -308,10 +308,27 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         }
     }
 
+    /**
+     * @param ns an array of the even length of the form { prefix0, uri0, prefix1, uri1, ... }.
+     */
+    public void storeElement(String nsURI, String localName, String prefix, String[] ns) {
+        storeQualifiedName(T_ELEMENT_LN, prefix, nsURI, localName);
+        storeNamespaceAttributes(ns);
+    }
+
     private void storeNamespaceAttributes(XMLStreamReader reader) {
         int count = reader.getNamespaceCount();
         for (int i = 0; i < count; i++) {
             storeNamespaceAttribute(reader.getNamespacePrefix(i), reader.getNamespaceURI(i));
+        }
+    }
+
+    /**
+     * @param ns an array of the even length of the form { prefix0, uri0, prefix1, uri1, ... }.
+     */
+    private void storeNamespaceAttributes(String[] ns) {
+        for (int i = 0; i < ns.length; i=i+2) {
+            storeNamespaceAttribute(ns[i], ns[i+1]);
         }
     }
 
