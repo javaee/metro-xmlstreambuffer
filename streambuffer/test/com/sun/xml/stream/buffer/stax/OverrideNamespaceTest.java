@@ -1,15 +1,21 @@
 package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
+
 import java.io.StringReader;
 import java.util.*;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+
 import junit.framework.*;
 
 /**
  *
  * @author Paul.Sandoz@Sun.Com
+ * @author Jitendra.Kotamraju@Sun.Com
  */
 public class OverrideNamespaceTest extends TestCase {
     
@@ -137,6 +143,44 @@ public class OverrideNamespaceTest extends TestCase {
         useReaderForTesting(str, "", "A", "B", "P", "Q", "R");
     }
 
+    public void testInscopeNamespaces() throws Exception {
+        String str =
+            "<S:Envelope xmlns:S='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ns4='A'>" +
+              "<S:Body xmlns:ns4='http://schemas.xmlsoap.org/soap/envelope/'>" +
+                "<S:Fault>" +
+                  "<faultcode>ns4:Server</faultcode>" +
+                  "<faultstring>com.sun.istack.XMLStreamException2</faultstring>" +
+                "</S:Fault>" +
+              "</S:Body>" +
+            "</S:Envelope>";
+
+        XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
+        rdr.nextTag();
+        rdr.nextTag();
+        rdr.nextTag();
+        
+        MutableXMLStreamBuffer xsb = new MutableXMLStreamBuffer();
+        StreamReaderBufferCreator c = new StreamReaderBufferCreator(xsb);
+
+        // preserving inscope namespaces from envelope, and body.
+        String[] envNs = new String[] { "S", "http://schemas.xmlsoap.org/soap/envelope/", "ns4", "A" };
+        c.storeElement("http://schemas.xmlsoap.org/soap/envelope/", "Envelope", "S", envNs);
+        String[] bodyNs = new String[] { "ns4", "http://schemas.xmlsoap.org/soap/envelope/" };
+        c.storeElement("http://schemas.xmlsoap.org/soap/envelope/", "Body", "S", bodyNs);
+        // Loop all the way for multi payload case
+        while(rdr.getEventType() != XMLStreamConstants.END_DOCUMENT){
+            String name = rdr.getLocalName();
+            if (name.equals("Body")) {
+                break;
+            }
+            c.create(rdr);
+        }
+
+        XMLStreamReader rdr1 = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
+        XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
+
+        compareReaders(rdr1, xsbrdr, "S", "ns4");
+    }
 
     private void useReaderForTesting(String str, String ... prefixes) throws Exception {
 
@@ -145,6 +189,10 @@ public class OverrideNamespaceTest extends TestCase {
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
         rdr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
 
+        compareReaders(rdr, xsbrdr, prefixes);
+    }
+
+    private void compareReaders(XMLStreamReader rdr, XMLStreamReader xsbrdr, String... prefixes) throws XMLStreamException {
         while(rdr.hasNext()) {
             assertTrue(xsbrdr.hasNext());
             int expected = rdr.next();
