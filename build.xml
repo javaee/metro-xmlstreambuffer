@@ -66,8 +66,8 @@
     <target name="package" depends="source-package, dist-package">
     </target>
     
-    <target name="push-to-maven-prepare" depends="package"
-        description="prepare a repository iamge for the push-to-maven target">
+    <target name="push-to-maven-prepare" 
+        description="prepare a repository iamge for the push-to-maven target. Run after package">
         <taskdef resource="maven-repository-importer.properties">
             <classpath>
                 <pathelement path="tools/lib/maven-repository-importer.jar" />
