@@ -2,13 +2,18 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
+import com.sun.xml.stream.buffer.XMLStreamBufferResult;
 
 import java.io.StringReader;
+import java.io.FileInputStream;
 import java.util.*;
+import java.net.URL;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.TransformerFactory;
 
 import junit.framework.*;
 
@@ -180,6 +185,25 @@ public class OverrideNamespaceTest extends TestCase {
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
 
         compareReaders(rdr1, xsbrdr, "S", "ns4");
+    }
+
+    public void testWSDLNamespaces() throws Exception {
+        URL wsdl = this.getClass().getClassLoader().getResource("./data/header.wsdl");
+        System.out.println("WSDL="+wsdl);
+        StreamSource source = new StreamSource(wsdl.openStream());
+        XMLStreamBufferResult xsbr = new XMLStreamBufferResult();
+        TransformerFactory.newInstance().newTransformer().transform(source, xsbr);
+        XMLStreamBuffer xsb = xsbr.getXMLStreamBuffer();
+
+        //XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
+        XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
+        while(xsbrdr.hasNext()) {
+            int expected = xsbrdr.next();
+            if (expected == XMLStreamReader.START_ELEMENT || expected == XMLStreamReader.END_ELEMENT) {
+                System.out.println(xsbrdr.getName());
+            }
+        }
+        //compareReaders(rdr, xsbrdr, "wsdl", "soap", "xsd");
     }
 
     private void useReaderForTesting(String str, String ... prefixes) throws Exception {
