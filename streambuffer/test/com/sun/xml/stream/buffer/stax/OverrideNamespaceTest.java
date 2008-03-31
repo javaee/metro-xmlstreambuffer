@@ -14,8 +14,12 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.parsers.SAXParserFactory;
 
 import junit.framework.*;
+import org.xml.sax.XMLReader;
 
 /**
  *
@@ -188,11 +192,17 @@ public class OverrideNamespaceTest extends TestCase {
     }
 
     public void testWSDLNamespaces() throws Exception {
-        URL wsdl = this.getClass().getClassLoader().getResource("./data/header.wsdl");
+        URL wsdl = this.getClass().getClassLoader().getResource("data/header.wsdl");
         System.out.println("WSDL="+wsdl);
-        StreamSource source = new StreamSource(wsdl.openStream());
         XMLStreamBufferResult xsbr = new XMLStreamBufferResult();
-        TransformerFactory.newInstance().newTransformer().transform(source, xsbr);
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        spf.setNamespaceAware(true);
+        XMLReader xmlReader = spf.newSAXParser().getXMLReader();
+        TransformerHandler transformerHandler = ((SAXTransformerFactory) TransformerFactory.newInstance()).newTransformerHandler();
+        transformerHandler.setResult(xsbr);
+        xmlReader.setContentHandler(transformerHandler);
+        xmlReader.parse(wsdl.toExternalForm());
+
         XMLStreamBuffer xsb = xsbr.getXMLStreamBuffer();
 
         //XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
