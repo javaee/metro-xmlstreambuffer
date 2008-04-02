@@ -205,16 +205,25 @@ public class OverrideNamespaceTest extends TestCase {
 
         XMLStreamBuffer xsb = xsbr.getXMLStreamBuffer();
 
-        //XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
+        XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
-        while(xsbrdr.hasNext()) {
-            int expected = xsbrdr.next();
-            if (expected == XMLStreamReader.START_ELEMENT || expected == XMLStreamReader.END_ELEMENT) {
-                System.out.println(xsbrdr.getName());
-            }
-        }
-        //compareReaders(rdr, xsbrdr, "wsdl", "soap", "xsd");
+        compareReaderQNames(rdr, xsbrdr, "wsdl", "soap", "xsd");
     }
+
+    // FAILS on JDK 1.6.0_04(possibly on all JDK6) but passes on JDK5
+    public void testWSDLNamespaces2() throws Exception {
+        URL wsdl = this.getClass().getClassLoader().getResource("data/header.wsdl");
+        System.out.println("WSDL="+wsdl);
+        StreamSource source = new StreamSource(wsdl.openStream());
+        XMLStreamBufferResult xsbr = new XMLStreamBufferResult();
+        TransformerFactory.newInstance().newTransformer().transform(source, xsbr);
+        XMLStreamBuffer xsb = xsbr.getXMLStreamBuffer();
+
+        XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
+        XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
+        compareReaderQNames(rdr, xsbrdr, "wsdl", "soap", "xsd");
+    }
+
 
     private void useReaderForTesting(String str, String ... prefixes) throws Exception {
 
@@ -224,6 +233,31 @@ public class OverrideNamespaceTest extends TestCase {
         rdr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
 
         compareReaders(rdr, xsbrdr, prefixes);
+    }
+
+    private void compareReaderQNames(XMLStreamReader rdr, XMLStreamReader xsbrdr, String... prefixes) throws XMLStreamException {
+        while(true) {
+            while(rdr.hasNext()) {
+                int event = rdr.next();
+                if (event == XMLStreamReader.START_ELEMENT || event == XMLStreamReader.END_ELEMENT) {
+                    break;
+                }
+            }
+            while(xsbrdr.hasNext()) {
+                int event = xsbrdr.next();
+                if (event == XMLStreamReader.START_ELEMENT || event == XMLStreamReader.END_ELEMENT) {
+                    break;
+                }
+            }
+            if (!rdr.hasNext()) {
+                assertTrue(!xsbrdr.hasNext());
+                break;
+            }
+            assertEquals(rdr.getName(), xsbrdr.getName());
+            for(String prefix : prefixes) {
+                assertEquals(fixNull(rdr.getNamespaceURI(prefix)), fixNull(xsbrdr.getNamespaceURI(prefix)));
+            }
+        }
     }
 
     private void compareReaders(XMLStreamReader rdr, XMLStreamReader xsbrdr, String... prefixes) throws XMLStreamException {
