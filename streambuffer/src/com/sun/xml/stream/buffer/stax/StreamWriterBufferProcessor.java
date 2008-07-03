@@ -22,6 +22,7 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+import java.util.Map;
 import org.jvnet.staxex.XMLStreamWriterEx;
 
 import javax.xml.stream.XMLStreamException;
@@ -91,6 +92,8 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     /**
      * Writes a full XML infoset event to the given writer,
      * including start/end document.
+     * Any inscope namespaces present will be written as namespace
+     * delcarations on each top-level element.
      */
     public void write(XMLStreamWriter writer) throws XMLStreamException{
 
@@ -99,9 +102,6 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                 throw new IllegalStateException("forest cannot be written as a full infoset");
             writer.writeStartDocument();
         }
-
-        // TODO: if we are writing a fragment XMLStreamBuffer as a full document,
-        // we need to put in-scope namespaces as top-level ns decls.
 
         while(true) {
             int item = _eiiStateTable[peekStructure()];
@@ -157,7 +157,8 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     /**
      * Writes the buffer as a fragment, meaning
      * the writer will not receive start/endDocument events.
-     *
+     * Any inscope namespaces present will be written as namespace
+     * delcarations on each top-level element.
      * <p>
      * If {@link XMLStreamBuffer} has a forest, this method will write all the forests.
      */
@@ -189,6 +190,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -198,6 +200,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -206,6 +209,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -213,6 +217,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -297,6 +302,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -306,6 +312,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -314,6 +321,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -321,6 +329,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
                     break;
                 }
@@ -396,6 +405,12 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             writeAttributes(item, writer);
         }        
+    }
+    
+    private void writeInscopeNamespaces(XMLStreamWriter writer) throws XMLStreamException {
+        for (Map.Entry<String, String> e : _buffer.getInscopeNamespaces().entrySet()) {
+            writer.writeNamespace(e.getKey(), e.getValue());
+        }
     }
     
     private int writeNamespaceAttributes(int item, XMLStreamWriter writer) throws XMLStreamException {
