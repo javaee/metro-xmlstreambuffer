@@ -592,9 +592,9 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         }
 
         try {
-            sourceStart += _textOffset;
             int remaining = _textLen - sourceStart;
             int len = remaining > length ? length : remaining;
+            sourceStart += _textOffset;
             System.arraycopy(_characters, sourceStart, target, targetStart, len);
             return len;
         } catch (IndexOutOfBoundsException e) {
