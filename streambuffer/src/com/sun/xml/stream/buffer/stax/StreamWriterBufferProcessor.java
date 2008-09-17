@@ -190,8 +190,8 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_ELEMENT_P_U_LN: {
@@ -200,8 +200,8 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
@@ -209,16 +209,16 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_SMALL: {
@@ -302,8 +302,8 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_ELEMENT_P_U_LN: {
@@ -312,8 +312,8 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
@@ -321,16 +321,16 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
-                    if (depth == 1) writeInscopeNamespaces(writer);
                     writeAttributes(writer);
+                    if (depth == 1) writeInscopeNamespaces(writer);
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_SMALL: {
@@ -406,10 +406,20 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             writeAttributes(item, writer);
         }        
     }
+
+    private static String fixNull(String s) {
+        if (s == null) return "";
+        else return s;
+    }
     
     private void writeInscopeNamespaces(XMLStreamWriter writer) throws XMLStreamException {
+
         for (Map.Entry<String, String> e : _buffer.getInscopeNamespaces().entrySet()) {
-            writer.writeNamespace(e.getKey(), e.getValue());
+            String key = fixNull(e.getKey());
+            String ns = writer.getNamespaceContext().getNamespaceURI(key);
+            if (ns == null || ns.equals("")) {
+                writer.writeNamespace(key, e.getValue());
+            }
         }
     }
     
