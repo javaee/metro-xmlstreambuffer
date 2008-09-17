@@ -97,6 +97,7 @@
 
     <path id="test.class.path">
         <path refid="compile.class.path"/>
+        <pathelement location="${woodstox.jar}"/>
         <pathelement location="${sjsxp.jar}"/>
         <pathelement location="test" />
         <pathelement location="${dist.dir}/${app.jar}"/>
