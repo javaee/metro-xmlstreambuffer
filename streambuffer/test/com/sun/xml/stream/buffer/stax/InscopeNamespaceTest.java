@@ -36,7 +36,7 @@ public class InscopeNamespaceTest extends TestCase {
                 "</S:Header>";
         XMLStreamReader reader2 = getReader(requestStr);
         reader2.next();// go to start element
-        assertEquals(reader2.getNamespaceURI(),"http://foo.bar");
+        assertEquals("http://foo.bar", reader2.getNamespaceURI());
     }
 
     /**
@@ -50,7 +50,7 @@ public class InscopeNamespaceTest extends TestCase {
                 "</S:Header>";
         XMLStreamReader reader2 = getReader(requestStr);
         reader2.next();// go to start element
-        assertEquals(reader2.getNamespaceURI(),"http://foo.bar");
+        assertEquals("http://foo.bar", reader2.getNamespaceURI());
     }
 
     /**
@@ -65,7 +65,7 @@ public class InscopeNamespaceTest extends TestCase {
                 "</S:Header>";
         XMLStreamReader reader2 = getReader(requestStr);
         reader2.next();// go to start element
-        assertEquals(reader2.getNamespaceURI(),"http://foo1.bar1");
+        assertEquals("http://foo1.bar1", reader2.getNamespaceURI());
     }
 
     public void testXMLStreamBuffer3() throws Exception {
@@ -75,7 +75,7 @@ public class InscopeNamespaceTest extends TestCase {
                 "<Header>";
         XMLStreamReader reader2 = getReader(requestStr);
         reader2.next();// go to start element
-        assertEquals(reader2.getNamespaceURI(),"http://foo.bar");
+        assertEquals("http://foo.bar", reader2.getNamespaceURI());
     }
 
     public void testXMLStreamBuffer4() throws Exception {
@@ -85,7 +85,18 @@ public class InscopeNamespaceTest extends TestCase {
                 "<Header>";
         XMLStreamReader reader2 = getReader(requestStr);
         reader2.next();// go to start element
-        assertEquals(reader2.getNamespaceURI(),"http://foo1.bar1");
+        assertEquals("http://foo1.bar1", reader2.getNamespaceURI());
+    }
+
+    public void testXMLStreamBuffer5() throws Exception {
+    	String requestStr =
+                "<S:Header  xmlns:user1='http://foo1.bar1' xmlns:user='http://foo.bar' xmlns:S='http://schemas.xmlsoap.org/soap/envelope/'>" +
+                "<user:foo user1:att='value'>bar</user:foo>" +
+                "</S:Header>";
+        XMLStreamReader reader2 = getReader(requestStr);
+        reader2.next();// go to start element
+        assertEquals("http://foo.bar", reader2.getNamespaceURI());
+        assertEquals("value", reader2.getAttributeValue("http://foo1.bar1","att"));
     }
 
     // returned reader is placed at the first child
