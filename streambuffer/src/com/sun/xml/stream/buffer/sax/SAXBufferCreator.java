@@ -177,6 +177,10 @@ public class SAXBufferCreator extends AbstractCreator
     
     private void storeAttributes(Attributes attributes) {
         for (int i = 0; i < attributes.getLength(); i++) {
+            // Skip NS attributes. Some versions of JDK seem to send wrong local name
+            // Also it is not stored correctly by the following.
+            if (attributes.getQName(i).startsWith("xmlns"))
+                continue;
             storeQualifiedName(T_ATTRIBUTE_LN,
                     attributes.getURI(i),
                     attributes.getLocalName(i),
