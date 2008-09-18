@@ -798,6 +798,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     _attributeCache.addAttributeWithPrefix("", "", readStructureString(), readStructureString(), readContentString());
                     break;
                 }
+                default :
+                    assert false : "Internal XSB Error: wrong attribute state, Item="+item;
             }
             readStructure();
 
