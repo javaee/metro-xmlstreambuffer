@@ -221,7 +221,7 @@ public class OverrideNamespaceTest extends TestCase {
 
         XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
-        compareReaderQNames(rdr, xsbrdr, "wsdl", "soap", "xsd");
+        compareReaderQNames(rdr, xsbrdr, "a", "wsdl", "soap", "xsd");
     }
 
 

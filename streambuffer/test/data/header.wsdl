@@ -13,6 +13,8 @@
                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                     attributeFormDefault="qualified"
                     elementFormDefault="qualified"
+                    xmlns:a="anamespace"
+                    a:b="bvalue"
                     xmlns:types="http://example.com/types">
 
             <xsd:element name="echo" type="types:echoType"/>
