@@ -210,7 +210,8 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _characters = null;
         _charSequence = null;
         while(true) {// loop only if we read STATE_DOCUMENT
-            switch(readEiiState()) {
+            int eiiState = readEiiState();
+            switch(eiiState) {
                 case STATE_DOCUMENT:
                     // we'll always produce a full document, and we've already report START_DOCUMENT event.
                     // so simply skil this
@@ -306,7 +307,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                         return _eventType = END_DOCUMENT;
                     }
                 default:
-                    throw new XMLStreamException("Invalid State");
+                    throw new XMLStreamException("Internal XSB error: Invalid State="+eiiState);
             }
             // this should be unreachable
         }
