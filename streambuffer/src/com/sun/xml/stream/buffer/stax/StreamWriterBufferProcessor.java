@@ -22,7 +22,12 @@ package com.sun.xml.stream.buffer.stax;
 
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
 import org.jvnet.staxex.XMLStreamWriterEx;
 
 import javax.xml.stream.XMLStreamException;
@@ -190,8 +195,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_ELEMENT_P_U_LN: {
@@ -200,8 +204,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
@@ -209,16 +212,14 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_SMALL: {
@@ -302,8 +303,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
                     writer.writeStartElement(prefix,localName,uri);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_ELEMENT_P_U_LN: {
@@ -312,8 +312,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement(prefix,localName,uri);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
@@ -321,16 +320,14 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
                     writer.writeStartElement("",localName,uri);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     depth ++;
                     final String localName = readStructureString();
                     writer.writeStartElement(localName);
-                    writeAttributes(writer);
-                    if (depth == 1) writeInscopeNamespaces(writer);
+                    writeAttributes(writer, isInscope(depth));
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_SMALL: {
@@ -394,54 +391,82 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         } while(depth > 0 && _treeCount>0);
         
     }
-    
-    private void writeAttributes(XMLStreamWriter writer) throws XMLStreamException {
+
+    private boolean isInscope(int depth) {
+        return _buffer.getInscopeNamespaces().size() > 0 && depth ==1;
+    }
+
+    /*
+     * @param inscope: true means write inscope namespaces
+     */
+    private void writeAttributes(XMLStreamWriter writer, boolean inscope) throws XMLStreamException {
+        // prefixSet to collect prefixes that are written before writing inscope namespaces
+        Set<String> prefixSet = inscope ? new HashSet<String>() : Collections.<String>emptySet();
         int item = peekStructure();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             // Skip the namespace declarations on the element
             // they will have been added already
-            item = writeNamespaceAttributes(item, writer);
+            item = writeNamespaceAttributes(item, writer, inscope, prefixSet);
         }
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             writeAttributes(item, writer);
-        }        
+        }
+        if (inscope) {
+            writeInscopeNamespaces(writer, prefixSet);
+        }
     }
 
     private static String fixNull(String s) {
         if (s == null) return "";
         else return s;
     }
-    
-    private void writeInscopeNamespaces(XMLStreamWriter writer) throws XMLStreamException {
 
+    /*
+     * @param prefixSet: already written prefixes
+     */
+    private void writeInscopeNamespaces(XMLStreamWriter writer, Set<String> prefixSet) throws XMLStreamException {
         for (Map.Entry<String, String> e : _buffer.getInscopeNamespaces().entrySet()) {
             String key = fixNull(e.getKey());
-            String ns = writer.getNamespaceContext().getNamespaceURI(key);
-            if (ns == null || ns.equals("")) {
+            // If the prefix is already written, do not write the prefix
+            if (!prefixSet.contains(key)) {
                 writer.writeNamespace(key, e.getValue());
             }
         }
     }
     
-    private int writeNamespaceAttributes(int item, XMLStreamWriter writer) throws XMLStreamException {
+    private int writeNamespaceAttributes(int item, XMLStreamWriter writer, boolean collectPrefixes, Set<String> prefixSet) throws XMLStreamException {
         do {
             switch(_niiStateTable[item]){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     writer.writeDefaultNamespace("");
+                    if (collectPrefixes) {
+                        prefixSet.add("");
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
                     // Declaration with prefix
-                    writer.writeNamespace(readStructureString(), "");
+                    String prefix = readStructureString();
+                    writer.writeNamespace(prefix, "");
+                    if (collectPrefixes) {
+                        prefixSet.add(prefix);
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
-                    writer.writeNamespace(readStructureString(), readStructureString());
+                    prefix = readStructureString();
+                    writer.writeNamespace(prefix, readStructureString());
+                    if (collectPrefixes) {
+                        prefixSet.add(prefix);
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
                     writer.writeDefaultNamespace(readStructureString());
+                    if (collectPrefixes) {
+                        prefixSet.add("");
+                    }
                     break;                
             }
             readStructure();

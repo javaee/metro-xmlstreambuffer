@@ -99,6 +99,26 @@ public class InscopeNamespaceTest extends TestCase {
         assertEquals("value", reader2.getAttributeValue("http://foo1.bar1","att"));
     }
 
+    public void testXMLStreamBuffer6() throws Exception {
+    	String requestStr =
+                "<Header xmlns='http://foo.bar' >" +
+                "<user xmlns=''>bar</user>" +
+                "<Header>";
+        XMLStreamReader reader2 = getReader(requestStr);
+        reader2.next();// go to start element
+        assertNull(reader2.getNamespaceURI());
+    }
+
+    public void testXMLStreamBuffer7() throws Exception {
+    	String requestStr =
+                "<Header xmlns='' >" +
+                "<user xmlns='http://foo.bar'>bar</user>" +
+                "<Header>";
+        XMLStreamReader reader2 = getReader(requestStr);
+        reader2.next();// go to start element
+        assertEquals("http://foo.bar", reader2.getNamespaceURI());
+    }
+
     // returned reader is placed at the first child
     private XMLStreamReader getReader(String requestStr) throws Exception {
         XMLStreamReader reader = createXMLStreamReader(new ByteArrayInputStream(requestStr.getBytes()));
