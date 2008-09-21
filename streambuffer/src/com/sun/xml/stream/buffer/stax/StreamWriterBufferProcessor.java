@@ -408,11 +408,11 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
             // they will have been added already
             item = writeNamespaceAttributes(item, writer, inscope, prefixSet);
         }
-        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
-            writeAttributes(item, writer);
-        }
         if (inscope) {
             writeInscopeNamespaces(writer, prefixSet);
+        }
+        if ((item & TYPE_MASK) == T_ATTRIBUTE) {
+            writeAttributes(item, writer);
         }
     }
 
