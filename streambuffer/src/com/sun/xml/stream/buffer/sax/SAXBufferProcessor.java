@@ -546,7 +546,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     private int processNamespaceAttributes(int item) throws SAXException {
         do {
-            switch(_niiStateTable[item]) {
+            switch(getNIIState(item)) {
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     processNamespaceAttribute("", "");
@@ -579,7 +579,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     private void processAttributes(int item) throws SAXException {
         do {
-            switch(_aiiStateTable[item]) {
+            switch(getAIIState(item)) {
                 case STATE_ATTRIBUTE_U_LN_QN:
                     _attributes.addAttributeWithQName(readStructureString(), readStructureString(), readStructureString(), readStructureString(), readContentString());
                     break;

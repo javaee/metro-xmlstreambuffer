@@ -746,7 +746,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 resizeNamespaceAttributes();
             }
 
-            switch(_niiStateTable[item]){
+            switch(getNIIState(item)){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     _namespaceAIIsPrefix[_namespaceAIIsEnd] =
@@ -780,7 +780,7 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
 
     private void processAttributes(int item){
         do {
-            switch(_aiiStateTable[item]){
+            switch(getAIIState(item)){
                 case STATE_ATTRIBUTE_U_LN_QN: {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
