@@ -109,7 +109,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
         }
 
         while(true) {
-            int item = _eiiStateTable[peekStructure()];
+            int item = getEIIState(peekStructure());
             writer.flush();
             
             switch(item) {
@@ -178,7 +178,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void writeFragmentEx(XMLStreamWriterEx writer) throws XMLStreamException {
         int depth = 0;  // used to determine when we are done with a tree.
 
-        int item = _eiiStateTable[peekStructure()];
+        int item = getEIIState(peekStructure());
         if(item==STATE_DOCUMENT)
             readStructure();    // skip STATE_DOCUMENT
 
@@ -287,7 +287,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     public void writeFragmentNoEx(XMLStreamWriter writer) throws XMLStreamException {
         int depth = 0;
 
-        int item = _eiiStateTable[peekStructure()];
+        int item = getEIIState(peekStructure());
         if(item==STATE_DOCUMENT)
             readStructure();    // skip STATE_DOCUMENT
 
@@ -436,7 +436,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     
     private int writeNamespaceAttributes(int item, XMLStreamWriter writer, boolean collectPrefixes, Set<String> prefixSet) throws XMLStreamException {
         do {
-            switch(_niiStateTable[item]){
+            switch(getNIIState(item)){
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     writer.writeDefaultNamespace("");
@@ -479,7 +479,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
     
     private void writeAttributes(int item, XMLStreamWriter writer) throws XMLStreamException {
         do {
-            switch(_aiiStateTable[item]) {
+            switch(getAIIState(item)) {
                 case STATE_ATTRIBUTE_U_LN_QN: {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
