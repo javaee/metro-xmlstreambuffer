@@ -169,6 +169,13 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                 XMLStreamBufferMark mark = new XMLStreamBufferMark(inscope, this);
                 next();
                 return mark;
+            } else if((s &TYPE_MASK)==T_DOCUMENT) {
+                //move the pointer to next structure.
+                readStructure();
+                //mark the next start element
+                XMLStreamBufferMark mark = new XMLStreamBufferMark(new HashMap<String, String>(_namespaceAIIsEnd), this);
+                next();
+                return mark;
             }
 
             if(next()==END_ELEMENT)
