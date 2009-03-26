@@ -92,7 +92,7 @@
         <sequential>
             <tstamp />
             <echo>importing to CVS...</echo>
-            <cvs dest="@{src}">
+            <cvs dest="@{src}" failonerror="true">
                 <commandline>
                     <argument value="-d@{cvsroot}"/>
                     <argument line="-z9 import -ko"/>
