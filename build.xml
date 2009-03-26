@@ -114,7 +114,7 @@
         <!--
         <cvs-import src="build/maven-repo" dest="fi/repo" cvsroot=":pserver:${user.name}@java-net-cvs:/cvs" />
         -->
-        <cvs-import src="build/maven-repo" dest="xmlstreambuffer/repo" cvsroot=":pserver:${java.net.user.name}@kohsuke.sfbay.sun.com:/cvs" />
+        <cvs-import src="build/maven-repo" dest="xmlstreambuffer/repo" cvsroot=":pserver:${java.net.user.name}@cvs.dev.java.net:/cvs" />
     </target>
 
 </project>
