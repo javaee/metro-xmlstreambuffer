@@ -388,7 +388,7 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                 default:
                     throw new XMLStreamException("Invalid State "+item);
             }
-        } while(depth > 0 && _treeCount>0);
+        } while(depth > 0 || _treeCount>0);
         
     }
 
