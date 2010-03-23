@@ -111,7 +111,7 @@
 
     </target>
 
-    <target name="push-to-m2">
+    <target name="push-to-m2" depends="mavenize">
         <delete dir="build/maven2-repo"/>
         <mkdir dir="build/maven2-repo"/>
 
