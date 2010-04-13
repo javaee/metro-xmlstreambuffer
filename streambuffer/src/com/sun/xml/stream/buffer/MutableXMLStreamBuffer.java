@@ -91,7 +91,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
 
         // Set the first element of structure array to indicate an empty buffer
         // that has not been created
-        _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
+        _structure.getArray()[0] = (byte) AbstractCreatorProcessor.T_END;
     }
 
     /**
@@ -213,7 +213,7 @@ public class MutableXMLStreamBuffer extends XMLStreamBuffer {
 
         // Set the first element of structure array to indicate an empty buffer
         // that has not been created
-        _structure.getArray()[0] = AbstractCreatorProcessor.T_END;
+        _structure.getArray()[0] = (byte)AbstractCreatorProcessor.T_END;
 
         // Clean up content objects
         _contentObjects.setNext(null);

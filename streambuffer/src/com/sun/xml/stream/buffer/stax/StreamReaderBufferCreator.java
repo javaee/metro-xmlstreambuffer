@@ -330,6 +330,17 @@ public class StreamReaderBufferCreator extends StreamBufferCreator {
         storeNamespaceAttributes(ns);
     }
 
+    /**
+     * A low level method a create a structure element explicitly. This is
+     * required to support {@link #storeElement} method.
+     *
+     * WARNING: Instead of using this, try other methods(if you don't know what
+     * you are doing).
+     */
+    public void storeEndElement() {
+        storeStructure(T_END);
+    }
+
     private void storeNamespaceAttributes(XMLStreamReader reader) {
         int count = reader.getNamespaceCount();
         for (int i = 0; i < count; i++) {

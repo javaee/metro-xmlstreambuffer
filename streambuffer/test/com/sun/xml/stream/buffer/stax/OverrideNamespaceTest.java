@@ -5,7 +5,6 @@ import com.sun.xml.stream.buffer.MutableXMLStreamBuffer;
 import com.sun.xml.stream.buffer.XMLStreamBufferResult;
 
 import java.io.StringReader;
-import java.io.FileInputStream;
 import java.util.*;
 import java.net.URL;
 import javax.xml.stream.XMLInputFactory;
@@ -184,6 +183,8 @@ public class OverrideNamespaceTest extends TestCase {
             }
             c.create(rdr);
         }
+        c.storeEndElement();
+        c.storeEndElement();
 
         XMLStreamReader rdr1 = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();

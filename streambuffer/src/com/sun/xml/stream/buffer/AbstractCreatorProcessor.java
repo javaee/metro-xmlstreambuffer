@@ -67,7 +67,6 @@ public abstract class AbstractCreatorProcessor {
      * Highest nibble is used.
      */
     protected static final int TYPE_MASK                     = 0xF0;
-    protected static final int T_END                         = 0x00;
     protected static final int T_DOCUMENT                    = 0x10;
     protected static final int T_ELEMENT                     = 0x20;
     protected static final int T_ATTRIBUTE                   = 0x30;
@@ -76,6 +75,7 @@ public abstract class AbstractCreatorProcessor {
     protected static final int T_COMMENT                     = 0x60;
     protected static final int T_PROCESSING_INSTRUCTION      = 0x70;
     protected static final int T_UNEXPANDED_ENTITY_REFERENCE = 0x80;
+    protected static final int T_END                         = 0x90;
 
     /*
      * Composed types.
