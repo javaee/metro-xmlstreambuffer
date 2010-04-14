@@ -162,11 +162,15 @@ public class OverrideNamespaceTest extends TestCase {
               "</S:Body>" +
             "</S:Envelope>";
 
+        verifyStreamMessageCopy(str);
+    }
+
+    private void verifyStreamMessageCopy(String str) throws XMLStreamException {
         XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
         rdr.nextTag();
         rdr.nextTag();
         rdr.nextTag();
-        
+
         MutableXMLStreamBuffer xsb = new MutableXMLStreamBuffer();
         StreamReaderBufferCreator c = new StreamReaderBufferCreator(xsb);
 
@@ -183,8 +187,9 @@ public class OverrideNamespaceTest extends TestCase {
             }
             c.create(rdr);
         }
-        c.storeEndElement();
-        c.storeEndElement();
+        c.storeEndElement();        // </Envelope>
+        c.storeEndElement();        // </Body>
+        c.storeEndElement();        // END_DOCUMENT
 
         XMLStreamReader rdr1 = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(str));
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
@@ -223,6 +228,17 @@ public class OverrideNamespaceTest extends TestCase {
         XMLStreamReader rdr = XMLInputFactory.newInstance().createXMLStreamReader(wsdl.openStream());
         XMLStreamReader xsbrdr = xsb.readAsXMLStreamReader();
         compareReaderQNames(rdr, xsbrdr, "a", "wsdl", "soap", "xsd");
+    }
+
+    public void testForest() throws Exception {
+        String str =
+            "<S:Envelope xmlns:S='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ns4='A'>" +
+              "<S:Body xmlns:ns4='http://schemas.xmlsoap.org/soap/envelope/'>" +
+                "<S:Fault/>" +
+                "<S:Fault1/>" +
+              "</S:Body>" +
+            "</S:Envelope>";
+        verifyStreamMessageCopy(str);
     }
 
 
