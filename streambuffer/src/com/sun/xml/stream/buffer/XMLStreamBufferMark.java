@@ -53,7 +53,9 @@ public class XMLStreamBufferMark extends XMLStreamBuffer {
      * position of creation of the XMLStreamBuffer will be taken as the mark.
      */
     public XMLStreamBufferMark(Map<String,String> inscopeNamespaces, AbstractCreatorProcessor src) {
-        _inscopeNamespaces = inscopeNamespaces;
+        if(inscopeNamespaces != null) {
+            _inscopeNamespaces = inscopeNamespaces;
+        }
         
         _structure = src._currentStructureFragment;
         _structurePtr = src._structurePtr;
