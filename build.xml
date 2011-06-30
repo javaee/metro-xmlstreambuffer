@@ -68,18 +68,23 @@
 
     <property name="maven.ant.task.jar" value="maven-ant-tasks-2.0.10.jar"/>
     <property name="java.net.maven2.repo" value="http://download.java.net/maven/2"/>
-    <property name="java.net.maven2.repo.push.url" value="java-net:/maven2-repository/trunk/repository"/>
+    <property name="java.net.maven2.repo.push.url" value="java-net:/maven2-repository~svn/trunk/repository/"/>
     
     <target name="check-maven-ant-task">
         <available property="maven.ant.task.available" value="true" file="tools/lib/${maven.ant.task.jar}"
                    type="file"/>
     </target>
-    <target name="init-maven-ant" depends="check-maven-ant-task" unless="maven.ant.task.available">
+    <target name="init-maven-ant" depends="check-maven-ant-task,setproxy" unless="maven.ant.task.available">
         <echo message="Fetching Maven ant task..."/>
         <get src="http://archive.apache.org/dist/maven/binaries/${maven.ant.task.jar}"
              dest="tools/lib/${maven.ant.task.jar}" verbose="true"/>
     </target>
+    <target name="setproxy">
+        <property  name="proxy.host" value="www-proxy.us.oracle.com"/>
+        <property name="proxy.port" value="80"/>
 
+      <setproxy proxyhost="${proxy.host}" proxyport="${proxy.port}"/>
+    </target>
     <macrodef name="prepare-pom">
         <attribute name="module"/>
         <sequential>
