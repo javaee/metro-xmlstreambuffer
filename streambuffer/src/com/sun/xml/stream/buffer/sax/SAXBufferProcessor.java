@@ -58,6 +58,10 @@ import org.xml.sax.helpers.LocatorImpl;
 
 import javax.xml.XMLConstants;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A processor of a {@link XMLStreamBuffer} that that reads the XML infoset as
@@ -319,7 +323,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     // Empty buffer
                     return;
                 case STATE_ELEMENT_U_LN_QN:
-                    processElement(readStructureString(), readStructureString(), readStructureString());
+                    processElement(readStructureString(), readStructureString(), readStructureString(), isInscope());
                     _treeCount--;
                     break;
                 case STATE_ELEMENT_P_U_LN:
@@ -327,21 +331,21 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    processElement(uri, localName, getQName(prefix, localName));
+                    processElement(uri, localName, getQName(prefix, localName),isInscope());
                     _treeCount--;
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    processElement(uri, localName, localName);
+                    processElement(uri, localName, localName,isInscope());
                     _treeCount--;
                     break;
                 }
                 case STATE_ELEMENT_LN:
                 {
                     final String localName = readStructureString();
-                    processElement("", localName, localName);
+                    processElement("", localName, localName,isInscope());
                     _treeCount--;
                     break;
                 }
@@ -387,31 +391,35 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         return spe;
     }
 
+    private boolean isInscope() {
+        return _buffer.getInscopeNamespaces().size() > 0;
+    }
+
     private void processDocument() throws SAXException {
         while(true) {
             int item = readEiiState();
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN:
-                    processElement(readStructureString(), readStructureString(), readStructureString());
+                    processElement(readStructureString(), readStructureString(), readStructureString(),isInscope());
                     break;
                 case STATE_ELEMENT_P_U_LN:
                 {
                     final String prefix = readStructureString();
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    processElement(uri, localName, getQName(prefix, localName));
+                    processElement(uri, localName, getQName(prefix, localName),isInscope());
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
                     final String uri = readStructureString();
                     final String localName = readStructureString();
-                    processElement(uri, localName, localName);
+                    processElement(uri, localName, localName,isInscope());
                     break;
                 }
                 case STATE_ELEMENT_LN:
                 {
                     final String localName = readStructureString();
-                    processElement("", localName, localName);
+                    processElement("", localName, localName,isInscope());
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_SMALL:
@@ -437,14 +445,19 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         }
     }
 
-    protected void processElement(String uri, String localName, String qName) throws SAXException {
+    protected void processElement(String uri, String localName, String qName, boolean inscope) throws SAXException {
         boolean hasAttributes = false;
         boolean hasNamespaceAttributes = false;
         int item = peekStructure();
+        Set<String> prefixSet = inscope ? new HashSet<String>() : Collections.<String>emptySet();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             hasNamespaceAttributes = true;
-            item = processNamespaceAttributes(item);
+            item = processNamespaceAttributes(item, inscope, prefixSet);
         }        
+        if (inscope) {
+            readInscopeNamespaces(prefixSet);
+        }
+
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             hasAttributes = true;
             processAttributes(item);
@@ -460,25 +473,25 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
             item = readEiiState();
             switch(item) {
                 case STATE_ELEMENT_U_LN_QN:
-                    processElement(readStructureString(), readStructureString(), readStructureString());
+                    processElement(readStructureString(), readStructureString(), readStructureString(), false);
                     break;
                 case STATE_ELEMENT_P_U_LN:
                 {
                     final String p = readStructureString();
                     final String u = readStructureString();
                     final String ln = readStructureString();
-                    processElement(u, ln, getQName(p, ln));
+                    processElement(u, ln, getQName(p, ln),false);
                     break;
                 }
                 case STATE_ELEMENT_U_LN: {
                     final String u = readStructureString();
                     final String ln = readStructureString();
-                    processElement(u, ln, ln);
+                    processElement(u, ln, ln,false);
                     break;
                 }
                 case STATE_ELEMENT_LN: {
                     final String ln = readStructureString();
-                    processElement("", ln, ln);
+                    processElement("", ln, ln,false);
                     break;
                 }
                 case STATE_TEXT_AS_CHAR_ARRAY_SMALL:
@@ -544,6 +557,21 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         }
     }
 
+    private void readInscopeNamespaces(Set<String> prefixSet) throws SAXException {
+        for (Map.Entry<String, String> e : _buffer.getInscopeNamespaces().entrySet()) {
+            String key = fixNull(e.getKey());
+            // If the prefix is already written, do not write the prefix
+            if (!prefixSet.contains(key)) {
+                processNamespaceAttribute(key,e.getValue());
+            }
+        }
+
+    }
+
+     private static String fixNull(String s) {
+        if (s == null) return "";
+        else return s;
+    }
     private void processCommentAsCharArrayCopy() throws SAXException {
         final char[] ch = readContentCharactersCopy();
         processComment(ch, 0, ch.length);
@@ -565,24 +593,39 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         _namespacePrefixesIndex = start;
     }
     
-    private int processNamespaceAttributes(int item) throws SAXException {
+    private int processNamespaceAttributes(int item,boolean collectPrefixes, Set<String> prefixSet) throws SAXException {
         do {
+            String prefix;
             switch(getNIIState(item)) {
                 case STATE_NAMESPACE_ATTRIBUTE:
                     // Undeclaration of default namespace
                     processNamespaceAttribute("", "");
+                    if(collectPrefixes) {
+                        prefixSet.add("");
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
-                    processNamespaceAttribute(readStructureString(), "");
+                    prefix = readStructureString();
+                    processNamespaceAttribute(prefix, "");
+                    if(collectPrefixes) {
+                        prefixSet.add(prefix);
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
-                    processNamespaceAttribute(readStructureString(), readStructureString());
+                   prefix = readStructureString();
+                    processNamespaceAttribute(prefix, readStructureString());
+                    if(collectPrefixes) {
+                        prefixSet.add(prefix);
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
                     processNamespaceAttribute("", readStructureString());
+                    if(collectPrefixes) {
+                        prefixSet.add("");
+                    }
                     break;
                 default:
                     throw reportFatalError("Illegal state: "+item);
