@@ -96,7 +96,7 @@
         <typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="urn:maven-artifact-ant"
                  classpathref="maven-ant-tasks.classpath"/>
         <mkdir dir="build/maven2-repo/test"/>
-        <artifact:install-provider artifactId="wagon-svn" groupId="org.jvnet.wagon-svn" version="1.9"/>
+        <artifact:install-provider artifactId="wagon-svn" groupId="org.jvnet.wagon-svn" version="1.12"/>
     </target>
 
     <target name="install-local-m2" depends="mavenize">
