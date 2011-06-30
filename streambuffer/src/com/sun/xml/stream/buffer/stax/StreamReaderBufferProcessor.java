@@ -52,11 +52,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * A processor of a {@link XMLStreamBuffer} that reads the XML infoset as
@@ -249,17 +245,17 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     final String localName = readStructureString();
                     final String prefix = getPrefixFromQName(readStructureString());
 
-                    processElement(prefix, uri, localName);
+                    processElement(prefix, uri, localName, isInscope(_depth));
                     return _eventType = START_ELEMENT;
                 }
                 case STATE_ELEMENT_P_U_LN:
-                    processElement(readStructureString(), readStructureString(), readStructureString());
+                    processElement(readStructureString(), readStructureString(), readStructureString(),isInscope(_depth));
                     return _eventType = START_ELEMENT;
                 case STATE_ELEMENT_U_LN:
-                    processElement(null, readStructureString(), readStructureString());
+                    processElement(null, readStructureString(), readStructureString(),isInscope(_depth));
                     return _eventType = START_ELEMENT;
                 case STATE_ELEMENT_LN:
-                    processElement(null, null, readStructureString());
+                    processElement(null, null, readStructureString(),isInscope(_depth));
                     return _eventType = START_ELEMENT;
                 case STATE_TEXT_AS_CHAR_ARRAY_SMALL:
                     _textLen = readStructure();
@@ -739,21 +735,25 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         throw new IllegalStateException("");
     }
 
-    protected void processElement(String prefix, String uri, String localName) {
+    protected void processElement(String prefix, String uri, String localName, boolean inscope) {
         pushElementStack();
         _stackTop.set(prefix, uri, localName);
 
         _attributeCache.clear();
 
         int item = peekStructure();
-        if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
+        if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE || inscope) {
             // Skip the namespace declarations on the element
             // they will have been added already
-            item = processNamespaceAttributes(item);
+            item = processNamespaceAttributes(item, inscope);
         }
         if ((item & TYPE_MASK) == T_ATTRIBUTE) {
             processAttributes(item);
         }
+    }
+
+    private boolean isInscope(int depth) {
+        return _buffer.getInscopeNamespaces().size() > 0 && depth ==0;
     }
 
     private void resizeNamespaceAttributes() {
@@ -766,10 +766,11 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
         _namespaceAIIsNamespaceName = namespaceAIIsNamespaceName;
     }
 
-    private int processNamespaceAttributes(int item){
+    private int processNamespaceAttributes(int item, boolean inscope){
         _stackTop.namespaceAIIsStart = _namespaceAIIsEnd;
+        Set<String> prefixSet = inscope ? new HashSet<String>() : Collections.<String>emptySet();
 
-        do {
+        while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
             if (_namespaceAIIsEnd == _namespaceAIIsPrefix.length) {
                 resizeNamespaceAttributes();
             }
@@ -779,31 +780,61 @@ public class StreamReaderBufferProcessor extends AbstractProcessor implements XM
                     // Undeclaration of default namespace
                     _namespaceAIIsPrefix[_namespaceAIIsEnd] =
                     _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = "";
+                    if (inscope) {
+                        prefixSet.add("");
+                    }
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P:
                     // Undeclaration of namespace
                     _namespaceAIIsPrefix[_namespaceAIIsEnd] = readStructureString();
+                    if (inscope) {
+                        prefixSet.add(_namespaceAIIsPrefix[_namespaceAIIsEnd]);
+                    }
                     _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = "";
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_P_U:
                     // Declaration with prefix
                     _namespaceAIIsPrefix[_namespaceAIIsEnd] = readStructureString();
+                    if (inscope) {
+                        prefixSet.add(_namespaceAIIsPrefix[_namespaceAIIsEnd]);
+                    }
                     _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = readStructureString();
                     break;
                 case STATE_NAMESPACE_ATTRIBUTE_U:
                     // Default declaration
                     _namespaceAIIsPrefix[_namespaceAIIsEnd] = "";
+                    if (inscope) {
+                        prefixSet.add("");
+                    }
                     _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = readStructureString();
                     break;
             }
             readStructure();
 
             item = peekStructure();
-        } while((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE);
+        }
 
+        if (inscope) {
+            for (Map.Entry<String, String> e : _buffer.getInscopeNamespaces().entrySet()) {
+                String key = fixNull(e.getKey());
+                // If the prefix is already written, do not write the prefix
+                if (!prefixSet.contains(key)) {
+                    if (_namespaceAIIsEnd == _namespaceAIIsPrefix.length) {
+                        resizeNamespaceAttributes();
+                    }
+                    _namespaceAIIsPrefix[_namespaceAIIsEnd] = key;
+                    _namespaceAIIsNamespaceName[_namespaceAIIsEnd++] = e.getValue();
+                }
+            }
+        }
         _stackTop.namespaceAIIsEnd = _namespaceAIIsEnd;
 
         return item;
+    }
+
+    private static String fixNull(String s) {
+        if (s == null) return "";
+        else return s;
     }
 
     private void processAttributes(int item){
