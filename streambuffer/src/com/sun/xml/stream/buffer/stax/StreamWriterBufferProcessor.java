@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,11 +43,13 @@ package com.sun.xml.stream.buffer.stax;
 import com.sun.xml.stream.buffer.AbstractProcessor;
 import com.sun.xml.stream.buffer.XMLStreamBuffer;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jvnet.staxex.Base64Data;
 import org.jvnet.staxex.XMLStreamWriterEx;
 
 import javax.xml.stream.XMLStreamException;
@@ -374,7 +376,16 @@ public class StreamWriterBufferProcessor extends AbstractProcessor {
                 }
                 case STATE_TEXT_AS_OBJECT: {
                     final CharSequence c = (CharSequence)readContentObject();
-                    writer.writeCharacters(c.toString());
+                    if (c instanceof Base64Data) {
+                        try {
+                            Base64Data bd = (Base64Data)c;
+                            bd.writeTo(writer);
+                        } catch (IOException e) {
+                          throw new XMLStreamException(e);
+                        }
+                    } else {
+                         writer.writeCharacters(c.toString());
+                    }
                     break;
                 }
                 case STATE_COMMENT_AS_CHAR_ARRAY_SMALL: {
