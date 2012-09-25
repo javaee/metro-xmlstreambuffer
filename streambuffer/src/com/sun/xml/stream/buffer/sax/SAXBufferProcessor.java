@@ -102,7 +102,8 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
     
     protected String[] _namespacePrefixes = new String[16];
     protected int _namespacePrefixesIndex;
-    
+
+    protected int[] _namespaceAttributesStartingStack = new int[16];
     protected int[] _namespaceAttributesStack = new int[16];
     protected int _namespaceAttributesStackIndex;
 
@@ -451,6 +452,7 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         int item = peekStructure();
         Set<String> prefixSet = inscope ? new HashSet<String>() : Collections.<String>emptySet();
         if ((item & TYPE_MASK) == T_NAMESPACE_ATTRIBUTE) {
+            cacheNamespacePrefixStartingIndex();
             hasNamespaceAttributes = true;
             item = processNamespaceAttributes(item, inscope, prefixSet);
         }        
@@ -585,7 +587,8 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
 
     private void processEndPrefixMapping() throws SAXException {
         final int end = _namespaceAttributesStack[--_namespaceAttributesStackIndex];
-        final int start = (_namespaceAttributesStackIndex > 0) ? _namespaceAttributesStack[_namespaceAttributesStackIndex] : 0;
+//      final int start = (_namespaceAttributesStackIndex > 0) ? _namespaceAttributesStack[_namespaceAttributesStackIndex] : 0;
+        final int start = (_namespaceAttributesStackIndex >= 0) ? _namespaceAttributesStartingStack[_namespaceAttributesStackIndex] : 0;
         
         for (int i = end - 1; i >= start; i--) {
             _contentHandler.endPrefixMapping(_namespacePrefixes[i]);
@@ -712,6 +715,15 @@ public class SAXBufferProcessor extends AbstractProcessor implements XMLReader {
         }
 
         _namespaceAttributesStack[_namespaceAttributesStackIndex++] = _namespacePrefixesIndex;
+    }
+    
+    private void cacheNamespacePrefixStartingIndex() {
+        if (_namespaceAttributesStackIndex == _namespaceAttributesStartingStack.length) {
+            final int[] namespaceAttributesStart = new int[_namespaceAttributesStackIndex * 3 /2 + 1];
+            System.arraycopy(_namespaceAttributesStartingStack, 0, namespaceAttributesStart, 0, _namespaceAttributesStackIndex);
+            _namespaceAttributesStartingStack = namespaceAttributesStart;
+        }
+        _namespaceAttributesStartingStack[_namespaceAttributesStackIndex] = _namespacePrefixesIndex;
     }
     
     private void processComment(String s)  throws SAXException {
