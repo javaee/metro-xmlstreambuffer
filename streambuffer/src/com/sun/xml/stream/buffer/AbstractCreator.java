@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -146,7 +146,7 @@ public class AbstractCreator extends AbstractCreatorProcessor {
         }
 
         if (length < CHAR_ARRAY_LENGTH_SMALL_SIZE) {
-            storeStructure(type | CHAR_ARRAY_LENGTH_SMALL);
+            storeStructure(type);
             storeStructure(length);
             System.arraycopy(ch, start, _contentCharactersBuffer, _contentCharactersBufferPtr, length);
             _contentCharactersBufferPtr += length;
