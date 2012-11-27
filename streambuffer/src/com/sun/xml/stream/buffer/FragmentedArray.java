@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2005-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,10 +40,10 @@
 
 package com.sun.xml.stream.buffer;
 
-class FragmentedArray<T> {
-    protected T _item;
-    protected FragmentedArray<T> _next;
-    protected FragmentedArray<T> _previous;
+final class FragmentedArray<T> {
+    private T _item;
+    private FragmentedArray<T> _next;
+    private FragmentedArray<T> _previous;
     
     FragmentedArray(T item) {
         this(item, null);
