@@ -1,2 +1,1 @@
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header xmlns:h="http://h"><a:block xmlns:a="http://a"/><b:block xmlns:b="http://b"/><c:block xmlns:c="http://a"><c:contents>contents</c:contents></c:block><d:block xmlns:d="http://d" xmlns:h="http://H"/></s:Header><s:Body/></s:Envelope>
-
