@@ -157,7 +157,7 @@ public abstract class XMLStreamBuffer {
      * <code>true</code> if the buffer has been created.
      */
     public final boolean isCreated() {
-        return _structure.getArray()[0] != AbstractCreatorProcessor.T_END;
+        return (_structure.getArray()[0] & AbstractCreatorProcessor.TYPE_MASK)  != AbstractCreatorProcessor.T_END;
     }
 
     /**
