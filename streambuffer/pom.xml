@@ -205,7 +205,7 @@
                     </formats>
                     <check>
                       <totalLineRate>45</totalLineRate>
-                      <packageLineRate>45</packageLineRate>
+                      <packageLineRate>40</packageLineRate>
                       <haltOnFailure>true</haltOnFailure>
                     </check>
                 </configuration>
