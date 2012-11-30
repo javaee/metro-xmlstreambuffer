@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+
+<definitions xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns="http://schemas.xmlsoap.org/wsdl/">
+
+<types>
+<xs:schema targetNamespace="urn:rde-validate"
+xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+<xs:complexType name="personType">
+</xs:complexType>
+
+<xs:complexType name="type">
+</xs:complexType>
+
+</xs:schema>
+</types>
+
+</definitions>
