@@ -76,37 +76,32 @@
 
     <developers>
         <developer>
-            <name>Jitendra Kotamraju</name>
-            <email>jitendra.kotamraju@oracle.com</email>
-            <organization>Oracle Corporation</organization>
-        </developer>
-        <developer>
-            <name>Rama Pulavarthi</name>
-            <email>rama.pulavarthi@oracle.com</email>
-            <organization>Oracle Corporation</organization>
-        </developer>
-        <developer>
             <name>Martin Grebac</name>
             <email>martin.grebac@oracle.com</email>
+            <organization>Oracle Corporation</organization>
+        </developer>
+        <developer>
+            <name>Lukas Jungmann</name>
+            <email>lukas.jungmann@oracle.com</email>
+            <organization>Oracle Corporation</organization>
+        </developer>
+        <developer>
+            <name>Miroslav Kos</name>
+            <email>miroslav.kos@oracle.com</email>
+            <organization>Oracle Corporation</organization>
+        </developer>
+        <developer>
+            <name>Jaroslav Savytskyi</name>
+            <email>iaroslav.savytskyi@oracle.com</email>
             <organization>Oracle Corporation</organization>
         </developer>
     </developers>
 
     <dependencies>
         <dependency>
-            <groupId>javax.xml.stream</groupId>
-            <artifactId>stax-api</artifactId>
-            <version>1.0-2</version>
-        </dependency>
-        <dependency>
             <groupId>org.jvnet.staxex</groupId>
             <artifactId>stax-ex</artifactId>
             <version>1.7.1</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -126,6 +121,29 @@
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>test</testSourceDirectory>
         <plugins>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.0.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <rules>
+                        <requireJavaVersion>
+                            <version>[1.6,)</version>
+                        </requireJavaVersion>
+                        <requireMavenVersion>
+                            <version>[3.0.3,)</version>
+                        </requireMavenVersion>
+                        <DependencyConvergence/>
+                    </rules>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
