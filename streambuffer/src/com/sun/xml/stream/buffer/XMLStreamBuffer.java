@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2005-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -385,7 +385,12 @@ public abstract class XMLStreamBuffer {
         writeTo(handler, errorHandler, isFragment());        
     }
 
-    private static final TransformerFactory trnsformerFactory = TransformerFactory.newInstance();
+    private static final ContextClassloaderLocal<TransformerFactory> trnsformerFactory = new ContextClassloaderLocal<TransformerFactory>() {
+        @Override
+        protected TransformerFactory initialValue() throws Exception {
+            return TransformerFactory.newInstance();
+        }
+    };
 
     /**
      * Writes out the contents of this buffer as DOM node and append that to the given node.
@@ -397,7 +402,7 @@ public abstract class XMLStreamBuffer {
      */
     public final Node writeTo(Node n) throws XMLStreamBufferException {
         try {
-            Transformer t = trnsformerFactory.newTransformer();
+            Transformer t = trnsformerFactory.get().newTransformer();
             t.transform(new XMLStreamBufferSource(this), new DOMResult(n));
             return n.getLastChild();
         } catch (TransformerException e) {
