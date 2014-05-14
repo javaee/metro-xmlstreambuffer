@@ -50,7 +50,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.xml.stream.buffer</groupId>
     <artifactId>streambuffer</artifactId>
-    <version>1.5.4</version>
+    <version>1.5.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xmlstreambuffer</name>
@@ -59,9 +59,9 @@
     <url>http://xmlstreambuffer.java.net/</url>
 
     <scm>
-      <connection>scm:svn:https://svn.java.net/svn/xmlstreambuffer~svn/tags/streambuffer-1.5.4</connection>
-      <developerConnection>scm:svn:https://svn.java.net/svn/xmlstreambuffer~svn/tags/streambuffer-1.5.4</developerConnection>
-      <url>http://java.net/projects/xmlstreambuffer/sources/svn/show/tags/streambuffer-1.5.4</url>
+      <connection>scm:svn:https://svn.java.net/svn/xmlstreambuffer~svn/trunk/streambuffer</connection>
+      <developerConnection>scm:svn:https://svn.java.net/svn/xmlstreambuffer~svn/trunk/streambuffer</developerConnection>
+      <url>http://java.net/projects/xmlstreambuffer/sources/svn/show/trunk/streambuffer</url>
     </scm>
 
     <licenses>
