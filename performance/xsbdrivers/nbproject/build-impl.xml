@@ -21,6 +21,11 @@ is divided into following sections:
 -->
 <project name="xsbdrivers-impl" default="default" basedir=".." xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3" xmlns:j2seproject2="http://www.netbeans.org/ns/j2se-project/2" xmlns:j2seproject1="http://www.netbeans.org/ns/j2se-project/1">
     <target name="default" depends="test,jar,javadoc" description="Build and test whole project."/>
+    <path id="class.path">
+        <fileset dir="../../streambuffer" includes="target/*.jar"/>
+        <fileset dir="./lib" includes="*.jar"/>
+    </path>
+    <property name="javac.classPath" refid="class.path"/>
     <!-- 
     ======================
     INITIALIZATION SECTION 
@@ -234,7 +239,7 @@ is divided into following sections:
     ===================
     -->
     <target name="deps-jar" depends="init" unless="no.deps">
-        <ant target="jar" inheritall="false" antfile="${project.streambuffer}/build.xml"/>
+       <!-- <ant target="jar" inheritall="false" antfile="${project.streambuffer}/build.xml"/>-->
     </target>
     <target name="-pre-pre-compile" depends="init,deps-jar">
         <mkdir dir="${build.classes.dir}"/>
@@ -244,7 +249,7 @@ is divided into following sections:
         <!-- You can override this target in the ../build.xml file. -->
     </target>
     <target name="-do-compile" depends="init,deps-jar,-pre-pre-compile,-pre-compile" if="have.sources">
-        <j2seproject3:javac/>
+        <j2seproject3:javac classpath="${javac.classPath}" />
         <copy todir="${build.classes.dir}">
             <fileset dir="${src.dir}" excludes="${build.classes.excludes}"/>
         </copy>
@@ -394,6 +399,7 @@ is divided into following sections:
         <javadoc destdir="${dist.javadoc.dir}" source="${javac.source}" notree="${javadoc.notree}" use="${javadoc.use}" nonavbar="${javadoc.nonavbar}" noindex="${javadoc.noindex}" splitindex="${javadoc.splitindex}" author="${javadoc.author}" version="${javadoc.version}" windowtitle="${javadoc.windowtitle}" private="${javadoc.private}" additionalparam="${javadoc.additionalparam}" failonerror="true" useexternalfile="true">
             <classpath>
                 <path path="${javac.classpath}"/>
+                <path refid="class.path"/>
             </classpath>
             <sourcepath>
                 <pathelement location="${src.dir}"/>

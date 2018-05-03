@@ -17,8 +17,7 @@
 	<fileset dir="${xsbdrivers.dir}" includes="lib/**/*.jar"/>
 	<fileset dir="${xsbdrivers.dir}" includes="dist/*.jar"/>
 	<fileset dir="${roundtriptest.dir}" includes="lib/*.jar"/>
-	<fileset dir="${streambuffer.dir}" includes="lib/*.jar"/>
-	<fileset dir="${streambuffer.dir}" includes="dist/*.jar"/>
+	<fileset dir="${streambuffer.dir}" includes="target/*.jar"/>
     </path>
 
     <property name="japex.classPath" refid="japex.class.path"/>
@@ -36,6 +35,7 @@
                 classname="com.sun.japex.Japex">
             <jvmarg value="-server"/>
             <jvmarg value="-XX:+UseJumpTables"/>
+            <jvmarg value="-Djava.endorsed.dirs=./xsbdrivers/lib"/>
 <!--
             <jvmarg value="-verbose:gc"/>
             <jvmarg value="-Xms384m"/>
