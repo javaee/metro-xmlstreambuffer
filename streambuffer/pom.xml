@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 1997-2014 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 1997-2018 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -44,13 +44,13 @@
     <parent>
         <groupId>net.java</groupId>
         <artifactId>jvnet-parent</artifactId>
-        <version>3</version>
+        <version>5</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.sun.xml.stream.buffer</groupId>
     <artifactId>streambuffer</artifactId>
-    <version>1.5.5-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>xmlstreambuffer</name>
@@ -59,9 +59,9 @@
     <url>http://xmlstreambuffer.java.net/</url>
 
     <scm>
-      <connection>scm:svn:https://svn.java.net/svn/xmlstreambuffer~svn/trunk/streambuffer</connection>
-      <developerConnection>scm:svn:https://svn.java.net/svn/xmlstreambuffer~svn/trunk/streambuffer</developerConnection>
-      <url>http://java.net/projects/xmlstreambuffer/sources/svn/show/trunk/streambuffer</url>
+        <connection>scm:git:git://java.net/jaxb~v2</connection>
+        <developerConnection>scm:git:ssh://git.java.net/jaxb~v2</developerConnection>
+        <url>http://java.net/projects/jaxb/sources/v2/show</url>
     </scm>
 
     <licenses>
@@ -101,12 +101,12 @@
         <dependency>
             <groupId>org.jvnet.staxex</groupId>
             <artifactId>stax-ex</artifactId>
-            <version>1.7.1</version>
+            <version>1.8</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -142,15 +142,6 @@
                         </requireMavenVersion>
                         <DependencyConvergence />
                     </rules>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -275,7 +266,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.0.0</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>bundle-manifest</id>
@@ -292,6 +283,37 @@
                 <version>2.7</version>
                 <configuration>
                     <retryFailedDeploymentCount>10</retryFailedDeploymentCount>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <release>9</release>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>base-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <release>7</release>
+                            <excludes>
+                                <exclude>module-info.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <release>9</release>
                 </configuration>
             </plugin>
         </plugins>
@@ -313,72 +335,6 @@
         <findbugs.threshold>Low</findbugs.threshold>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>jdk9-setup</id>
-            <activation>
-                <jdk>[9,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>default-compile</id>
-                                <configuration>
-                                    <jdkToolchain>
-                                        <version>9</version>
-                                    </jdkToolchain>
-                                    <source>9</source>
-                                    <target>9</target>
-                                    <includes>
-                                        <include>module-info.java</include>
-                                    </includes>
-                                </configuration>
-                            </execution>
-                             <execution>
-                                <id>base-compile</id>
-                                <goals>
-                                    <goal>compile</goal>
-                                </goals>
-                                <configuration>
-                                    <source>1.7</source>
-                                    <target>1.7</target>
-                                    <jdkToolchain>
-                                        <version>1.7</version>
-                                    </jdkToolchain>
-                                    <excludes>
-                                        <exclude>module-info.java</exclude>
-                                    </excludes>
-                                </configuration>
-                           </execution>
-                       </executions>
-                    </plugin>
-                     <plugin>
-                        <groupId>org.apache.felix</groupId>
-                        <artifactId>maven-bundle-plugin</artifactId>
-                        <configuration>
-                            <instructions>
-                                <_failok>true</_failok>
-                            </instructions>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <argLine>
-                                --add-modules java.activation
-                                --upgrade-module-path ${endorsed.dir}
-                            </argLine>
-                        </configuration>
-                    </plugin>
-               </plugins>
-            </build>
-      </profile>
-    </profiles>
 
   
 </project>
