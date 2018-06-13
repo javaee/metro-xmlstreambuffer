@@ -59,9 +59,10 @@
     <url>http://xmlstreambuffer.java.net/</url>
 
     <scm>
-        <connection>scm:git:git://java.net/jaxb~v2</connection>
-        <developerConnection>scm:git:ssh://git.java.net/jaxb~v2</developerConnection>
-        <url>http://java.net/projects/jaxb/sources/v2/show</url>
+        <connection>scm:git:git@github.com:javaee/metro-xmlstreambuffer.git</connection>
+        <developerConnection>scm:git:git@github.com:javaee/metro-xmlstreambuffer.git</developerConnection>
+        <url>https://github.com/javaee/metro-xmlstreambuffer</url>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
