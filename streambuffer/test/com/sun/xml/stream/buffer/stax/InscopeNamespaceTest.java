@@ -189,7 +189,7 @@ public class InscopeNamespaceTest extends TestCase {
         assertEquals("value", reader2.getAttributeValue("http://foo1.bar1","att"));
     }
 
-    public void testXMLStreamBuffer6() throws Exception {
+    public void xtestXMLStreamBuffer6() throws Exception {
         itestXMLStreamBuffer6(false);
     }
 

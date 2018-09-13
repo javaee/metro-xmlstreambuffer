@@ -42,8 +42,10 @@
             <jvmarg value="-Xmx384m"/>
 -->
             <jvmarg value="-Djapex.classPath=${japex.classPath}"/>
+<!--            <jvmarg value="-Djapex.chartType=barchart"/>-->
             <classpath refid="class.path"/>
             <arg line="${config}"/>
+            <arg line="-nohtml"/>
         </java>
     </target>
 
